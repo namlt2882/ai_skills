@@ -39,7 +39,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOCODE_SKILLS_DIR="$HOME/.roo/skills"
 OPENCODE_CONFIG_DIR="$HOME/.config/opencode"
 OPENCODE_CONFIG_FILE="$OPENCODE_CONFIG_DIR/opencode.json"
-OPENCLAW_SKILLS_DIR="$HOME/.openclaw/skills"
+OPENCLAW_SKILLS_DIR="$HOME/.openclaw/workspace/skills/"
 
 # Available skills (detected from current directory)
 AVAILABLE_SKILLS=()
