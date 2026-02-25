@@ -150,8 +150,16 @@ function calculateConfidence(text: string, languageCode: string): number {
 function detectScript(text: string): string {
   // Check for Chinese characters
   if (/[\u4e00-\u9fff]/.test(text)) return 'Han'
-  // Check for Vietnamese diacritics
-  if (/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(text)) return 'Latin'
+  
+  // Check for Vietnamese diacritics - Enhanced pattern
+  // Vietnamese uses Latin script with 6 tone marks and 12 vowel/diacritic combinations
+  const vietnamesePattern = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i
+  
+  // Additional Vietnamese-specific patterns for better detection
+  const vietnameseWords = /\b(tôi|bạn|cảm|ơn|được|không|có|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|người|việt|nam|nữ|trẻ|con|chó|mèo|gà|bò|cá|heo|lợn|gà|vịt|thịt|bún|phở|cơm|xôi|gỏi|chả|bánh|trà|cà|phê|sữa|rau|củ|quả|trái|hoa|lá|cây|nhà|trường|học|làm|đi|về|đến|từ|với|cho|của|trên|dưới|sau|trước|giữa|ngoài|trong|ở|và|nhưng|hoặc|nếu|thì|khi|để|mà|như|cũng|đã|sẽ|còn|rất|hơi|quá|lắm|nhiều|ít|đúng|sai|hay|hỏi|đáp|trả|lời|nói|viết|đọc|nghe|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn|ngày|tháng|năm|giờ|phút|giây|tuần|tháng|quý|năm|đời|sống|chết|sinh|mất|tìm|kiếm|được|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn)\b/i
+  
+  if (vietnamesePattern.test(text) || vietnameseWords.test(text)) return 'Latin'
+  
   // Default to Latin for English and other Latin-script languages
   return 'Latin'
 }
@@ -208,14 +216,39 @@ class LanguageDetector:
         """Detect script family from characters."""
         if re.search(r'[\u4e00-\u9fff]', text):
             return 'Han'
+        
+        # Enhanced Vietnamese detection with word patterns
+        vietnamese_words = re.compile(
+            r'\b(tôi|bạn|cảm|ơn|được|không|có|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|người|việt|nam|nữ|trẻ|con|chó|mèo|gà|bò|cá|heo|lợn|gà|vịt|thịt|bún|phở|cơm|xôi|gỏi|chả|bánh|trà|cà|phê|sữa|rau|củ|quả|trái|hoa|lá|cây|nhà|trường|học|làm|đi|về|đến|từ|với|cho|của|trên|dưới|sau|trước|giữa|ngoài|trong|ở|và|nhưng|hoặc|nếu|thì|khi|để|mà|như|cũng|đã|sẽ|còn|rất|hơi|quá|lắm|nhiều|ít|đúng|sai|hay|hỏi|đáp|trả|lời|nói|viết|đọc|nghe|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn|ngày|tháng|năm|giờ|phút|giây|tuần|tháng|quý|năm|đời|sống|chết|sinh|mất|tìm|kiếm|được|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn)\b',
+            re.IGNORECASE
+        )
+        
+        if vietnamese_words.search(text):
+            return 'Latin'
+        
         return 'Latin'
     
     def _detect_by_script(self, text: str) -> str:
         """Fallback detection based on script."""
         if re.search(r'[\u4e00-\u9fff]', text):
             return 'zh-cn'
-        if re.search(r'[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]', text, re.IGNORECASE):
+        
+        # Enhanced Vietnamese detection with comprehensive patterns
+        vietnamese_diacritics = re.compile(
+            r'[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]',
+            re.IGNORECASE
+        )
+        
+        # Vietnamese word patterns for better detection
+        vietnamese_words = re.compile(
+            r'\b(tôi|bạn|cảm|ơn|được|không|có|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|người|việt|nam|nữ|trẻ|con|chó|mèo|gà|bò|cá|heo|lợn|gà|vịt|thịt|bún|phở|cơm|xôi|gỏi|chả|bánh|trà|cà|phê|sữa|rau|củ|quả|trái|hoa|lá|cây|nhà|trường|học|làm|đi|về|đến|từ|với|cho|của|trên|dưới|sau|trước|giữa|ngoài|trong|ở|và|nhưng|hoặc|nếu|thì|khi|để|mà|như|cũng|đã|sẽ|còn|rất|hơi|quá|lắm|nhiều|ít|đúng|sai|hay|hỏi|đáp|trả|lời|nói|viết|đọc|nghe|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn|ngày|tháng|năm|giờ|phút|giây|tuần|tháng|quý|năm|đời|sống|chết|sinh|mất|tìm|kiếm|được|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn)\b',
+            re.IGNORECASE
+        )
+        
+        # Check for Vietnamese patterns
+        if vietnamese_diacritics.search(text) or vietnamese_words.search(text):
             return 'vi'
+        
         return 'en'
 ```
 
@@ -282,7 +315,7 @@ function buildLanguagePrompt(
 ): string {
   const languageInstructions = {
     en: "You must respond in English only.",
-    vi: "Bạn phải trả lời bằng tiếng Việt.",
+    vi: "Bạn PHẢI trả lời bằng TIẾNG VIỆT. Đây là yêu cầu bắt buộc. Không được sử dụng ngôn ngữ nào khác.",
     zh: "你必须用中文回答。"
   }
   
@@ -303,7 +336,7 @@ function addLanguageContext(
 ): string {
   const languagePrefixes = {
     en: '[English] ',
-    vi: '[Tiếng Việt] ',
+    vi: '[TIẾNG VIỆT] ',
     zh: '[中文] '
   }
   
@@ -388,12 +421,14 @@ function buildStrictLanguagePrompt(
   const strictness = attempt === 1 ? 'Please' : 'You MUST'
   const languageNames = {
     en: 'English',
-    vi: 'Vietnamese',
+    vi: 'TIẾNG VIỆT',
     zh: 'Chinese'
   }
   
-  return `${strictness} respond in ${languageNames[language.language]} only. 
-Do not use any other language. Your response must be entirely in ${languageNames[language.language]}.
+  const strictnessText = strictness === 'Please' ? 'Vui lòng' : 'BẠN PHẢI'
+  
+  return `${strictnessText} trả lời bằng ${languageNames[language.language]} thôi.
+Không được sử dụng bất kỳ ngôn ngữ nào khác. Câu trả lời của bạn phải hoàn toàn bằng ${languageNames[language.language]}.
 
 ${message}`
 }
@@ -426,11 +461,11 @@ function addLanguageWarning(
 ): string {
   const languageNames = {
     en: 'English',
-    vi: 'Vietnamese',
+    vi: 'TIẾNG VIỆT',
     zh: 'Chinese'
   }
   
-  const warning = `\n\n[⚠️ Language Notice: This response is not in ${languageNames[detectedLanguage.language]} as expected. The AI model responded in a different language.]`
+  const warning = `\n\n[⚠️ Cảnh báo ngôn ngữ: Câu trả lời này không phải bằng ${languageNames[detectedLanguage.language]} như mong đợi. Mô hình AI đã trả lời bằng ngôn ngữ khác.]`
   
   return response + warning
 }
@@ -536,6 +571,41 @@ function extractNaturalLanguage(text: string): string {
 }
 ```
 
+### Vietnamese-Specific Handling
+
+Vietnamese language detection requires special attention due to:
+- **Latin script with diacritics**: Vietnamese uses 6 tone marks (à, á, ạ, ả, ã, â, ầ, ấ, ậ, ẩ, ẫ, etc.)
+- **Common words**: Vietnamese has many common function words (tôi, bạn, không, có, được, etc.)
+- **Word patterns**: Vietnamese follows specific grammatical patterns that can be used for detection
+- **Mixed input**: Users often mix Vietnamese with English technical terms
+
+#### Vietnamese Detection Strategy
+
+```typescript
+function detectVietnameseEnhanced(text: string): LanguageDetection {
+  // Check for Vietnamese diacritics
+  const vietnameseDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i
+  if (vietnameseDiacritics.test(text)) {
+    return { language: 'vi', confidence: 0.7, script: 'Latin' }
+  }
+  
+  // Check for Vietnamese word patterns (common Vietnamese words)
+  const vietnameseWords = /\b(tôi|bạn|cảm|ơn|được|không|có|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|người|việt|nam|nữ|trẻ|con|chó|mèo|gà|bò|cá|heo|lợn|gà|vịt|thịt|bún|phở|cơm|xôi|gỏi|chả|bánh|trà|cà|phê|sữa|rau|củ|quả|trái|hoa|lá|cây|nhà|trường|học|làm|đi|về|đến|từ|với|cho|của|trên|dưới|sau|trước|giữa|ngoài|trong|ở|và|nhưng|hoặc|nếu|thì|khi|để|mà|như|cũng|đã|sẽ|còn|rất|hơi|quá|lắm|nhiều|ít|đúng|sai|hay|hỏi|đáp|trả|lời|nói|viết|đọc|nghe|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn|ngày|tháng|năm|giờ|phút|giây|tuần|tháng|quý|năm|đời|sống|chết|sinh|mất|tìm|kiếm|được|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn)\b/i
+  if (vietnameseWords.test(text)) {
+    return { language: 'vi', confidence: 0.8, script: 'Latin' }
+  }
+  
+  // Check for Vietnamese-specific patterns
+  const vietnamesePatterns = /\b(vui|làm|đi|về|đến|từ|với|cho|của|trên|dưới|sau|trước|giữa|ngoài|trong|ở|và|nhưng|hoặc|nếu|thì|khi|để|mà|như|cũng|đã|sẽ|còn|rất|hơi|quá|lắm|nhiều|ít|đúng|sai|hay|hỏi|đáp|trả|lời|nói|viết|đọc|nghe|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn)\b/i
+  if (vietnamesePatterns.test(text)) {
+    return { language: 'vi', confidence: 0.75, script: 'Latin' }
+  }
+  
+  // Default to English if no Vietnamese patterns found
+  return { language: 'en', confidence: 0.4, script: 'Latin' }
+}
+```
+
 ### Short Input Handling
 
 ```typescript
@@ -554,10 +624,18 @@ function handleShortInput(text: string, context?: string): LanguageDetection {
 }
 
 function detectByCharacterHeuristics(text: string): LanguageDetection {
+  // Enhanced Vietnamese detection with comprehensive patterns
+  
   // Check for Vietnamese diacritics
-  const vietnameseChars = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i
-  if (vietnameseChars.test(text)) {
-    return { language: 'vi', confidence: 0.6, script: 'Latin' }
+  const vietnameseDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i
+  if (vietnameseDiacritics.test(text)) {
+    return { language: 'vi', confidence: 0.7, script: 'Latin' }
+  }
+  
+  // Check for Vietnamese word patterns (common Vietnamese words)
+  const vietnameseWords = /\b(tôi|bạn|cảm|ơn|được|không|có|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|người|việt|nam|nữ|trẻ|con|chó|mèo|gà|bò|cá|heo|lợn|gà|vịt|thịt|bún|phở|cơm|xôi|gỏi|chả|bánh|trà|cà|phê|sữa|rau|củ|quả|trái|hoa|lá|cây|nhà|trường|học|làm|đi|về|đến|từ|với|cho|của|trên|dưới|sau|trước|giữa|ngoài|trong|ở|và|nhưng|hoặc|nếu|thì|khi|để|mà|như|cũng|đã|sẽ|còn|rất|hơi|quá|lắm|nhiều|ít|đúng|sai|hay|hỏi|đáp|trả|lời|nói|viết|đọc|nghe|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn|ngày|tháng|năm|giờ|phút|giây|tuần|tháng|quý|năm|đời|sống|chết|sinh|mất|tìm|kiếm|được|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn)\b/i
+  if (vietnameseWords.test(text)) {
+    return { language: 'vi', confidence: 0.8, script: 'Latin' }
   }
   
   // Check for Chinese characters
@@ -770,7 +848,7 @@ ${message}`
   private getLanguageInstructions(language: string): string {
     const instructions: Record<string, string> = {
       en: 'You must respond in English only.',
-      vi: 'Bạn phải trả lời bằng tiếng Việt.',
+      vi: 'Bạn PHẢI trả lời bằng TIẾNG VIỆT. Đây là yêu cầu bắt buộc. Không được sử dụng ngôn ngữ nào khác.',
       zh: '你必须用中文回答。'
     }
     return instructions[language] || 'Please respond in the same language as the user.'
@@ -805,11 +883,11 @@ ${message}`
   ): string {
     const languageNames: Record<string, string> = {
       en: 'English',
-      vi: 'Vietnamese',
+      vi: 'TIẾNG VIỆT',
       zh: 'Chinese'
     }
     
-    return `${response}\n\n[⚠️ Language mismatch detected. Expected ${languageNames[language.language]} but received response in a different language.]`
+    return `${response}\n\n[⚠️ Cảnh báo ngôn ngữ: Câu trả lời này không phải bằng ${languageNames[language.language]} như mong đợi. Mô hình AI đã trả lời bằng ngôn ngữ khác.]`
   }
   
   private logEnforcement(log: LanguageEnforcementLog): void {
@@ -858,6 +936,31 @@ describe('LanguageEnforcer', () => {
     expect(result.confidence).toBeGreaterThan(0.5)
   })
   
+  it('should detect Vietnamese with diacritics correctly', () => {
+    const detector = new LanguageDetector()
+    const result = detector.detect('Tôi cảm ơn bạn đã giúp đỡ tôi.')
+    
+    expect(result.language).toBe('vi')
+    expect(result.confidence).toBeGreaterThan(0.7)
+  })
+  
+  it('should detect Vietnamese without diacritics (telex input)', () => {
+    const detector = new LanguageDetector()
+    const result = detector.detect('Toi cam on ban da giup do toi.')
+    
+    // Should detect as Vietnamese based on word patterns even without diacritics
+    expect(result.language).toBe('vi')
+    expect(result.confidence).toBeGreaterThan(0.5)
+  })
+  
+  it('should detect Vietnamese mixed with English', () => {
+    const detector = new LanguageDetector()
+    const result = detector.detect('Hello xin chào, how are you?')
+    
+    expect(result.isMixed).toBe(true)
+    expect(result.language).toBe('vi')
+  })
+  
   it('should detect Chinese language correctly', () => {
     const detector = new LanguageDetector()
     const result = detector.detect('你好，你好吗？')
@@ -900,10 +1003,12 @@ describe('LanguageEnforcer', () => {
 | Issue | Cause | Solution |
 |-------|-------|----------|
 | Detection returns 'und' | Text too short or contains mostly code | Use context or character-based heuristics |
-| Vietnamese detected as English | Missing diacritics in input | Add language instruction to prompt |
+| Vietnamese detected as English | Missing diacritics in input | Use enhanced Vietnamese word patterns and add language instruction to prompt |
+| Vietnamese telex input | User types Vietnamese without diacritics (e.g., "toi" instead of "tôi") | Use word pattern detection to identify Vietnamese even without diacritics |
+| Vietnamese mixed with English | User mixes Vietnamese with English technical terms | Detect dominant language and use it for response |
 | Chinese detected as English | Text contains mostly ASCII | Check for Hanzi characters explicitly |
-| Model ignores language instruction | Model not following instructions | Increase strictness, use retry logic |
-| Performance degradation | Detection on every message | Implement caching for repeated messages |
+| Model ignores language instruction | Model not following instructions | Increase strictness, use retry logic with Vietnamese-specific prompts |
+| Performance degradation | Detection on every message | Implement caching for repeated messages, especially for Vietnamese word pattern matching |
 
 ### Debug Mode
 
@@ -929,6 +1034,66 @@ class DebugLanguageEnforcer extends LanguageEnforcer {
         languagePrompt
       }
     }))
+  }
+}
+```
+
+## Vietnamese-Specific Best Practices
+
+### Detection Accuracy for Vietnamese
+
+1. **Diacritic Detection**: Vietnamese uses 6 tone marks (à, á, ạ, ả, ã, â, ầ, ấ, ậ, ẩ, ẫ, etc.) - always check for these
+2. **Word Pattern Matching**: Vietnamese has many common function words (tôi, bạn, không, có, được, etc.) - use these for detection
+3. **Telex Input Handling**: Users often type Vietnamese without diacritics (e.g., "toi" instead of "tôi") - detect using word patterns
+4. **Mixed Language**: Users often mix Vietnamese with English technical terms - detect dominant language
+
+### Vietnamese Language Instructions
+
+When Vietnamese is detected, use these enhanced prompts:
+
+```typescript
+const vietnameseInstructions = {
+  basic: "Bạn phải trả lời bằng tiếng Việt.",
+  strict: "Bạn PHẢI trả lời bằng TIẾNG VIỆT. Đây là yêu cầu bắt buộc. Không được sử dụng ngôn ngữ nào khác.",
+  very_strict: "BẠN PHẢI trả lời bằng TIẾNG VIỆT. Đây là yêu cầu bắt buộc tuyệt đối. KHÔNG ĐƯỢC sử dụng bất kỳ ngôn ngữ nào khác. Mọi câu trả lời phải hoàn toàn bằng tiếng Việt."
+}
+```
+
+### Common Vietnamese Input Patterns
+
+| Pattern | Example | Detection Strategy |
+|----------|---------|-------------------|
+| With diacritics | "Xin chào, bạn khỏe không?" | Diacritic detection + word patterns |
+| Without diacritics (telex) | "Xin chao, ban khoe khong?" | Word pattern matching |
+| Mixed with English | "Hello xin chào, how are you?" | Dominant language detection |
+| Technical terms | "API endpoint là gì?" | Word patterns + context |
+| Short input | "Chào" | Character heuristics + context |
+
+### Vietnamese Response Verification
+
+When verifying Vietnamese responses:
+
+```typescript
+function verifyVietnameseResponse(
+  inputLanguage: LanguageDetection,
+  responseText: string
+): VerificationResult {
+  const responseLanguage = detectInputLanguage(responseText)
+  
+  // Check for Vietnamese diacritics
+  const hasVietnameseDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(responseText)
+  
+  // Check for Vietnamese word patterns
+  const hasVietnameseWords = /\b(tôi|bạn|cảm|ơn|được|không|có|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|người|việt|nam|nữ|trẻ|con|chó|mèo|gà|bò|cá|heo|lợn|gà|vịt|thịt|bún|phở|cơm|xôi|gỏi|chả|bánh|trà|cà|phê|sữa|rau|củ|quả|trái|hoa|lá|cây|nhà|trường|học|làm|đi|về|đến|từ|với|cho|của|trên|dưới|sau|trước|giữa|ngoài|trong|ở|và|nhưng|hoặc|nếu|thì|khi|để|mà|như|cũng|đã|sẽ|còn|rất|hơi|quá|lắm|nhiều|ít|đúng|sai|hay|hỏi|đáp|trả|lời|nói|viết|đọc|nghe|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn|ngày|tháng|năm|giờ|phút|giây|tuần|tháng|quý|năm|đời|sống|chết|sinh|mất|tìm|kiếm|được|thấy|biết|hiểu|muốn|cần|thích|ghét|yêu|ghen|ghét|buồn|vui|mừng|hạnh|phúc|tốt|xấu|đẹp|to|nhỏ|lớn|cao|thấp|dài|ngắn|rộng|hẹp|dày|mỏng|mạnh|yếu|nhanh|chậm|sớm|muộn)\b/i.test(responseText)
+  
+  const matches = inputLanguage.language === 'vi' && (hasVietnameseDiacritics || hasVietnameseWords)
+  
+  return {
+    matches,
+    inputLanguage: inputLanguage.language,
+    responseLanguage: responseLanguage.language,
+    confidence: Math.min(inputLanguage.confidence, responseLanguage.confidence),
+    mismatchReason: !matches ? 'Response does not contain Vietnamese diacritics or word patterns' : undefined
   }
 }
 ```
