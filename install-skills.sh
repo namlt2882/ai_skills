@@ -197,7 +197,7 @@ install_to_roocode() {
         # Check if source exists
         if [[ ! -d "$source_dir" ]]; then
             print_error "Source directory not found: $source_dir"
-            ((failed_count++))
+            ((failed_count+=1))
             continue
         fi
 
@@ -210,10 +210,10 @@ install_to_roocode() {
         # Copy skill directory
         if cp -r "$source_dir" "$target_dir"; then
             print_success "Installed: $skill"
-            ((success_count++))
+            ((success_count+=1))
         else
             print_error "Failed to install: $skill"
-            ((failed_count++))
+            ((failed_count+=1))
         fi
     done
 
@@ -331,7 +331,7 @@ install_to_openclaw() {
         # Check if source exists
         if [[ ! -d "$source_dir" ]]; then
             print_error "Source directory not found: $source_dir"
-            ((failed_count++))
+            ((failed_count+=1))
             continue
         fi
 
@@ -344,10 +344,10 @@ install_to_openclaw() {
         # Copy skill directory
         if cp -r "$source_dir" "$target_dir"; then
             print_success "Installed: $skill"
-            ((success_count++))
+            ((success_count+=1))
         else
             print_error "Failed to install: $skill"
-            ((failed_count++))
+            ((failed_count+=1))
         fi
     done
 
