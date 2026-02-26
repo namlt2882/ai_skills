@@ -26,6 +26,119 @@ Browser automation powered by Playwright MCP server with vision model integratio
 - **Playwright MCP Server**: `@playwright/mcp` package
 - **Browser binaries**: Chromium, Firefox, or WebKit
 
+### System Requirements Verification
+
+Before proceeding with installation, verify your system meets the requirements:
+
+#### Check Node.js Installation
+
+```bash
+# Check if Node.js is installed
+node --version
+
+# Expected output: v18.x.x or higher
+# If not installed or version is too old, see Installation section below
+```
+
+#### Check npm Installation
+
+```bash
+# Check if npm is installed (comes with Node.js)
+npm --version
+
+# Expected output: A version number (e.g., 9.x.x or higher)
+```
+
+#### Check Available Disk Space
+
+Playwright browser binaries require approximately 300-500 MB of disk space:
+
+```bash
+# On macOS/Linux
+df -h .
+
+# On Windows
+wmic logicaldisk get size,freespace,caption
+```
+
+#### Check Network Connectivity
+
+You'll need internet access to download packages and browser binaries:
+
+```bash
+# Test connectivity to npm registry
+curl -I https://registry.npmjs.org/
+
+# Test connectivity to Playwright CDN
+curl -I https://playwright.azureedge.net/
+```
+
+### Platform-Specific Requirements
+
+#### macOS
+
+- macOS 10.15 (Catalina) or later
+- Xcode Command Line Tools (for some browser dependencies)
+
+```bash
+# Install Xcode Command Line Tools if needed
+xcode-select --install
+```
+
+#### Linux
+
+- Recent Linux distribution (Ubuntu 20.04+, Debian 11+, CentOS 8+, etc.)
+- Required system libraries for browser dependencies
+
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install -y \
+  libnss3 \
+  libnspr4 \
+  libatk1.0-0 \
+  libatk-bridge2.0-0 \
+  libcups2 \
+  libdrm2 \
+  libxkbcommon0 \
+  libxcomposite1 \
+  libxdamage1 \
+  libxfixes3 \
+  libxrandr2 \
+  libgbm1 \
+  libasound2
+
+# CentOS/RHEL
+sudo yum install -y \
+  nss \
+  nspr \
+  atk \
+  at-spi2-atk \
+  cups-libs \
+  libdrm \
+  libxkbcommon \
+  libXcomposite \
+  libXdamage \
+  libXfixes \
+  libXrandr \
+  mesa-libgbm \
+  alsa-lib
+```
+
+#### Windows
+
+- Windows 10 or Windows 11
+- Windows Build 17763 or later
+- Visual C++ Redistributable (usually included)
+
+```powershell
+# Check Windows version
+systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+
+# Visual C++ Redistributable is typically pre-installed
+# If needed, download from: https://aka.ms/vs/17/release/vc_redist.x64.exe
+```
+
 ### Required AI Models
 
 Before using this skill, ensure access to at least one of the following vision-capable AI models:
@@ -61,31 +174,533 @@ Before using this skill, ensure access to at least one of the following vision-c
 
 ## Installation
 
-### Install Playwright MCP
+Follow these steps to install and configure Playwright MCP for web scraping and automation.
+
+### Step 1: Install Node.js (if not already installed)
+
+#### Check if Node.js is installed
 
 ```bash
+# Check Node.js version
+node --version
+
+# If you see a version number (v18.x.x or higher), you can skip to Step 2
+# If you see "command not found" or version < v18, proceed with installation
+```
+
+#### Install Node.js
+
+**macOS (using Homebrew):**
+```bash
+# Install Homebrew if not already installed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Node.js 18 LTS or higher
+brew install node@18
+brew link node@18
+
+# Verify installation
+node --version
+npm --version
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+# Using NodeSource repository
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verify installation
+node --version
+npm --version
+```
+
+**Linux (CentOS/RHEL):**
+```bash
+# Using NodeSource repository
+curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+sudo yum install -y nodejs
+
+# Verify installation
+node --version
+npm --version
+```
+
+**Windows:**
+```powershell
+# Download and run the official installer from:
+# https://nodejs.org/en/download/
+
+# Or using Chocolatey (if installed):
+choco install nodejs-lts
+
+# Verify installation in PowerShell or Command Prompt
+node --version
+npm --version
+```
+
+### Step 2: Install Playwright MCP Server
+
+#### Check if Playwright MCP is already installed
+
+```bash
+# Check if globally installed
+npm list -g @playwright/mcp
+
+# If you see version information, it's already installed
+# If you see "empty" or "UNMET DEPENDENCY", proceed with installation
+```
+
+#### Install Playwright MCP
+
+```bash
+# Install globally (recommended)
 npm install -g @playwright/mcp
-# Or
+
+# Verify installation
+npm list -g @playwright/mcp
+
+# Alternative: Run without installation using npx
+# npx @playwright/mcp
+```
+
+### Step 3: Install Browser Binaries
+
+#### Check installed browsers
+
+```bash
+# Check which browsers are installed
+npx playwright install --help
+
+# List installed browsers
+npx playwright install --dry-run chromium firefox webkit
+```
+
+#### Install browser binaries
+
+```bash
+# Install all browsers (recommended for full compatibility)
+npx playwright install chromium firefox webkit
+
+# Or install specific browsers only
+npx playwright install chromium    # Chrome/Chromium
+npx playwright install firefox     # Firefox
+npx playwright install webkit      # Safari (macOS/Linux only)
+
+# Install system dependencies for Linux (if needed)
+npx playwright install-deps
+```
+
+**Note:** Browser binaries are approximately 300-500 MB total. This is a one-time download.
+
+### Step 4: Verify Installation
+
+```bash
+# Test Playwright installation
+npx playwright --version
+
+# Test browser availability
+npx playwright install --dry-run chromium firefox webkit
+
+# Expected output should show browsers as "already installed"
+```
+
+### Step 5: Start MCP Server
+
+#### Basic start
+
+```bash
+# Start with default settings
 npx @playwright/mcp
 ```
 
-### Install Browsers (first time)
+#### Start with options
 
 ```bash
-npx playwright install chromium
-npx playwright install firefox
-npx playwright install webkit
-```
-
-### Start MCP Server
-
-```bash
-# Basic start
-npx @playwright/mcp
-
-# With options
+# Headless mode with specific browser and viewport
 npx @playwright/mcp --headless --browser chromium --viewport-size 1280x720
+
+# Headed mode (visible browser window)
+npx @playwright/mcp --no-headless --browser firefox
+
+# Custom user data directory (for persistent sessions)
+npx @playwright/mcp --user-data-dir ./playwright-profile
+
+# With proxy support
+npx @playwright/mcp --proxy-server http://proxy.example.com:8080
 ```
+
+#### Available options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--headless` | Run in headless mode (no UI) | `true` |
+| `--no-headless` | Run with visible browser window | - |
+| `--browser` | Browser to use (chromium/firefox/webkit) | `chromium` |
+| `--viewport-size` | Viewport dimensions (WIDTHxHEIGHT) | `1280x720` |
+| `--user-data-dir` | Directory for browser profile data | - |
+| `--proxy-server` | Proxy server URL | - |
+| `--timeout` | Default timeout in milliseconds | `30000` |
+
+### Platform-Specific Notes
+
+#### macOS
+
+- All browsers supported (Chromium, Firefox, WebKit)
+- WebKit requires macOS 10.15 or later
+- May need to grant browser permissions on first run
+
+#### Linux
+
+- Chromium and Firefox fully supported
+- WebKit support varies by distribution
+- May need additional system libraries (see Prerequisites)
+- Running as root may require `--no-sandbox` flag
+
+#### Windows
+
+- Chromium and Firefox fully supported
+- WebKit not available on Windows
+- May need to run as Administrator for first-time setup
+- Windows Defender may flag Playwright binaries (safe to allow)
+
+### Troubleshooting Installation Issues
+
+#### Node.js version too old
+
+```bash
+# Error: "Node.js version too old"
+# Solution: Upgrade Node.js using the instructions in Step 1
+```
+
+#### Permission denied errors
+
+```bash
+# Error: "EACCES" or permission denied
+# Solution: Fix npm permissions or use sudo (Linux/macOS)
+
+# Fix npm permissions (recommended)
+mkdir -p ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
+# Or use sudo (not recommended for security)
+sudo npm install -g @playwright/mcp
+```
+
+#### Browser download failures
+
+```bash
+# Error: Browser download failed
+# Solution: Check network connectivity and retry
+
+# Set custom mirror if needed
+export PLAYWRIGHT_DOWNLOAD_HOST=https://playwright.azureedge.net
+npx playwright install chromium firefox webkit
+```
+
+#### Missing system dependencies (Linux)
+
+```bash
+# Error: "Error: Executable doesn't exist"
+# Solution: Install system dependencies
+
+npx playwright install-deps
+```
+
+## Setup Verification
+
+After completing the installation, verify that everything is working correctly before proceeding with web scraping tasks.
+
+### Quick Verification Checklist
+
+```bash
+# 1. Verify Node.js version (must be v18+)
+node --version
+# Expected: v18.x.x or higher
+
+# 2. Verify npm version
+npm --version
+# Expected: A version number (e.g., 9.x.x or higher)
+
+# 3. Verify Playwright MCP is installed
+npm list -g @playwright/mcp
+# Expected: @playwright/mcp@x.x.x
+
+# 4. Verify Playwright version
+npx playwright --version
+# Expected: Version x.x.x
+
+# 5. Verify browser binaries are installed
+npx playwright install --dry-run chromium firefox webkit
+# Expected: All browsers show "already installed"
+```
+
+### Test MCP Server Startup
+
+```bash
+# Start the MCP server in test mode
+npx @playwright/mcp --help
+
+# Expected: Help text with available options displayed
+```
+
+### Run Basic Browser Test
+
+Create a simple test script to verify browser functionality:
+
+```bash
+# Create test script
+cat > test-playwright.js << 'EOF'
+const { chromium } = require('playwright');
+
+(async () => {
+  console.log('Launching browser...');
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  
+  console.log('Navigating to example.com...');
+  await page.goto('https://example.com');
+  
+  const title = await page.title();
+  console.log('Page title:', title);
+  
+  await browser.close();
+  console.log('Test completed successfully!');
+})();
+EOF
+
+# Run the test
+node test-playwright.js
+
+# Expected output:
+# Launching browser...
+# Navigating to example.com...
+# Page title: Example Domain
+# Test completed successfully!
+
+# Clean up test file
+rm test-playwright.js
+```
+
+### Verify MCP Server Connection
+
+```bash
+# Start MCP server in background
+npx @playwright/mcp --headless &
+MCP_PID=$!
+
+# Wait for server to start
+sleep 3
+
+# Check if process is running
+ps -p $MCP_PID > /dev/null && echo "MCP Server is running" || echo "MCP Server failed to start"
+
+# Stop the server
+kill $MCP_PID 2>/dev/null
+```
+
+### Platform-Specific Verification
+
+#### macOS
+
+```bash
+# Verify browser permissions
+# On first run, you may need to grant screen recording and accessibility permissions
+# Check System Preferences > Security & Privacy > Privacy
+
+# Test WebKit browser (macOS only)
+npx playwright install --dry-run webkit
+```
+
+#### Linux
+
+```bash
+# Verify system dependencies
+ldd $(npx playwright which chromium) | grep "not found"
+
+# If any libraries are missing, install them:
+npx playwright install-deps
+
+# Test with Xvfb (virtual display) if needed
+Xvfb :99 -screen 0 1280x720x24 &
+export DISPLAY=:99
+npx playwright install --dry-run chromium
+```
+
+#### Windows
+
+```bash
+# Verify Windows Defender exclusions (if needed)
+# Add Playwright cache directory to exclusions:
+# %USERPROFILE%\AppData\Local\ms-playwright
+
+# Test browser launch
+npx playwright code --help
+```
+
+### Common Issues and Solutions
+
+#### Issue: "command not found: node"
+
+**Solution:** Node.js is not installed or not in PATH. Follow Step 1 in Installation section.
+
+#### Issue: "EACCES: permission denied"
+
+**Solution:** Fix npm permissions or use sudo (see Troubleshooting in Installation section).
+
+#### Issue: "Browser not found"
+
+**Solution:** Install browser binaries:
+```bash
+npx playwright install chromium firefox webkit
+```
+
+#### Issue: "Error: Executable doesn't exist at <path>"
+
+**Solution:** Reinstall browsers and check system dependencies:
+```bash
+npx playwright install --force chromium
+npx playwright install-deps  # Linux only
+```
+
+#### Issue: "Network error" during browser download
+
+**Solution:** Check network connectivity and set mirror:
+```bash
+export PLAYWRIGHT_DOWNLOAD_HOST=https://playwright.azureedge.net
+npx playwright install chromium firefox webkit
+```
+
+#### Issue: MCP server won't start
+
+**Solution:** Check for port conflicts and verify installation:
+```bash
+# Check if port is in use
+lsof -i :3000  # macOS/Linux
+netstat -ano | findstr :3000  # Windows
+
+# Reinstall MCP server
+npm uninstall -g @playwright/mcp
+npm install -g @playwright/mcp
+```
+
+### Performance Verification
+
+```bash
+# Test browser launch speed
+time npx playwright code --help
+
+# Test page load performance
+cat > perf-test.js << 'EOF'
+const { chromium } = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  
+  const start = Date.now();
+  await page.goto('https://example.com');
+  const loadTime = Date.now() - start;
+  
+  console.log(`Page loaded in ${loadTime}ms`);
+  
+  await browser.close();
+})();
+EOF
+
+node perf-test.js
+rm perf-test.js
+
+# Expected: Page loads in < 2000ms on typical connection
+```
+
+### Final Verification
+
+Run this comprehensive verification script:
+
+```bash
+cat > verify-setup.sh << 'EOF'
+#!/bin/bash
+
+echo "=== Playwright MCP Setup Verification ==="
+echo ""
+
+# Check Node.js
+echo "1. Checking Node.js..."
+if command -v node &> /dev/null; then
+    NODE_VERSION=$(node --version)
+    echo "   ✓ Node.js installed: $NODE_VERSION"
+    if [[ $NODE_VERSION < "v18" ]]; then
+        echo "   ✗ Node.js version too old (need v18+)"
+        exit 1
+    fi
+else
+    echo "   ✗ Node.js not found"
+    exit 1
+fi
+
+# Check npm
+echo "2. Checking npm..."
+if command -v npm &> /dev/null; then
+    NPM_VERSION=$(npm --version)
+    echo "   ✓ npm installed: $NPM_VERSION"
+else
+    echo "   ✗ npm not found"
+    exit 1
+fi
+
+# Check Playwright MCP
+echo "3. Checking Playwright MCP..."
+if npm list -g @playwright/mcp &> /dev/null; then
+    MCP_VERSION=$(npm list -g @playwright/mcp | grep @playwright/mcp | awk '{print $2}')
+    echo "   ✓ Playwright MCP installed: $MCP_VERSION"
+else
+    echo "   ✗ Playwright MCP not found"
+    exit 1
+fi
+
+# Check Playwright
+echo "4. Checking Playwright..."
+if npx playwright --version &> /dev/null; then
+    PW_VERSION=$(npx playwright --version)
+    echo "   ✓ Playwright installed: $PW_VERSION"
+else
+    echo "   ✗ Playwright not found"
+    exit 1
+fi
+
+# Check browsers
+echo "5. Checking browser binaries..."
+BROWSERS=("chromium" "firefox" "webkit")
+ALL_INSTALLED=true
+for browser in "${BROWSERS[@]}"; do
+    if npx playwright install --dry-run $browser 2>&1 | grep -q "already installed"; then
+        echo "   ✓ $browser installed"
+    else
+        echo "   ✗ $browser not installed"
+        ALL_INSTALLED=false
+    fi
+done
+
+if [ "$ALL_INSTALLED" = false ]; then
+    echo ""
+    echo "   Run: npx playwright install chromium firefox webkit"
+    exit 1
+fi
+
+echo ""
+echo "=== All checks passed! ==="
+echo "You're ready to use Playwright MCP Vision."
+EOF
+
+chmod +x verify-setup.sh
+./verify-setup.sh
+rm verify-setup.sh
+```
+
+If all checks pass, your Playwright MCP Vision setup is complete and ready for use!
 
 ## Workflow
 
