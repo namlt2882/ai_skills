@@ -15,6 +15,19 @@ Systematizes image extraction, preprocessing, and AI model selection for chat-ba
 - Switching between different vision models based on requirements
 - Optimizing image processing for performance and cost
 
+## Model Provider Prefix Convention
+
+All AI models in openclaw use a provider prefix format to clearly identify which provider a model belongs to. This prevents confusion and ensures correct API routing.
+
+| Provider | Prefix | Example Models |
+|----------|--------|----------------|
+| **OpenAI** | `openai/` | `openai/gpt-4o`, `openai/gpt-5.2`, `openai/gpt-4.1` |
+| **Zhipu AI** | `zai/` | `zai/glm-4.6v`, `zai/glm-4.6v-flash`, `zai/glm-4.5v` |
+| **Anthropic** | `anthropic/` | `anthropic/claude-3-5-sonnet`, `anthropic/claude-3-5-haiku` |
+| **Google** | `google/` | `google/gemini-2.0-flash`, `google/gemini-2.5-pro` |
+
+**Important**: Always use the provider-prefixed format when specifying models in code or configuration. For example, use `zai/glm-4.6v` instead of `glm-4.6v` or `anthropic/glm-4.6v` (which would be incorrect).
+
 ## Prerequisites
 
 ### Required AI Models
@@ -23,38 +36,38 @@ Before using this skill, ensure access to at least one of the following vision-c
 
 #### OpenAI Vision Models
 
-| Model | Provider | Strengths | Use Case |
-|-------|----------|-----------|----------|
-| **GPT-5.2** | OpenAI | Latest flagship, superior reasoning, multimodal | Cutting-edge analysis, complex tasks |
-| **GPT-4.5 Preview** | OpenAI | Enhanced NLP, reduced hallucinations, multimodal | High-quality general analysis |
-| **GPT-4.1** | OpenAI | High intelligence, multimodal, structured output | Production-grade applications |
-| **GPT-4.1-mini** | OpenAI | Fast, cost-effective, multimodal | Batch processing, cost-sensitive tasks |
-| **GPT-4.1-nano** | OpenAI | Ultra-fast, lightweight, multimodal | Real-time, edge computing |
-| **GPT-4o** | OpenAI | General purpose, good OCR, detailed analysis | Default choice for most tasks |
-| **GPT-4o-mini** | OpenAI | Fast, cost-effective, multimodal | Quick analysis, batch processing |
-| **GPT-4o Audio** | OpenAI | Vision + audio processing | Multimodal with audio input |
-| **GPT-4o Realtime** | OpenAI | Real-time vision + audio | Live video/voice interactions |
-| **GPT-4o mini Realtime** | OpenAI | Fast real-time vision + audio | Low-latency live interactions |
-| **GPT-4 Turbo with Vision** | OpenAI | High intelligence, legacy support | Existing integrations |
-| **GPT-4 Vision Preview** | OpenAI | Legacy vision capabilities | Backward compatibility |
+| Model | Provider Format | Strengths | Use Case |
+|-------|----------------|-----------|----------|
+| **GPT-5.2** | `openai/gpt-5.2` | Latest flagship, superior reasoning, multimodal | Cutting-edge analysis, complex tasks |
+| **GPT-4.5 Preview** | `openai/gpt-4.5-preview` | Enhanced NLP, reduced hallucinations, multimodal | High-quality general analysis |
+| **GPT-4.1** | `openai/gpt-4.1` | High intelligence, multimodal, structured output | Production-grade applications |
+| **GPT-4.1-mini** | `openai/gpt-4.1-mini` | Fast, cost-effective, multimodal | Batch processing, cost-sensitive tasks |
+| **GPT-4.1-nano** | `openai/gpt-4.1-nano` | Ultra-fast, lightweight, multimodal | Real-time, edge computing |
+| **GPT-4o** | `openai/gpt-4o` | General purpose, good OCR, detailed analysis | Default choice for most tasks |
+| **GPT-4o-mini** | `openai/gpt-4o-mini` | Fast, cost-effective, multimodal | Quick analysis, batch processing |
+| **GPT-4o Audio** | `openai/gpt-4o-audio` | Vision + audio processing | Multimodal with audio input |
+| **GPT-4o Realtime** | `openai/gpt-4o-realtime` | Real-time vision + audio | Live video/voice interactions |
+| **GPT-4o mini Realtime** | `openai/gpt-4o-mini-realtime` | Fast real-time vision + audio | Low-latency live interactions |
+| **GPT-4 Turbo with Vision** | `openai/gpt-4-turbo-vision` | High intelligence, legacy support | Existing integrations |
+| **GPT-4 Vision Preview** | `openai/gpt-4-vision-preview` | Legacy vision capabilities | Backward compatibility |
 
 #### Zhipu AI (z.ai) Vision Models
 
-| Model | Provider | Strengths | Use Case |
-|-------|----------|-----------|----------|
-| **GLM-4.6V** | Zhipu AI | 106B parameters, SOTA vision, native tool calling | Complex visual reasoning, agent tasks |
-| **GLM-4.6V-Flash** | Zhipu AI | 9B lightweight, fast, free to use | Local deployment, quick tasks |
-| **GLM-4.6V-Flash-WEB** | Zhipu AI | Web-optimized, dual-mode (web + API) | Browser-based applications |
-| **GLM-4.5V** | Zhipu AI | Previous generation, reliable | Legacy support |
+| Model | Provider Format | Strengths | Use Case |
+|-------|----------------|-----------|----------|
+| **GLM-4.6V** | `zai/glm-4.6v` | 106B parameters, SOTA vision, native tool calling | Complex visual reasoning, agent tasks |
+| **GLM-4.6V-Flash** | `zai/glm-4.6v-flash` | 9B lightweight, fast, free to use | Local deployment, quick tasks |
+| **GLM-4.6V-Flash-WEB** | `zai/glm-4.6v-flash-web` | Web-optimized, dual-mode (web + API) | Browser-based applications |
+| **GLM-4.5V** | `zai/glm-4.5v` | Previous generation, reliable | Legacy support |
 
 #### Other Vision Models
 
-| Model | Provider | Strengths | Use Case |
-|-------|----------|-----------|----------|
-| **Claude 3.5 Sonnet** | Anthropic | Excellent reasoning, nuanced understanding | Complex visual reasoning |
-| **Claude 3.5 Haiku** | Anthropic | Fast, lightweight | Quick visual tasks |
-| **Gemini 2.0 Flash** | Google | Fast, multimodal | Real-time processing |
-| **Gemini 2.5 Pro** | Google | High accuracy, large context | Detailed document analysis |
+| Model | Provider Format | Strengths | Use Case |
+|-------|----------------|-----------|----------|
+| **Claude 3.5 Sonnet** | `anthropic/claude-3-5-sonnet` | Excellent reasoning, nuanced understanding | Complex visual reasoning |
+| **Claude 3.5 Haiku** | `anthropic/claude-3-5-haiku` | Fast, lightweight | Quick visual tasks |
+| **Gemini 2.0 Flash** | `google/gemini-2.0-flash` | Fast, multimodal | Real-time processing |
+| **Gemini 2.5 Pro** | `google/gemini-2.5-pro` | High accuracy, large context | Detailed document analysis |
 
 ### API Requirements
 
@@ -407,23 +420,23 @@ async function optimizeImageBatch(
 function getOptimizationForModel(model: string): ImageOptimizationOptions {
   const modelConfigs: Record<string, ImageOptimizationOptions> = {
     // OpenAI models - 20MB limit, optimize for speed
-    'gpt-5.2': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
-    'gpt-4.1': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
-    'gpt-4o': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
-    'gpt-4o-mini': { maxWidth: 1536, maxHeight: 1536, quality: 80, maxSizeKB: 300 },
-    'gpt-4.1-nano': { maxWidth: 1024, maxHeight: 1024, quality: 75, maxSizeKB: 200 },
+    'openai/gpt-5.2': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
+    'openai/gpt-4.1': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
+    'openai/gpt-4o': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
+    'openai/gpt-4o-mini': { maxWidth: 1536, maxHeight: 1536, quality: 80, maxSizeKB: 300 },
+    'openai/gpt-4.1-nano': { maxWidth: 1024, maxHeight: 1024, quality: 75, maxSizeKB: 200 },
     
     // Zhipu AI models - 20MB limit, can handle larger images
-    'glm-4.6v': { maxWidth: 4096, maxHeight: 4096, quality: 90, maxSizeKB: 1000 },
-    'glm-4.6v-flash': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
+    'zai/glm-4.6v': { maxWidth: 4096, maxHeight: 4096, quality: 90, maxSizeKB: 1000 },
+    'zai/glm-4.6v-flash': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
     
     // Anthropic models - 10MB limit, need more aggressive optimization
-    'claude-3-5-sonnet': { maxWidth: 1536, maxHeight: 1536, quality: 80, maxSizeKB: 300 },
-    'claude-3-5-haiku': { maxWidth: 1024, maxHeight: 1024, quality: 75, maxSizeKB: 200 },
+    'anthropic/claude-3-5-sonnet': { maxWidth: 1536, maxHeight: 1536, quality: 80, maxSizeKB: 300 },
+    'anthropic/claude-3-5-haiku': { maxWidth: 1024, maxHeight: 1024, quality: 75, maxSizeKB: 200 },
     
     // Google models - 20MB limit
-    'gemini-2.0-flash': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
-    'gemini-2.5-pro': { maxWidth: 4096, maxHeight: 4096, quality: 90, maxSizeKB: 1000 }
+    'google/gemini-2.0-flash': { maxWidth: 2048, maxHeight: 2048, quality: 85, maxSizeKB: 500 },
+    'google/gemini-2.5-pro': { maxWidth: 4096, maxHeight: 4096, quality: 90, maxSizeKB: 1000 }
   }
   
   return modelConfigs[model] || { maxWidth: 1920, maxHeight: 1920, quality: 85, maxSizeKB: 500 }
@@ -476,13 +489,13 @@ function deduplicateImages(images: Buffer[]): Buffer[] {
 
 | Requirement | Recommended Model | Rationale |
 |-------------|-------------------|-----------|
-| **General analysis** | GPT-4o | Best balance of quality, speed, cost |
-| **OCR heavy** | GPT-4o | Superior text recognition |
-| **Complex reasoning** | Claude 3.5 Sonnet | Better at nuanced understanding |
-| **Speed critical** | GPT-4o-mini / Haiku | Fastest response times |
-| **Cost sensitive** | GPT-4o-mini / Haiku | Lowest per-image cost |
-| **Large documents** | Gemini 2.5 Pro | Largest context window |
-| **Batch processing** | GPT-4o-mini | Best throughput/cost ratio |
+| **General analysis** | `openai/gpt-4o` | Best balance of quality, speed, cost |
+| **OCR heavy** | `openai/gpt-4o` | Superior text recognition |
+| **Complex reasoning** | `anthropic/claude-3-5-sonnet` | Better at nuanced understanding |
+| **Speed critical** | `openai/gpt-4o-mini` / `anthropic/claude-3-5-haiku` | Fastest response times |
+| **Cost sensitive** | `openai/gpt-4o-mini` / `anthropic/claude-3-5-haiku` | Lowest per-image cost |
+| **Large documents** | `google/gemini-2.5-pro` | Largest context window |
+| **Batch processing** | `openai/gpt-4o-mini` | Best throughput/cost ratio |
 
 ### Selection Algorithm
 
@@ -500,25 +513,25 @@ function selectModel(criteria: ModelSelectionCriteria): string {
   
   // Priority-based selection
   if (priority === 'speed') {
-    return imageCount > 5 ? 'gpt-4o-mini' : 'claude-3-5-haiku'
+    return imageCount > 5 ? 'openai/gpt-4o-mini' : 'anthropic/claude-3-5-haiku'
   }
   
   if (priority === 'cost') {
-    return 'gpt-4o-mini'
+    return 'openai/gpt-4o-mini'
   }
   
   // Quality priority (default)
   switch (taskType) {
     case 'ocr':
-      return 'gpt-4o'
+      return 'openai/gpt-4o'
     case 'reasoning':
-      return 'claude-3-5-sonnet'
+      return 'anthropic/claude-3-5-sonnet'
     case 'quick':
-      return 'claude-3-5-haiku'
+      return 'anthropic/claude-3-5-haiku'
     case 'batch':
-      return 'gpt-4o-mini'
+      return 'openai/gpt-4o-mini'
     default:
-      return 'gpt-4o'
+      return 'openai/gpt-4o'
   }
 }
 ```
@@ -535,12 +548,12 @@ async function preprocessImage(
   targetModel: string
 ): Promise<Buffer> {
   const modelConstraints = {
-    'gpt-4o': { maxWidth: 2048, maxHeight: 2048, maxSizeMB: 20 },
-    'gpt-4o-mini': { maxWidth: 2048, maxHeight: 2048, maxSizeMB: 20 },
-    'claude-3-5-sonnet': { maxWidth: 4096, maxHeight: 4096, maxSizeMB: 10 },
-    'claude-3-5-haiku': { maxWidth: 4096, maxHeight: 4096, maxSizeMB: 10 },
-    'gemini-2.0-flash': { maxWidth: 2048, maxHeight: 2048, maxSizeMB: 20 },
-    'gemini-2.5-pro': { maxWidth: 4096, maxHeight: 4096, maxSizeMB: 20 }
+    'openai/gpt-4o': { maxWidth: 2048, maxHeight: 2048, maxSizeMB: 20 },
+    'openai/gpt-4o-mini': { maxWidth: 2048, maxHeight: 2048, maxSizeMB: 20 },
+    'anthropic/claude-3-5-sonnet': { maxWidth: 4096, maxHeight: 4096, maxSizeMB: 10 },
+    'anthropic/claude-3-5-haiku': { maxWidth: 4096, maxHeight: 4096, maxSizeMB: 10 },
+    'google/gemini-2.0-flash': { maxWidth: 2048, maxHeight: 2048, maxSizeMB: 20 },
+    'google/gemini-2.5-pro': { maxWidth: 4096, maxHeight: 4096, maxSizeMB: 20 }
   }
   
   const constraints = modelConstraints[targetModel as keyof typeof modelConstraints]
@@ -602,7 +615,7 @@ async function convertToSupportedFormat(
 async function analyzeWithOpenAI(
   images: Buffer[],
   prompt: string,
-  model: string = 'gpt-4o'
+  model: string = 'openai/gpt-4o'
 ): Promise<string> {
   const base64Images = await Promise.all(
     images.map(img => img.toString('base64'))
@@ -640,7 +653,7 @@ async function analyzeWithOpenAI(
 async function analyzeWithClaude(
   images: Buffer[],
   prompt: string,
-  model: string = 'claude-3-5-sonnet-20241022'
+  model: string = 'anthropic/claude-3-5-sonnet'
 ): Promise<string> {
   const content = [
     { type: 'text', text: prompt },
@@ -680,7 +693,7 @@ async function analyzeWithClaude(
 async function analyzeWithGemini(
   images: Buffer[],
   prompt: string,
-  model: string = 'gemini-2.0-flash-exp'
+  model: string = 'google/gemini-2.0-flash'
 ): Promise<string> {
   const parts = [
     { text: prompt },
@@ -782,13 +795,13 @@ async function analyzeWithFallback(
     try {
       let result: string
       
-      if (currentModel.startsWith('gpt')) {
+      if (currentModel.startsWith('openai/')) {
         result = await analyzeWithOpenAI(images, prompt, currentModel)
-      } else if (currentModel.startsWith('glm')) {
+      } else if (currentModel.startsWith('zai/')) {
         result = await analyzeWithZhipuAI(images, prompt, currentModel)
-      } else if (currentModel.startsWith('claude')) {
+      } else if (currentModel.startsWith('anthropic/')) {
         result = await analyzeWithClaude(images, prompt, currentModel)
-      } else if (currentModel.startsWith('gemini')) {
+      } else if (currentModel.startsWith('google/')) {
         result = await analyzeWithGemini(images, prompt, currentModel)
       } else {
         throw new Error(`Unknown model: ${currentModel}`)
@@ -834,33 +847,33 @@ async function analyzeWithFallback(
 ```typescript
 // OpenAI-first fallback chain
 const openaiFallbackChain = [
-  'gpt-5.2',
-  'gpt-4.1',
-  'gpt-4o',
-  'gpt-4.1-mini'
+  'openai/gpt-5.2',
+  'openai/gpt-4.1',
+  'openai/gpt-4o',
+  'openai/gpt-4.1-mini'
 ]
 
 // Zhipu AI-first fallback chain
 const zhipuFallbackChain = [
-  'glm-4.6v',
-  'glm-4.6v-flash',
-  'glm-4.5v'
+  'zai/glm-4.6v',
+  'zai/glm-4.6v-flash',
+  'zai/glm-4.5v'
 ]
 
 // Cross-provider fallback chain
 const crossProviderFallbackChain = [
-  'gpt-5.2',
-  'glm-4.6v',
-  'claude-3-5-sonnet',
-  'gpt-4o-mini',
-  'glm-4.6v-flash'
+  'openai/gpt-5.2',
+  'zai/glm-4.6v',
+  'anthropic/claude-3-5-sonnet',
+  'openai/gpt-4o-mini',
+  'zai/glm-4.6v-flash'
 ]
 
 // Cost-optimized fallback chain (includes free option)
 const costOptimizedFallbackChain = [
-  'glm-4.6v-flash', // Free
-  'gpt-4.1-mini',
-  'gpt-4o-mini'
+  'zai/glm-4.6v-flash', // Free
+  'openai/gpt-4.1-mini',
+  'openai/gpt-4o-mini'
 ]
 ```
 
@@ -971,15 +984,15 @@ async function safeImageAnalysis(
     let fallbackChain: string[]
     
     if (provider === 'openai') {
-      initialModel = 'gpt-5.2'
-      fallbackChain = ['gpt-4.1', 'gpt-4o', 'gpt-4.1-mini']
+      initialModel = 'openai/gpt-5.2'
+      fallbackChain = ['openai/gpt-4.1', 'openai/gpt-4o', 'openai/gpt-4.1-mini']
     } else if (provider === 'zhipu') {
-      initialModel = 'glm-4.6v'
-      fallbackChain = ['glm-4.6v-flash', 'glm-4.5v']
+      initialModel = 'zai/glm-4.6v'
+      fallbackChain = ['zai/glm-4.6v-flash', 'zai/glm-4.5v']
     } else {
       // Cross-provider fallback
-      initialModel = 'gpt-5.2'
-      fallbackChain = ['glm-4.6v', 'claude-3-5-sonnet-20241022', 'gpt-4o-mini', 'glm-4.6v-flash']
+      initialModel = 'openai/gpt-5.2'
+      fallbackChain = ['zai/glm-4.6v', 'anthropic/claude-3-5-sonnet', 'openai/gpt-4o-mini', 'zai/glm-4.6v-flash']
     }
     
     const { result, modelUsed } = await analyzeWithFallback(images, prompt, initialModel, {
@@ -1041,11 +1054,11 @@ async function handleChatMessageWithImages(
   // Select fallback chain based on provider
   let fallbackChain: string[]
   if (provider === 'openai') {
-    fallbackChain = ['gpt-4.1', 'gpt-4o', 'gpt-4.1-mini']
+    fallbackChain = ['openai/gpt-4.1', 'openai/gpt-4o', 'openai/gpt-4.1-mini']
   } else if (provider === 'zhipu') {
-    fallbackChain = ['glm-4.6v-flash', 'glm-4.5v']
+    fallbackChain = ['zai/glm-4.6v-flash', 'zai/glm-4.5v']
   } else {
-    fallbackChain = ['glm-4.6v', 'claude-3-5-sonnet-20241022', 'gpt-4o-mini', 'glm-4.6v-flash']
+    fallbackChain = ['zai/glm-4.6v', 'anthropic/claude-3-5-sonnet', 'openai/gpt-4o-mini', 'zai/glm-4.6v-flash']
   }
   
   // Analyze images
@@ -1135,13 +1148,13 @@ async function debugAnalyze(
   let result: string
   
   // Route to appropriate API based on model
-  if (model.startsWith('gpt')) {
+  if (model.startsWith('openai/')) {
     result = await analyzeWithOpenAI(images, prompt, model)
-  } else if (model.startsWith('glm')) {
+  } else if (model.startsWith('zai/')) {
     result = await analyzeWithZhipuAI(images, prompt, model)
-  } else if (model.startsWith('claude')) {
+  } else if (model.startsWith('anthropic/')) {
     result = await analyzeWithClaude(images, prompt, model)
-  } else if (model.startsWith('gemini')) {
+  } else if (model.startsWith('google/')) {
     result = await analyzeWithGemini(images, prompt, model)
   } else {
     throw new Error(`Unknown model: ${model}`)
@@ -1153,9 +1166,9 @@ async function debugAnalyze(
     console.log('[DEBUG] Analysis complete')
     console.log('- Duration:', duration, 'ms')
     console.log('- Result length:', result.length)
-    console.log('- Provider:', model.startsWith('gpt') ? 'OpenAI' :
-                          model.startsWith('glm') ? 'Zhipu AI' :
-                          model.startsWith('claude') ? 'Anthropic' : 'Google')
+    console.log('- Provider:', model.startsWith('openai/') ? 'OpenAI' :
+                          model.startsWith('zai/') ? 'Zhipu AI' :
+                          model.startsWith('anthropic/') ? 'Anthropic' : 'Google')
   }
   
   return result
@@ -1166,38 +1179,38 @@ async function debugAnalyze(
 
 ### Model Comparison
 
-| Model | Max Image Size | Context | Speed | Cost | Best For |
-|-------|----------------|---------|-------|------|----------|
+| Model | Provider Format | Max Image Size | Context | Speed | Cost | Best For |
+|-------|----------------|----------------|---------|-------|------|----------|
 | **OpenAI Models** |
-| GPT-5.2 | 20MB | 128K+ | Medium | High | Cutting-edge tasks |
-| GPT-4.5 Preview | 20MB | 128K | Medium | Medium | High-quality analysis |
-| GPT-4.1 | 20MB | 128K | Fast | Medium | Production apps |
-| GPT-4.1-mini | 20MB | 128K | Fast | Low | Batch processing |
-| GPT-4.1-nano | 20MB | 128K | Ultra-fast | Very Low | Real-time, edge |
-| GPT-4o | 20MB | 128K | Fast | Medium | General use |
-| GPT-4o-mini | 20MB | 128K | Fast | Low | Batch/quick |
-| GPT-4o Realtime | 20MB | 128K | Real-time | Medium | Live video |
-| GPT-4o mini Realtime | 20MB | 128K | Real-time | Low | Low-latency live |
-| GPT-4 Turbo Vision | 20MB | 128K | Medium | Medium | Legacy support |
+| GPT-5.2 | `openai/gpt-5.2` | 20MB | 128K+ | Medium | High | Cutting-edge tasks |
+| GPT-4.5 Preview | `openai/gpt-4.5-preview` | 20MB | 128K | Medium | Medium | High-quality analysis |
+| GPT-4.1 | `openai/gpt-4.1` | 20MB | 128K | Fast | Medium | Production apps |
+| GPT-4.1-mini | `openai/gpt-4.1-mini` | 20MB | 128K | Fast | Low | Batch processing |
+| GPT-4.1-nano | `openai/gpt-4.1-nano` | 20MB | 128K | Ultra-fast | Very Low | Real-time, edge |
+| GPT-4o | `openai/gpt-4o` | 20MB | 128K | Fast | Medium | General use |
+| GPT-4o-mini | `openai/gpt-4o-mini` | 20MB | 128K | Fast | Low | Batch/quick |
+| GPT-4o Realtime | `openai/gpt-4o-realtime` | 20MB | 128K | Real-time | Medium | Live video |
+| GPT-4o mini Realtime | `openai/gpt-4o-mini-realtime` | 20MB | 128K | Real-time | Low | Low-latency live |
+| GPT-4 Turbo Vision | `openai/gpt-4-turbo-vision` | 20MB | 128K | Medium | Medium | Legacy support |
 | **Zhipu AI Models** |
-| GLM-4.6V | 20MB | 128K | Medium | Low | Agent tasks, reasoning |
-| GLM-4.6V-Flash | 20MB | 128K | Fast | **FREE** | Local deployment |
-| GLM-4.6V-Flash-WEB | 20MB | 128K | Fast | **FREE** | Browser apps |
-| GLM-4.5V | 20MB | 128K | Medium | Low | Legacy support |
+| GLM-4.6V | `zai/glm-4.6v` | 20MB | 128K | Medium | Low | Agent tasks, reasoning |
+| GLM-4.6V-Flash | `zai/glm-4.6v-flash` | 20MB | 128K | Fast | **FREE** | Local deployment |
+| GLM-4.6V-Flash-WEB | `zai/glm-4.6v-flash-web` | 20MB | 128K | Fast | **FREE** | Browser apps |
+| GLM-4.5V | `zai/glm-4.5v` | 20MB | 128K | Medium | Low | Legacy support |
 | **Other Models** |
-| Claude 3.5 Sonnet | 10MB | 200K | Medium | High | Reasoning |
-| Claude 3.5 Haiku | 10MB | 200K | Fast | Low | Quick tasks |
-| Gemini 2.0 Flash | 20MB | 1M | Fast | Low | Real-time |
-| Gemini 2.5 Pro | 20MB | 1M | Medium | Medium | Large docs |
+| Claude 3.5 Sonnet | `anthropic/claude-3-5-sonnet` | 10MB | 200K | Medium | High | Reasoning |
+| Claude 3.5 Haiku | `anthropic/claude-3-5-haiku` | 10MB | 200K | Fast | Low | Quick tasks |
+| Gemini 2.0 Flash | `google/gemini-2.0-flash` | 20MB | 1M | Fast | Low | Real-time |
+| Gemini 2.5 Pro | `google/gemini-2.5-pro` | 20MB | 1M | Medium | Medium | Large docs |
 
 ### Command Line Examples
 
 ```bash
 # Set preferred model (OpenAI)
-export DEFAULT_VISION_MODEL="gpt-5.2"
+export DEFAULT_VISION_MODEL="openai/gpt-5.2"
 
 # Set preferred model (Zhipu AI)
-export DEFAULT_VISION_MODEL="glm-4.6v"
+export DEFAULT_VISION_MODEL="zai/glm-4.6v"
 
 # Set Zhipu API key
 export ZHIPU_API_KEY="your-zhipu-api-key"

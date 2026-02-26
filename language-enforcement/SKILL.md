@@ -5,7 +5,7 @@ description: Language detection and enforcement for AI chat responses. Ensures A
 
 # Language Enforcement — Detect and Match User Language
 
-Systematizes language detection and enforcement for AI chat responses in openclaw, ensuring models like GLM-4.x respond in the same language as the user's input.
+Systematizes language detection and enforcement for AI chat responses in openclaw, ensuring models like `zai/glm-4.6v` respond in the same language as the user's input.
 
 ## When to Activate
 
@@ -14,6 +14,19 @@ Systematizes language detection and enforcement for AI chat responses in opencla
 - Implementing multilingual chat interfaces
 - Building language-aware AI agents
 - Debugging language mismatch issues in AI responses
+
+## Model Provider Prefix Convention
+
+All AI models in openclaw use a provider prefix format to clearly identify which provider a model belongs to. This prevents confusion and ensures correct API routing.
+
+| Provider | Prefix | Example Models |
+|----------|--------|----------------|
+| **OpenAI** | `openai/` | `openai/gpt-4o`, `openai/gpt-5.2`, `openai/gpt-4.1` |
+| **Zhipu AI** | `zai/` | `zai/glm-4.6v`, `zai/glm-4.6v-flash`, `zai/glm-4.5v` |
+| **Anthropic** | `anthropic/` | `anthropic/claude-3-5-sonnet`, `anthropic/claude-3-5-haiku` |
+| **Google** | `google/` | `google/gemini-2.0-flash`, `google/gemini-2.5-pro` |
+
+**Important**: Always use the provider-prefixed format when specifying models in code or configuration. For example, use `zai/glm-4.6v` instead of `glm-4.6v` or `anthropic/glm-4.6v` (which would be incorrect).
 
 ## Prerequisites
 
@@ -355,8 +368,8 @@ interface ModelLanguageConfig {
 }
 
 function getModelLanguageConfig(config: ModelLanguageConfig): object {
-  // GLM-4.x specific settings
-  if (config.model.startsWith('glm-4')) {
+  // Zhipu AI models (zai/glm-4.x) specific settings
+  if (config.model.startsWith('zai/glm-4')) {
     return {
       model: config.model,
       temperature: 0.7,
@@ -367,7 +380,7 @@ function getModelLanguageConfig(config: ModelLanguageConfig): object {
   }
   
   // OpenAI models
-  if (config.model.startsWith('gpt-')) {
+  if (config.model.startsWith('openai/gpt-')) {
     return {
       model: config.model,
       temperature: 0.7
@@ -752,7 +765,7 @@ class LanguageEnforcer {
   async enforceLanguage(
     userMessage: string,
     apiCall: (prompt: string) => Promise<string>,
-    model: string = 'glm-4'
+    model: string = 'zai/glm-4.6v'
   ): Promise<{ response: string; language: string; retries: number }> {
     // Step 1: Detect input language
     const inputLanguage = this.detector.detect(userMessage)
@@ -1017,7 +1030,7 @@ class DebugLanguageEnforcer extends LanguageEnforcer {
   enforceLanguage(
     userMessage: string,
     apiCall: (prompt: string) => Promise<string>,
-    model: string = 'glm-4'
+    model: string = 'zai/glm-4.6v'
   ): Promise<{ response: string; language: string; retries: number; debug: any }> {
     console.log('[DEBUG] Input message:', userMessage)
     
