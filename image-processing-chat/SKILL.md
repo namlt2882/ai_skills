@@ -965,7 +965,7 @@ const costOptimizedFallbackChain = [
 async function safeImageAnalysis(
   images: Buffer[],
   prompt: string,
-  provider: 'openai' | 'zhipu' | 'any' = 'any'
+  provider: 'openai' | 'zai' | 'any' = 'any'
 ): Promise<{ success: boolean; result?: string; error?: string; modelUsed?: string }> {
   try {
     // Validate inputs
@@ -986,7 +986,7 @@ async function safeImageAnalysis(
     if (provider === 'openai') {
       initialModel = 'openai/gpt-5.2'
       fallbackChain = ['openai/gpt-4.1', 'openai/gpt-4o', 'openai/gpt-4.1-mini']
-    } else if (provider === 'zhipu') {
+    } else if (provider === 'zai') {
       initialModel = 'zai/glm-4.6v'
       fallbackChain = ['zai/glm-4.6v-flash', 'zai/glm-4.5v']
     } else {
@@ -1021,7 +1021,7 @@ async function safeImageAnalysis(
 async function handleChatMessageWithImages(
   message: string,
   attachments?: { type: 'image'; data: Buffer }[],
-  provider: 'openai' | 'zhipu' | 'any' = 'any'
+  provider: 'openai' | 'zai' | 'any' = 'any'
 ): Promise<string> {
   // Extract images from markdown
   const markdownImages = extractImagesFromMarkdown(message)
@@ -1055,7 +1055,7 @@ async function handleChatMessageWithImages(
   let fallbackChain: string[]
   if (provider === 'openai') {
     fallbackChain = ['openai/gpt-4.1', 'openai/gpt-4o', 'openai/gpt-4.1-mini']
-  } else if (provider === 'zhipu') {
+  } else if (provider === 'zai') {
     fallbackChain = ['zai/glm-4.6v-flash', 'zai/glm-4.5v']
   } else {
     fallbackChain = ['zai/glm-4.6v', 'anthropic/claude-3-5-sonnet', 'openai/gpt-4o-mini', 'zai/glm-4.6v-flash']
