@@ -112,7 +112,7 @@ $(print_color "$CYAN" "TARGET SYSTEMS")
                  Skills directory path is added to ~/.config/opencode/opencode.json
 
     openclaw     Install skills to OpenClaw
-                 Skills are copied to ~/.openclaw/skills/
+                 Skills are copied to ~/.openclaw/workspace/skills/
 
 $(print_color "$CYAN" "AVAILABLE SKILLS")
     The script automatically detects skill directories in the current location.
@@ -370,7 +370,7 @@ select_target() {
     print_info "What platform do you want to install to?" >&2
     echo "  1. Roo Code (Claude Code) - Skills copied to ~/.roo/skills/" >&2
     echo "  2. OpenCode - Skills directory configured in ~/.config/opencode/opencode.json" >&2
-    echo "  3. OpenClaw - Skills copied to ~/.openclaw/skills/" >&2
+    echo "  3. OpenClaw - Skills copied to ~/.openclaw/workspace/skills/" >&2
     echo "" >&2
 
     while true; do
