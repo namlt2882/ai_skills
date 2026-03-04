@@ -26,6 +26,14 @@ Browser automation powered by **PinchTab** (standalone HTTP server + CLI) with v
 - **Chrome/Chromium** (PinchTab auto-detects or bundles browser on most platforms)
 - **curl** or **jq** for HTTP API usage (optional but recommended)
 
+### Runtime Prerequisites (to run PinchTab locally)
+
+- **PinchTab installed and on PATH** (`pinchtab --help` works)
+- **Port 9867 available** (or choose an alternate `--port`)
+- **Local HTTP server allowed** (corporate firewall/VPN must permit localhost traffic)
+- **Browser launch permissions** (headful/headless Chrome can start on the host)
+- **Sufficient disk space** for browser cache and profile data
+
 ### System Requirements Verification
 
 Before proceeding, verify your system meets the requirements:
@@ -98,7 +106,7 @@ Use these when screenshots or visual context are needed.
 
 Follow these steps to install and configure PinchTab for web scraping and automation.
 
-### Step 1: Install PinchTab
+### Step 1: Install PinchTab (Required)
 
 **macOS / Linux:**
 ```bash
@@ -113,6 +121,11 @@ npm install -g pinchtab
 **Docker:**
 ```bash
 docker run -d -p 9867:9867 pinchtab/pinchtab
+```
+
+**Build locally (Docker image from source):**
+```bash
+./pinchtab-web-automation/build-pinchtab-image.sh
 ```
 
 ### Step 2: Start PinchTab Server
@@ -136,30 +149,22 @@ curl -s http://localhost:9867/health
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  1. PAGE NAVIGATION                                      │
-│     Navigate to target URL using pinchtab nav            │
-│     Wait for page load and dynamic content               │
+│  1. START + NAVIGATE                                     │
+│     Create instance + tab                                │
+│     Navigate to target URL                               │
 ├─────────────────────────────────────────────────────────┤
-│  2. SNAPSHOT + TEXT                                      │
-│     Use pinchtab snap for structure + refs               │
-│     Use pinchtab text for token-efficient content        │
+│  2. SNAPSHOT + TEXT (PRIMARY INPUTS)                     │
+│     pinchtab snapshot for structure + refs               │
+│     pinchtab text for token-efficient content            │
+│     (Screenshots only if snapshot/text are insufficient) │
 ├─────────────────────────────────────────────────────────┤
-│  3. VISION ANALYSIS                                      │
-│     Send snapshot/text to vision model                   │
-│     Identify interactive elements + targets              │
+│  3. DECIDE + ACT                                          │
+│     Use model to select refs or plan next steps          │
+│     Execute click/fill/press/scroll via PinchTab actions  │
 ├─────────────────────────────────────────────────────────┤
-│  4. ACTION EXECUTION                                     │
-│     Execute pinchtab click/fill/press/scroll             │
-│     Use stable element refs from snapshot                │
-├─────────────────────────────────────────────────────────┤
-│  5. DATA EXTRACTION                                      │
-│     Extract with pinchtab text + optional snapshots      │
-│     Parse structured data from model output              │
-├─────────────────────────────────────────────────────────┤
-│  6. ITERATION (if needed)                                │
-│     Repeat for multi-page workflows                      │
-│     Handle pagination and navigation                     │
-│     Process multiple instances in parallel               │
+│  4. EXTRACT + ITERATE                                     │
+│     Read text or take a fresh snapshot after actions     │
+│     Repeat for pagination or multi-page flows            │
 └─────────────────────────────────────────────────────────┘
 ```
 
