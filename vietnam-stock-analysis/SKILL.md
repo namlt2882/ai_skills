@@ -15,6 +15,7 @@ Use this skill when the user asks for:
 - Market regime assessment (risk-on/off, trend, volatility regime, liquidity conditions).
 - Technical indicator interpretation (MA, RSI, MACD, volume/OBV, support/resistance).
 - Portfolio-aware guidance for Vietnamese equity positions.
+- You need to fetch prices or specific information about Vietnamese stocks/indices.
 
 ## Activation Criteria
 
@@ -26,6 +27,10 @@ Trigger this skill when user intent includes any of the following:
 - Technical indicators: "RSI", "MACD", "MA", "EMA", "SMA", "OBV", "volume", "hỗ trợ/kháng cự".
 
 If the request explicitly requires **news data**, you MUST trigger the [`pinchtab-web-automation`](../pinchtab-web-automation/SKILL.md) skill first and follow its workflow to gather sources before analysis.
+
+If market/stock/index data is required, you MUST use PinchTab to fetch **official data from FireAnt**:
+- General market/index/sector overview: https://fireant.vn/thi-truong
+- Specific ticker details (profile, shareholders, dividends, price data, etc.): https://fireant.vn/ma-chung-khoan/<ticker>
 
 ## Required Analysis Sections
 
@@ -85,21 +90,29 @@ All outputs MUST include these sections in order:
    - If news/current events are required or requested, **activate** [`pinchtab-web-automation`](../pinchtab-web-automation/SKILL.md) and collect sources before analysis.
    - If not required, proceed with technical/regime analysis only.
 
-3. **Assess market regime**
+3. **Gather market/stock data when needed**
+   - When data is required, use PinchTab to fetch from FireAnt:
+     - Market/index/sector overview: https://fireant.vn/thi-truong
+     - Ticker-specific details: https://fireant.vn/ma-chung-khoan/<ticker>
+
+4. **Assess market regime**
    - Classify trend + volatility + liquidity posture.
 
-4. **Perform bluechip-focused analysis**
+5. **Perform bluechip-focused analysis**
    - Emphasize VN30/large-cap stocks; compare to sector/market baseline.
 
-5. **Review technical indicators**
+6. **Review technical indicators**
    - Summarize MA/EMA, RSI, MACD, volume/OBV and key levels.
 
-6. **Deliver calm advisory guidance**
+7. **Deliver calm advisory guidance**
    - Provide scenario-based actions and risk management notes.
 
 ## Constraints
 
 - Do not fabricate news or corporate events. If news is needed, use PinchTab via the required skill.
+- Do not fabricate market/stock/index data. Use PinchTab to fetch FireAnt data from:
+  - https://fireant.vn/thi-truong for general market/index/sector information.
+  - https://fireant.vn/ma-chung-khoan/<ticker> for ticker-specific details (profile, shareholders, dividends, price data, etc.).
 - Do not give definitive price targets or certainty language.
 - Avoid recommendations that imply guaranteed outcomes.
 - **Advice must follow the current market trend and regime; no counter-trend bottom-fishing.**

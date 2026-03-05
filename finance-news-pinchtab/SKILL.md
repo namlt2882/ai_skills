@@ -9,7 +9,7 @@ Summarize and analyze finance data by scraping trusted Vietnamese and global bus
 Use this skill when:
 
 - You need finance-focused summaries and analysis from:
-  - **Vietnamese sources**: https://vietstock.vn/, https://vneconomy.vn/, https://vietnamnet.vn/kinh-doanh, https://cafef.vn/
+  - **Vietnamese sources**: https://vietstock.vn/chung-khoan.htm, https://vneconomy.vn/, https://vietnamnet.vn/kinh-doanh, https://cafef.vn/
   - **Global sources**: https://reuters.com/finance, https://ft.com/markets, https://bloomberg.com/markets, https://wsj.com/markets, https://cnbc.com/markets
   - **RSS feeds**: Official economic data releases from BLS, BEA, Eurostat, ONS, IMF, World Bank, BIS, Trading Economics (includes economic calendar)
   - **Economic calendars**: https://investing.com/economic-calendar (scraped via PinchTab), Trading Economics calendar via RSS
@@ -983,7 +983,7 @@ Add language metadata to the output schema:
 INSTANCE_ID=$(curl -s -X POST http://localhost:9867/instances -d '{"profile":"vietstock"}' | jq -r '.id')
 TAB_ID=$(curl -s -X POST "http://localhost:9867/instances/$INSTANCE_ID/tabs" | jq -r '.id')
 curl -s -X POST "http://localhost:9867/instances/$INSTANCE_ID/tabs/$TAB_ID/navigate" \
-  -d '{"url":"https://vietstock.vn/"}'
+  -d '{"url":"https://vietstock.vn/chung-khoan.htm"}'
 curl -s "http://localhost:9867/instances/$INSTANCE_ID/tabs/$TAB_ID/snapshot?filter=interactive"
 curl -s "http://localhost:9867/instances/$INSTANCE_ID/tabs/$TAB_ID/text"
 ```
