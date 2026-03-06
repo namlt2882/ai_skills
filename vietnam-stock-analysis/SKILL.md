@@ -93,9 +93,9 @@ All outputs MUST include these sections in order:
    - If not required, proceed with technical/regime analysis only.
 
 3. **Gather market/stock data when needed**
-    - When data is required, use PinchTab to fetch from DStock VNDIRECT:
-      - Market/index/sector overview: https://dstock.vndirect.com.vn/
-      - Ticker-specific details: https://dstock.vndirect.com.vn/tong-quan/<ticker>
+     - When data is required, use PinchTab to fetch from DStock VNDIRECT:
+       - Market/index/sector overview: https://dstock.vndirect.com.vn/
+       - Ticker-specific details: https://dstock.vndirect.com.vn/tong-quan/<ticker>
 
 4. **Assess market regime**
    - Classify trend + volatility + liquidity posture.
@@ -108,6 +108,24 @@ All outputs MUST include these sections in order:
 
 7. **Deliver calm advisory guidance**
    - Provide scenario-based actions and risk management notes.
+
+## Knowledge Base References
+
+This skill incorporates specialized knowledge from the following modular components:
+
+### Core Analysis Aspects
+- **[Bluechip Focus](./aspects/bluechip-focus.md)**: Detailed framework for analyzing Vietnamese bluechip stocks, particularly those in the VN30 index and other large-cap leaders
+- **[Market Regime Assessment](./aspects/market-regime.md)**: Framework for assessing current market regime in Vietnamese equities, focusing on trend identification, volatility patterns, and liquidity conditions
+- **[Technical Analysis](./aspects/technical-analysis.md)**: Systematic approach to interpreting technical indicators and patterns specifically for Vietnamese equities
+- **[Risk Assessment](./aspects/risk-assessment.md)**: Framework for evaluating and quantifying risks in Vietnamese equities across different time horizons
+- **[Trading Recommendations](./aspects/trading-recommendations.md)**: Guidelines for generating actionable trading recommendations incorporating technical, fundamental, and risk considerations
+- **[Regulatory Compliance](./aspects/regulatory-compliance.md)**: Requirements to ensure all trading recommendations and analysis comply with Vietnamese securities regulations
+
+### Supporting Documentation
+- **[Company Analysis Framework](./docs/company-analysis.md)**: Comprehensive approach to analyzing Vietnamese companies with focus on bluechip stocks
+- **[Market Overview](./docs/market-overview.md)**: Understanding of Vietnamese stock market structure, participants, and operational characteristics
+- **[Technical Indicators Guide](./docs/technical-indicators-vn.md)**: Technical indicators specifically adapted for Vietnamese market characteristics
+- **[Data Sources Reference](./references/data-sources-vn.md)**: Reliable data sources for Vietnamese financial markets including official exchanges and research resources
 
 ## Constraints
 

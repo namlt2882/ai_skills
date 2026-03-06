@@ -2,6 +2,15 @@
 
 Summarize and analyze finance data by scraping trusted Vietnamese and global business news sources using PinchTab, supplemented with **RSS feed ingestion via curl** for official economic data releases and **economic calendar data**. This skill enforces **parallel crawling**, **deduplication**, **selective subpage verification** (only when a news item is likely relevant to finance), **social rumor tracking** from major news outlets, and **economic calendar monitoring** from Investing.com and Trading Economics.
 
+This skill integrates specialized modules for enhanced functionality:
+- **Credibility Verification**: Apply critical-thinking rules to detect fake news and parody content ([`credibility-verification`](aspects/credibility-verification.md))
+- **Data Deduplication**: Remove duplicate content across multiple sources ([`data-deduplication`](aspects/data-deduplication.md))
+- **Economic Calendar Integration**: Enhanced calendar event processing ([`economic-calendar`](aspects/economic-calendar.md))
+- **Language Enforcement**: Automatic language detection and enforcement ([`language-enforcement`](aspects/language-enforcement.md))
+- **News Aggregation**: Advanced content extraction and processing ([`news-aggregation`](aspects/news-aggregation.md))
+- **RSS Ingestion**: Robust feed processing with error handling ([`rss-ingestion`](aspects/rss-ingestion.md))
+- **Social Tracking**: Enhanced social media monitoring ([`social-tracking`](aspects/social-tracking.md))
+
 ## When to Use
 
 **Trigger Detection**: This skill is automatically triggered when your request contains finance-related keywords. See the [Trigger Keywords](#trigger-keywords) section for the complete list of Vietnamese and English keywords that activate this skill.
@@ -9,10 +18,13 @@ Summarize and analyze finance data by scraping trusted Vietnamese and global bus
 Use this skill when:
 
 - You need finance-focused summaries and analysis from:
-  - **Vietnamese sources**: https://vietstock.vn/chung-khoan.htm, https://vneconomy.vn/, https://vietnamnet.vn/kinh-doanh, https://cafef.vn/
+  - **Vietnamese sources**: https://vietstock.vn/chung-khoan.htm, https://vneconomy.vn/, https://vietnamnet.vn/kinh-doanh, https://cafef.vn/, https://tinnhanhchungkhoan.vn/, https://vietnamfinance.vn/, https://enternews.vn/, https://tapchitailieu.vn/, https://bloombergvn.com/, https://taichinhdoanhnghiep.net.vn/
+  - **Vietnamese market data**: https://dstock.vndirect.com.vn/ (DStock VNDIRECT), https://www.hsx.vn (HOSE), https://www.hnx.vn (HNX), https://stockbook.vn (StockBook)
+  - **Vietnamese economic data**: https://www.gso.gov.vn (GSO), https://sbv.gov.vn (State Bank of Vietnam), https://www.mpi.gov.vn (MPI)
+  - **Vietnamese regulatory sources**: https://www.ssc.gov.vn (State Securities Commission), https://mof.gov.vn (Ministry of Finance), https://vsd.vn (Vietnam Securities Depository), https://vse.vn (Vietnam Stock Exchange), https://isa.gov.vn (Insurance Supervisory Authority), https://vietnamcompetition.gov.vn (Competition Authority)
   - **Global sources**: https://reuters.com/finance, https://ft.com/markets, https://bloomberg.com/markets, https://wsj.com/markets, https://cnbc.com/markets
-  - **RSS feeds**: Official economic data releases from BLS, BEA, Eurostat, ONS, IMF, World Bank, BIS, Trading Economics (includes economic calendar)
-  - **Economic calendars**: https://investing.com/economic-calendar (scraped via PinchTab), Trading Economics calendar via RSS
+  - **RSS feeds**: Official economic data releases from BLS, BEA, Eurostat, ONS, IMF, World Bank, BIS, Trading Economics (includes economic calendar), GSO, SBV
+  - **Economic calendars**: https://investing.com/economic-calendar (scraped via PinchTab), Trading Economics calendar via RSS, Vietnamese economic calendar from GSO
 - You want to track social rumors from major news outlets on Twitter/X.
 - You want to avoid duplicates across sources.
 - You only open article detail pages when the item is likely finance-related.
@@ -27,35 +39,45 @@ This skill is triggered when the user's request contains finance-related keyword
 ### Vietnamese Trigger Keywords
 
 **Macroeconomic Indicators:**
-- GDP, CPI, PPI, PMI, VN-Index, HNX-Index
-- lạm phát, lãi suất, tỷ giá, hối đoái
-- tăng trưởng kinh tế, kinh tế vĩ mô
-- thâm hụt thương mại, cán cân thanh toán
+- GDP, CPI, PPI, PMI, VN-Index, HNX-Index, UPCoM-Index, VN30
+- lạm phát, lãi suất, tỷ giá, hối đoái, điều hành tiền tệ
+- tăng trưởng kinh tế, kinh tế vĩ mô, chính sách tài khóa
+- thâm hụt thương mại, cán cân thanh toán, dự trữ ngoại hối
+- chỉ số sản xuất, chỉ số tiêu dùng, kim ngạch xuất nhập khẩu
+- FDI, vốn đầu tư trực tiếp nước ngoài, cán cân vãng lai
 
 **Financial Markets:**
 - chứng khoán, cổ phiếu, trái phiếu, tiền tệ
 - thị trường tài chính, thị trường chứng khoán
-- ngân hàng, tín dụng, nợ xấu
-- đầu tư, cổ phần, cổ tức, lợi nhuận
-- M&A, IPO, sáp nhập, mua lại
+- ngân hàng, tín dụng, nợ xấu, cho vay
+- đầu tư, cổ phần, cổ tức, lợi nhuận, doanh thu
+- M&A, IPO, sáp nhập, mua lại, chào bán cổ phần
+- bluechip, penny stock, margin, phái sinh, VN30
+- HOSE, HNX, UPCoM, sàn chứng khoán
+- DStock, VNDIRECT, thị trường chứng khoán Việt Nam
 
 **Economic Events:**
 - lịch kinh tế, lịch sự kiện kinh tế
 - quyết định lãi suất, họp FOMC, họp ECB
 - dữ liệu việc làm, phi nông nghiệp (NFP)
 - báo cáo tài chính, báo cáo lợi nhuận
+- công bố kết quả kinh doanh, đại hội cổ đông
 
 **Business & Corporate:**
 - doanh nghiệp, công ty, tập đoàn
 - doanh thu, lợi nhuận, tài sản, nợ
-- cổ đông, cổ phần, niêm yết
-- ngân hàng đầu tư, quỹ đầu tư
+- cổ đông, cổ phần, niêm yết, đăng ký giao dịch
+- ngân hàng đầu tư, quỹ đầu tư, quản trị rủi ro
+- báo cáo thường niên, kiểm toán, phân tích tài chính
 
 **Policy & Regulation:**
 - chính sách tiền tệ, chính sách tài khóa
 - Ngân hàng Nhà nước, Fed, ECB
+- Ủy ban Chứng khoán Nhà nước (SSC), Bộ Tài chính (MOF)
+- Trung tâm Lưu ký Chứng khoán Việt Nam (VSD), Sở Giao dịch Chứng khoán Việt Nam (VSE)
 - quy định, luật pháp, tài chính
 - thuế, ngân sách, chi tiêu công
+- thông tư, nghị định, quyết định điều hành
 
 ### English Trigger Keywords
 
@@ -89,6 +111,8 @@ This skill is triggered when the user's request contains finance-related keyword
 **Policy & Regulation:**
 - monetary policy, fiscal policy
 - central bank, Federal Reserve, ECB
+- State Securities Commission (SSC), Ministry of Finance (MOF)
+- Vietnam Securities Depository (VSD), Vietnam Stock Exchange (VSE)
 - regulation, financial regulation
 - tax, budget, government spending
 
@@ -117,7 +141,7 @@ To avoid unbounded crawling and maintain focus on finance-relevant content:
 
 When executing this skill, follow this sequential workflow:
 
-0. **[ ] Detect user language**
+0. **[ ] Detect user language** (see [`language-enforcement`](aspects/language-enforcement.md))
    - Extract user message text from chat context
    - Clean and preprocess input (remove code blocks, URLs, technical terms)
    - Detect primary language (Vietnamese, English, Chinese)
@@ -128,23 +152,23 @@ When executing this skill, follow this sequential workflow:
    - Start multiple PinchTab servers on different ports
    - Configure profiles for each source type (Vietnamese, global, social, economic-calendar)
 
-2. **[ ] Ingest RSS feeds**
-    - Fetch RSS feeds from official economic data sources using `curl`
-    - Parse RSS XML/JSON format and extract items with titles, links, descriptions, and publication dates
-    - **Validate and normalize timestamps**: Extract `published_at`, parse to UTC, apply recency filtering (48 hours max, 72 hours for official data)
-    - Skip items without valid timestamps or exceeding max age
-    - Apply relevance filtering to RSS items
-    - Store RSS items for deduplication and analysis
-    - Track which sources have successfully fetched RSS feeds (Reuters, Bloomberg, FT, CNBC, Trading Economics calendar)
+2. **[ ] Ingest RSS feeds** (see [`rss-ingestion`](aspects/rss-ingestion.md))
+     - Fetch RSS feeds from official economic data sources using `curl`
+     - Parse RSS XML/JSON format and extract items with titles, links, descriptions, and publication dates
+     - **Validate and normalize timestamps**: Extract `published_at`, parse to UTC, apply recency filtering (48 hours max, 72 hours for official data)
+     - Skip items without valid timestamps or exceeding max age
+     - Apply relevance filtering to RSS items
+     - Store RSS items for deduplication and analysis
+     - Track which sources have successfully fetched RSS feeds (Reuters, Bloomberg, FT, CNBC, Trading Economics calendar, GSO, SBV)
 
-3. **[ ] Scrape economic calendar from Investing.com**
+3. **[ ] Scrape economic calendar from Investing.com** (see [`economic-calendar`](aspects/economic-calendar.md))
    - Navigate to https://investing.com/economic-calendar using PinchTab
    - Extract upcoming economic events with dates, times, countries, indicators, actual/forecast/previous values
    - Apply relevance filtering (focus on high-impact events)
    - Store calendar events for analysis
    - **Note**: Investing.com does not provide RSS feeds for economic calendar - must be scraped via PinchTab
 
-4. **[ ] Scrape Vietnamese news sources**
+4. **[ ] Scrape Vietnamese news sources** (see [`news-aggregation`](aspects/news-aggregation.md))
     - Navigate to each Vietnamese source's finance section
     - Extract list items with timestamps
     - **Validate and normalize timestamps**: Extract `published_at`, parse to UTC (assume Asia/Ho_Chi_Minh timezone), apply 48-hour max age
@@ -152,7 +176,7 @@ When executing this skill, follow this sequential workflow:
     - Perform relevance checks
     - Fetch detail pages for relevant items only
 
-5. **[ ] Scrape global news sources**
+5. **[ ] Scrape global news sources** (see [`news-aggregation`](aspects/news-aggregation.md))
     - **Skip website crawling for sources with successful RSS feeds** (Reuters, Bloomberg, FT, CNBC)
     - For remaining global sources, navigate to finance/markets section
     - Extract list items with timestamps
@@ -161,7 +185,7 @@ When executing this skill, follow this sequential workflow:
     - Perform relevance checks
     - Fetch detail pages for relevant items only
 
-6. **[ ] Track social media rumors**
+6. **[ ] Track social media rumors** (see [`social-tracking`](aspects/social-tracking.md))
     - Monitor specified Twitter/X accounts for finance-related posts
     - Extract post content, timestamps, and engagement metrics
     - **Validate and normalize timestamps**: Extract `published_at`, parse to UTC, apply 24-hour max age
@@ -177,18 +201,18 @@ When executing this skill, follow this sequential workflow:
     - Only open sources that appear relevant and credible
     - Apply deduplication and credibility checks to discovered items
 
-8. **[ ] Apply credibility verification**
+8. **[ ] Apply credibility verification** (see [`credibility-verification`](aspects/credibility-verification.md))
    - Apply fake news/parody detection rules to all items
    - Classify items as credible, uncertain, or parody/fake
    - Discard parody/fake items, mark uncertain items for corroboration
 
-9. **[ ] Apply deduplication**
+9. **[ ] Apply deduplication** (see [`data-deduplication`](aspects/data-deduplication.md))
    - Normalize URLs and titles across all sources (including RSS and calendar)
    - Remove duplicates using primary and secondary keys
    - Track cross-source duplicates (RSS vs. web vs. social vs. calendar)
 
 10. **[ ] Generate summaries and analysis**
-     - Apply language enforcement: Use detected user language for all summaries
+     - Apply language enforcement: Use detected user language for all summaries (see [`language-enforcement`](aspects/language-enforcement.md))
      - Add explicit language instruction to summarization prompts
      - Summarize each relevant article, RSS item, social post, and calendar event
      - Extract key facts, entities, and sentiment
@@ -209,20 +233,20 @@ When executing this skill, follow this sequential workflow:
    - Run separate PinchTab servers on multiple ports and process sources in parallel.
    - Use a concurrency gate to limit per-source in-flight requests (avoid bans).
 
-2. **RSS feed ingestion**
+2. **RSS feed ingestion** (see [`rss-ingestion`](aspects/rss-ingestion.md))
    - Fetch RSS feeds from official economic data sources in parallel using `curl`.
    - Parse RSS XML/JSON format and extract items with metadata.
    - Apply relevance filtering to RSS items before processing.
    - RSS items are treated as high-priority sources (official data releases).
    - Trading Economics RSS includes economic calendar items.
 
-3. **Economic calendar scraping**
+3. **Economic calendar scraping** (see [`economic-calendar`](aspects/economic-calendar.md))
    - Scrape Investing.com economic calendar using PinchTab (no RSS available).
    - Extract upcoming economic events with dates, times, countries, indicators, and values.
    - Focus on high-impact events (interest rate decisions, GDP releases, employment data, inflation reports).
    - Trading Economics calendar can be ingested via RSS feed.
 
-3. **Avoid duplicated news details**
+3. **Avoid duplicated news details** (see [`data-deduplication`](aspects/data-deduplication.md))
    - Normalize URLs, then dedupe by `canonical_url`.
    - Secondary dedupe: `source + title_normalized + published_date`.
    - Cross-source deduplication: RSS items may duplicate web articles.
@@ -236,14 +260,14 @@ When executing this skill, follow this sequential workflow:
    - If uncertain, open detail page and re-classify using full text.
    - RSS items with official data releases are always considered relevant.
 
-5. **Fake news & parody detection**
+5. **Fake news & parody detection** (see [`credibility-verification`](aspects/credibility-verification.md))
    - Apply critical-thinking rules to all items (both website and social).
    - RSS feeds from official sources are automatically classified as credible.
    - Classify items as credible, uncertain, or parody/fake.
    - Discard parody/fake items immediately with logged exclusion reason.
    - Mark uncertain items and require corroboration from additional sources.
 
-6. **Social rumor tracking**
+6. **Social rumor tracking** (see [`social-tracking`](aspects/social-tracking.md))
    - Monitor Twitter/X accounts for breaking finance news and rumors.
    - Apply relevance heuristics to identify potentially market-moving posts.
    - Track engagement metrics (likes, retweets, replies) as rumor intensity indicators.
@@ -256,14 +280,15 @@ When executing this skill, follow this sequential workflow:
   "run_timestamp": "2026-03-04T09:34:00+07:00",
   "sources": {
     "vietnamese": ["vietstock", "vneconomy", "vietnamnet-kinh-doanh", "cafef"],
+    "vietnamese_regulatory": ["ssc", "mof", "vsd", "vse", "isa", "competition"],
     "global": ["reuters", "ft", "bloomberg", "wsj", "cnbc"],
     "social": ["@Reuters", "@FT", "@AP", "@BBCWorld", "@BBCBreaking"],
-    "rss": ["reuters-rss", "bloomberg-rss", "ft-rss", "cnbc-rss", "bls", "bea", "eurostat", "ons", "imf", "worldbank", "bis", "tradingeconomics-calendar"],
+    "rss": ["reuters-rss", "bloomberg-rss", "ft-rss", "cnbc-rss", "bls", "bea", "eurostat", "ons", "imf", "worldbank", "bis", "tradingeconomics-calendar", "gso", "sbv", "ssc", "mof", "vsd", "vse"],
     "economic_calendar": ["investing-com", "tradingeconomics-rss"]
   },
   "items": [
     {
-      "source": "vietstock|reuters|@Reuters|bls|bea|eurostat|ons|imf|worldbank|bis|tradingeconomics|investing-com-calendar",
+      "source": "vietstock|reuters|@Reuters|bls|bea|eurostat|ons|imf|worldbank|bis|tradingeconomics|investing-com-calendar|gso|sbv|ssc|mof|vsd|vse|isa|competition|dstock|stockbook|hsx|hnx",
       "source_type": "website|social|rss|calendar",
       "title": "...",
       "canonical_url": "https://...",
@@ -280,7 +305,9 @@ When executing this skill, follow this sequential workflow:
       "topics": ["banking", "stocks", "real-estate", "energy"],
       "is_related": true,
       "credibility": "credible|uncertain",
+      "credibility_score": 85,
       "corroboration_sources": ["source1", "source2"],
+      "verification_notes": "Trusted source with professional standards",
       "social_metrics": {
         "likes": 0,
         "retweets": 0,
@@ -317,16 +344,39 @@ When executing this skill, follow this sequential workflow:
     "total_events": 25
   },
   "analysis": {
+    "language": {
+      "detected": "vi|en|zh",
+      "language_name": "Vietnamese|English|Chinese",
+      "confidence": 0.95,
+      "verified": true
+    },
     "market_themes": ["..."],
     "risk_flags": ["..."],
     "sector_trends": [{"sector":"...","trend":"..."}],
     "rumor_alerts": ["..."],
-    "upcoming_calendar_risks": ["..."]
+    "upcoming_calendar_risks": ["..."],
+    "intermarket_context": {
+      "primary_impact": "bonds",
+      "secondary_impact": ["currencies", "stocks"],
+      "relationship_type": "yields_rising_risk_off",
+      "correlated_assets_to_watch": ["USD", "SPY", "TLT"]
+    }
   },
   "deduplication": {
     "total_items": 100,
     "unique_items": 85,
-    "duplicates_removed": 15
+    "duplicates_removed": 15,
+    "duplicates_by_type": {
+      "primary": 10,
+      "secondary": 5
+    },
+    "duplicates_by_source": {
+      "rss_vs_web": 8,
+      "social_vs_web": 4,
+      "cross_source": 3
+    },
+    "sources_skipped": ["reuters", "bloomberg", "ft", "cnbc"],
+    "skip_reason": "RSS feed successfully fetched"
   }
 }
 ```
@@ -561,13 +611,17 @@ Add `credibility` field to each item:
 ```json
 {
   "credibility": "credible|uncertain",
+  "credibility_score": 85,
   "corroboration_sources": ["source1", "source2"],
+  "verification_notes": "Trusted source with professional standards",
   "exclusion_reason": "parody|fake|duplicate|unrelated"
 }
 ```
 
 - `credibility`: Required for all included items (default: "credible")
+- `credibility_score`: Numerical score representing confidence level (0-100)
 - `corroboration_sources`: List of sources that corroborated uncertain items
+- `verification_notes`: Explanation of classification decision
 - `exclusion_reason`: Only for discarded items (logged separately)
 
 ## Social Rumor Tracking
@@ -793,6 +847,27 @@ pinchtab --port 9870
 | BIS (Bank for International Settlements) | https://www.bis.org/rss.htm | Central bank and financial stability |
 | Trading Economics Calendar | https://tradingeconomics.com/calendar.rss | Economic calendar events and forecasts |
 
+### Vietnamese Economic Data RSS Feeds
+
+| Source | RSS URL | Description |
+|--------|---------|-------------|
+| GSO (General Statistics Office) | https://www.gso.gov.vn/rss | Vietnamese economic statistics (GDP, CPI, employment, trade) |
+| SBV (State Bank of Vietnam) | https://sbv.gov.vn/rss | Monetary policy, interest rates, exchange rates |
+| MPI (Ministry of Planning and Investment) | https://www.mpi.gov.vn/rss | FDI data, investment statistics, economic development |
+| Ministry of Labor | https://molisa.gov.vn/rss | Employment statistics, labor market data |
+| Ministry of Industry and Trade | https://moit.gov.vn/rss | Trade data, industrial production, exports/imports |
+
+### Vietnamese Regulatory RSS Feeds
+
+| Source | RSS URL | Description |
+|--------|---------|-------------|
+| SSC (State Securities Commission) | https://www.ssc.gov.vn/rss | Vietnamese securities regulations and announcements |
+| MOF (Ministry of Finance) | https://mof.gov.vn/rss | Vietnamese fiscal policy and regulations |
+| VSD (Vietnam Securities Depository) | https://vsd.vn/rss | Securities depository and settlement updates |
+| VSE (Vietnam Stock Exchange) | https://vse.vn/rss | Exchange announcements and market rules |
+| ISA (Insurance Supervisory Authority) | https://isa.gov.vn/rss | Insurance sector regulations |
+| Vietnam Competition Authority | https://vietnamcompetition.gov.vn/rss | Competition and antitrust regulations |
+
 ### RSS Ingestion Workflow
 
 1. **Fetch RSS feeds in parallel using curl**:
@@ -819,6 +894,7 @@ pinchtab --port 9870
 
 3. **Apply relevance filtering to RSS items**:
    - Official economic data releases (BLS, BEA, Eurostat, ONS, IMF, World Bank, BIS) are always relevant
+   - Vietnamese regulatory announcements (SSC, MOF, VSD, VSE) are always relevant for market impact
    - Financial news RSS items (Reuters, Bloomberg, FT, CNBC) use the same relevance heuristics as web scraping
    - Trading Economics calendar RSS items use calendar event relevance rules (see Economic Calendar Sources section)
 
@@ -876,6 +952,10 @@ For financial news RSS feeds (Reuters, Bloomberg, FT, CNBC), apply the same rele
 - Credibility: classify as "credible" or "uncertain" based on verification rules.
 - For uncertain items: note lack of corroboration in summary.
 - For social posts: assess rumor credibility and potential market impact.
+- **Intermarket Analysis**: Include cross-asset implications based on intermarket relationships (see [`docs/intermarket-analysis.md`](docs/intermarket-analysis.md))
+- **Technical Indicators**: Reference relevant technical analysis where applicable (see [`docs/technical-indicators.md`](docs/technical-indicators.md))
+- **Risk Assets Analysis**: Consider risk-on/risk-off dynamics (see [`docs/risk-assets-analysis.md`](docs/risk-assets-analysis.md))
+- **Macroeconomic Factors**: Include broader economic context (see [`docs/macroeconomic-factors.md`](docs/macroeconomic-factors.md))
 
 ## Language Enforcement for Output Summaries
 
@@ -974,7 +1054,13 @@ Add language metadata to the output schema:
     "risk_flags": ["..."],
     "sector_trends": [{"sector":"...","trend":"..."}],
     "rumor_alerts": ["..."],
-    "upcoming_calendar_risks": ["..."]
+    "upcoming_calendar_risks": ["..."],
+    "intermarket_context": {
+      "primary_impact": "bonds",
+      "secondary_impact": ["currencies", "stocks"],
+      "relationship_type": "yields_rising_risk_off",
+      "correlated_assets_to_watch": ["USD", "SPY", "TLT"]
+    }
   }
 }
 ```
@@ -1012,6 +1098,7 @@ curl -s "http://localhost:9867/instances/$INSTANCE_ID/tabs/$TAB_ID/text"
 - At least one relevant post from each social account **or** a logged reason for absence.
 - RSS feeds successfully fetched and parsed using `curl` **or** a logged reason for failure.
 - At least one relevant item from each RSS feed **or** a logged reason for absence.
+- Vietnamese regulatory sources (SSC, MOF, VSD, VSE) monitored for regulatory announcements **or** a logged reason for absence.
 - Economic calendar data successfully collected:
   - Investing.com calendar scraped via PinchTab **or** a logged reason for failure.
   - Trading Economics calendar RSS fetched via `curl` **or** a logged reason for failure.
@@ -1031,6 +1118,7 @@ curl -s "http://localhost:9867/instances/$INSTANCE_ID/tabs/$TAB_ID/text"
 - Only relevant detail pages fetched.
 - All items classified by credibility (credible/uncertain/parody/fake).
 - RSS items from official sources (BLS, BEA, Eurostat, ONS, IMF, World Bank, BIS) automatically classified as credible.
+- RSS items from Vietnamese regulatory sources (SSC, MOF, VSD, VSE) automatically classified as credible.
 - Parody/fake items excluded with logged reasons.
 - Uncertain items marked and corroboration attempted from exactly 2 credible sources.
 - Deduplication statistics included in output.
@@ -1038,3 +1126,7 @@ curl -s "http://localhost:9867/instances/$INSTANCE_ID/tabs/$TAB_ID/text"
 - Economic calendar summary included in output with upcoming high-impact events.
 - Calendar events deduplicated between Investing.com and Trading Economics RSS.
 - Time validation statistics included in output (total items, valid timestamps, skipped due to missing/invalid/stale timestamps).
+- **Intermarket Analysis**: Cross-asset implications identified and included in analysis section (see [`docs/intermarket-analysis.md`](docs/intermarket-analysis.md))
+- **Technical Indicators**: Relevant technical analysis referenced where applicable (see [`docs/technical-indicators.md`](docs/technical-indicators.md))
+- **Risk Assets Analysis**: Risk-on/risk-off dynamics considered (see [`docs/risk-assets-analysis.md`](docs/risk-assets-analysis.md))
+- **Macroeconomic Factors**: Broader economic context included (see [`docs/macroeconomic-factors.md`](docs/macroeconomic-factors.md))
