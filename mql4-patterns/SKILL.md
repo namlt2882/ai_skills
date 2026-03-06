@@ -146,3 +146,5 @@ bool ShouldPauseTrading(datetime currentTime) {
 ## Additional Resources
 
 For a comprehensive overview of Expert Advisors and indicators available on the MQL Market, including detailed analysis of various trading strategies, implementation methods, and pros/cons of different approaches, see: [`knowledge-document-mql4-eas-indicators.md`](knowledge-document-mql4-eas-indicators.md)
+
+For information on integrating Artificial Intelligence and Machine Learning techniques into your MQL4 Expert Advisors, see: [`knowledge-ai-integration.md`](knowledge-ai-integration.md)
