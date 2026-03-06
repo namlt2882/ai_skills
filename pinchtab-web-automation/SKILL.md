@@ -152,3 +152,38 @@ For detailed findings, system prompt templates, and site-specific notes, see [do
 - Chrome profile is persistent — cookies/logins carry over between runs
 - Use `BRIDGE_BLOCK_IMAGES=true` or `"blockImages": true` on navigate for read-heavy tasks
 - **Wait 3+ seconds after navigate before snapshot** — Chrome needs time to render 2000+ accessibility tree nodes
+
+## Cleanup and Resource Management
+
+After completing web automation tasks, it's important to properly clean up resources to prevent memory leaks and free up system resources. Use the official Pinchtab shutdown commands:
+
+### Profile-Based Instance Shutdown (Recommended)
+
+For profile-based instances, use the HTTP API stop endpoint:
+
+```bash
+curl -X POST http://localhost:9867/profiles/<ID>/stop
+```
+
+Or use the short alias:
+
+```bash
+curl -X POST http://localhost:9867/stop/<ID>
+```
+
+This method ensures proper cleanup of the specific profile instance and associated resources.
+
+### Basic Process Termination
+
+For basic process termination, use standard system commands:
+
+- `killall pinchtab` - Terminates all running Pinchtab processes
+- `pkill -f pinchtab` - Finds and kills Pinchtab processes by name
+- `kill <PID>` - Terminate a specific Pinchtab process ID (find with `ps aux | grep pinchtab`)
+
+### When to Use Each Method
+
+- **Profile-based shutdown**: Use when you have started Pinchtab with specific profiles and want to cleanly stop individual instances while preserving others
+- **Basic process termination**: Use when shutting down all instances or when profile-based methods aren't applicable
+
+**Important**: The HTTP API shutdown methods are preferred as they allow for graceful cleanup of browser instances and resources, ensuring proper termination of Chrome processes and freeing up memory. Use system commands only when the HTTP API is unavailable or for bulk termination of processes.
