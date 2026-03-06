@@ -125,7 +125,7 @@ For the full HTTP API (curl examples, download, upload, cookies, stealth, batch 
 
 **Validated Feb 2026**: Testing with AI agents revealed a critical pattern for reliable, token-efficient scraping.
 
-**See the full guide:** [docs/agent-optimization.md](../../docs/agent-optimization.md)
+**See the full guide:** [docs/guides/agent-optimization.md](docs/guides/agent-optimization.md)
 
 ### Quick Summary
 
@@ -141,7 +141,7 @@ curl http://localhost:9867/snapshot | jq '.nodes[] | select(.name | length > 15)
 
 **Token savings:** 93% reduction (3,842 → 272 tokens) when using prescriptive instructions vs. exploratory agent approach.
 
-For detailed findings, system prompt templates, and site-specific notes, see [docs/agent-optimization.md](../../docs/agent-optimization.md).
+For detailed findings, system prompt templates, and site-specific notes, see [docs/guides/agent-optimization.md](docs/guides/agent-optimization.md).
 
 ## Tips
 
@@ -187,3 +187,23 @@ For basic process termination, use standard system commands:
 - **Basic process termination**: Use when shutting down all instances or when profile-based methods aren't applicable
 
 **Important**: The HTTP API shutdown methods are preferred as they allow for graceful cleanup of browser instances and resources, ensuring proper termination of Chrome processes and freeing up memory. Use system commands only when the HTTP API is unavailable or for bulk termination of processes.
+
+## Additional Documentation
+
+The following documentation files are available in the local repository for more in-depth information:
+
+### Core Documentation
+- [docs/get-started.md](docs/get-started.md) - Comprehensive getting started guide
+- [docs/core-concepts.md](docs/core-concepts.md) - Understanding Pinchtab's core concepts and architecture
+- [docs/overview.md](docs/overview.md) - High-level overview of Pinchtab functionality
+- [docs/headless-vs-headed.md](docs/headless-vs-headed.md) - Differences between headless and headed browser modes
+- [docs/dashboard.md](docs/dashboard.md) - Information about the Pinchtab dashboard interface
+
+### Architecture Documentation
+- [docs/architecture/pinchtab-architecture.md](docs/architecture/pinchtab-architecture.md) - Detailed architecture overview of Pinchtab
+
+### Guides
+- [docs/guides/agent-optimization.md](docs/guides/agent-optimization.md) - Original agent optimization guide from the guides directory
+- [docs/guides/common-patterns.md](docs/guides/common-patterns.md) - Common usage patterns and best practices
+- [docs/guides/docker.md](docs/guides/docker.md) - Running Pinchtab with Docker
+- [docs/guides/multi-instance.md](docs/guides/multi-instance.md) - Managing multiple Pinchtab instances
