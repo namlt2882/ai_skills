@@ -26,6 +26,8 @@ Trigger this skill when user intent includes any of the following:
 - Market regime questions: "xu hướng", "regime", "risk-on", "risk-off", "biến động", "thanh khoản".
 - Technical indicators: "RSI", "MACD", "MA", "EMA", "SMA", "OBV", "volume", "hỗ trợ/kháng cự".
 
+**Note**: For US financial market analysis including intermarket relationships, risk assets correlation, technical indicators, and macroeconomic factors, use the [`us-financial-market-analysis`](../us-financial-market-analysis/SKILL.md) skill instead.
+
 If the request explicitly requires **news data**, you MUST trigger the [`pinchtab-web-automation`](../pinchtab-web-automation/SKILL.md) skill first and follow its workflow to gather sources before analysis.
 
 If market/stock/index data is required, you MUST use PinchTab to fetch **official data from DStock VNDIRECT**:

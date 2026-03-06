@@ -18,6 +18,8 @@ Use this skill when:
 - You only open article detail pages when the item is likely finance-related.
 - You need to monitor upcoming economic events and data releases.
 
+**Note**: For comprehensive US financial market analysis including intermarket relationships, risk assets correlation, technical indicators, and macroeconomic factors, use the [`us-financial-market-analysis`](../us-financial-market-analysis/SKILL.md) skill instead.
+
 ## Trigger Keywords
 
 This skill is triggered when the user's request contains finance-related keywords in Vietnamese or English. The presence of these keywords indicates the need for finance news summarization and analysis.

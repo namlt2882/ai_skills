@@ -15,6 +15,8 @@ Idiomatic MQL5 patterns and best practices for building robust, efficient, and m
 - Refactoring existing MQL5 code
 - Optimizing MQL5 trading strategies
 
+**Note**: For comprehensive US financial market analysis including intermarket relationships, risk assets correlation, technical indicators, and macroeconomic factors, also consult the [`us-financial-market-analysis`](../us-financial-market-analysis/SKILL.md) skill to understand market context for your trading strategies.
+
 ## Core Principles
 
 ### 1. Object-Oriented Design
@@ -1271,4 +1273,72 @@ CopyBuffer(handle, 0, 0, 10, buffer);
 | Events | OnTick, OnTimer, OnDeinit | Plus OnTrade, OnTradeTransaction, OnChartEvent |
 | Error Handling | GetLastError() | ResultRetcode() with detailed codes |
 
-**Remember**: MQL5 is more powerful and object-oriented than MQL4. Leverage the standard library classes, use proper OOP design, and always handle errors gracefully. The transition from MQL4 requires understanding the new event-driven architecture and handle-based indicator system.
+## Integrating Financial Analysis Concepts
+
+When developing trading bots, it's important to incorporate financial analysis concepts from the [`us-financial-market-analysis`](../us-financial-market-analysis/SKILL.md) skill:
+
+### Intermarket Analysis Integration
+```mql5
+// Example: Checking correlation between different markets before entering trades
+bool CheckIntermarketConditions() {
+    // Check if bond market is declining (potentially bearish for stocks)
+    double bondMaFast = iMA("US100Y_T", PERIOD_H1, 10, 0, MODE_SMA, PRICE_CLOSE, 0);
+    double bondMaSlow = iMA("US100Y_T", PERIOD_H1, 20, 0, MODE_SMA, PRICE_CLOSE, 0);
+    
+    // If bonds are in downtrend, be more cautious with stock long positions
+    if(bondMaFast < bondMaSlow) {
+        Print("Bond market in downtrend - consider reducing long equity exposure");
+        return false; // Signal to be more conservative
+    }
+    return true;
+}
+```
+
+### Risk-On/Risk-Off Regime Detection
+```mql5
+// Example: Using VIX equivalent or volatility measures to detect market regime
+enum MARKET_REGIME {
+    REGIME_RISK_ON,
+    REGIME_RISK_OFF,
+    REGIME_NEUTRAL
+};
+
+MARKET_REGIME DetectMarketRegime() {
+    // Calculate volatility of the instrument
+    double atr = iATR(Symbol(), Period(), 14, 0);
+    double avgAtr = iMAOnArray(atrBuffer, 0, 50, 0, MODE_SMA, 0);
+    
+    if(atr > avgAtr * 1.5) {
+        return REGIME_RISK_OFF;  // High volatility regime
+    } else if(atr < avgAtr * 0.7) {
+        return REGIME_RISK_ON;   // Low volatility regime
+    }
+    return REGIME_NEUTRAL;
+}
+```
+
+### Technical Analysis Best Practices
+When implementing technical indicators in your EA, consider the broader market context:
+- Combine your internal technical signals with broader market technical analysis
+- Use multiple timeframe analysis to confirm signals
+- Consider market regime when interpreting technical signals (some indicators work better in trending vs ranging markets)
+
+### Macroeconomic Awareness
+```mql5
+// Example: Checking for major news events that might affect trading
+bool ShouldPauseTrading(datetime currentTime) {
+    // Check for major FOMC announcement times, etc.
+    // This would require external economic calendar data
+    MqlDateTime dt;
+    TimeToStruct(currentTime, dt);
+    
+    // Example: Avoid trading 30 mins before and after major news
+    if((dt.hour == 14 && dt.min >= 0 && dt.min <= 30) ||  // FOMC announcement time
+       (dt.hour == 8 && dt.min >= 25 && dt.min <= 55)) {  // Non-farm payrolls preparation
+        return true;
+    }
+    return false;
+}
+```
+
+**Remember**: MQL5 is more powerful and object-oriented than MQL4. Leverage the standard library classes, use proper OOP design, and always handle errors gracefully. The transition from MQL4 requires understanding the new event-driven architecture and handle-based indicator system. Additionally, integrate broader financial market analysis concepts to enhance your trading strategies with market context awareness.
