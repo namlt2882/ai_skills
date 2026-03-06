@@ -135,6 +135,19 @@ docker run -d -p 9867:9867 pinchtab/pinchtab
 pinchtab
 ```
 
+Pre-check (optional but recommended):
+
+```bash
+# See running PinchTab processes/ports
+pgrep -fl pinchtab || lsof -iTCP -sTCP:LISTEN | grep pinchtab
+
+# If port 9867 is already in use, switch ports
+curl -s http://localhost:9867/health || pinchtab
+
+# If occupied, pick another port
+pinchtab --port 9868
+```
+
 ### Step 3: Verify Installation
 
 ```bash
@@ -348,6 +361,10 @@ pinchtab instances create --profile=work
 pinchtab instances create --profile=work
 ```
 
+### OpenClaw Session Folder Rule
+
+Store generated PinchTab data under `~/.openclaw/workspace/generated/user-{channel}-{id}/pinchtab-data/<profile>`. Use `default` when no profile name is specified. Name new profiles as `profile<number>` (e.g., `profile1`).
+
 ## Resource Control
 
 ### Instance Throttling
@@ -372,6 +389,17 @@ Use a simple concurrency gate in your HTTP client (queue requests or limit in-fl
 ### Error Handling
 
 Use HTTP-level retries with exponential backoff around PinchTab endpoints.
+
+### Lifecycle Management: Cleanup & Fallback
+
+1. **Default to cleanup on re-open**: when starting a new PinchTab session, close existing instances/browsers first unless the user explicitly requests keep-alive.
+2. **Detect stale instances**: if actions time out or snapshots fail, assume a stale instance and terminate it before re-creating an instance/tab.
+3. **Blocked or hung server fallback**:
+   - Kill stale PinchTab/Chrome processes, then restart the PinchTab server.
+   - Switch to an alternate port (e.g., 9868) if 9867 is blocked.
+   - Swap to a fresh profile if a persistent profile appears corrupted or locked.
+4. **Recreate clean state**: prefer a new instance + tab after cleanup instead of reusing questionable state.
+5. **Keep-alive exception**: only skip cleanup when the user explicitly asks to preserve existing sessions for continuity.
 
 ## Troubleshooting
 
