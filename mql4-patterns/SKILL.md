@@ -142,3 +142,7 @@ bool ShouldPauseTrading(datetime currentTime) {
 ```
 
 **Remember**: MQL4 code runs in a trading environment where errors can cost real money. Always validate inputs, check return values, and implement proper risk management. Additionally, integrate broader financial market analysis concepts to enhance your trading strategies with market context awareness.
+
+## Additional Resources
+
+For a comprehensive overview of Expert Advisors and indicators available on the MQL Market, including detailed analysis of various trading strategies, implementation methods, and pros/cons of different approaches, see: [`knowledge-document-mql4-eas-indicators.md`](knowledge-document-mql4-eas-indicators.md)

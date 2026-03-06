@@ -143,3 +143,7 @@ bool ShouldPauseTrading(datetime currentTime) {
 ```
 
 **Remember**: MQL5 is more powerful and object-oriented than MQL4. Leverage the standard library classes, use proper OOP design, and always handle errors gracefully. The transition from MQL4 requires understanding the new event-driven architecture and handle-based indicator system. Additionally, integrate broader financial market analysis concepts to enhance your trading strategies with market context awareness.
+
+## Additional Resources
+
+For a comprehensive overview of Expert Advisors and indicators available on the MQL5 Market, including detailed analysis of various trading strategies, implementation methods, and pros/cons of different approaches, see: [`knowledge-document-mql5-eas-indicators.md`](knowledge-document-mql5-eas-indicators.md)
