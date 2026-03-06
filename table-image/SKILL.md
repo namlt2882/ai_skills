@@ -30,6 +30,30 @@ Systematizes the conversion of tabular data to visual representations and images
 - Image rendering capabilities
 - Font rendering support for table text
 
+## Limitations
+
+### Maximum Tables Per Image
+- **Constraint**: Maximum 2 tables per image
+- **Rationale**: To improve visibility and readability of tabular data in chat interfaces
+- **Handling More Tables**: When you need to display more than 2 tables, split them into multiple images and present them sequentially in the chat
+
+### Table Count Validation
+```python
+def validate_table_count(tables: list) -> bool:
+    """
+    Validate that the number of tables does not exceed the maximum limit
+    """
+    MAX_TABLES_PER_IMAGE = 2
+    
+    if len(tables) > MAX_TABLES_PER_IMAGE:
+        raise ValueError(
+            f"Maximum {MAX_TABLES_PER_IMAGE} tables per image allowed. "
+            f"Found {len(tables)} tables. Please split into multiple images."
+        )
+    
+    return True
+```
+
 ## Workflow
 
 ```
@@ -38,19 +62,23 @@ Systematizes the conversion of tabular data to visual representations and images
 │     Accept tabular data (CSV, JSON, DataFrame, etc.)   │
 │     Validate data structure and content                │
 ├─────────────────────────────────────────────────────────┤
-│  2. TABLE DESIGN                                       │
+│  2. TABLE COUNT VALIDATION                              │
+│     Check number of tables (max 2 per image)           │
+│     Split into multiple images if needed               │
+├─────────────────────────────────────────────────────────┤
+│  3. TABLE DESIGN                                       │
 │     Apply styling based on data type                   │
 │     Select appropriate visualization method            │
 ├─────────────────────────────────────────────────────────┤
-│  3. VISUALIZATION                                      │
+│  4. VISUALIZATION                                      │
 │     Render table as image using matplotlib/seaborn     │
 │     Apply formatting, colors, and layout               │
 ├─────────────────────────────────────────────────────────┤
-│  4. IMAGE OPTIMIZATION                                 │
+│  5. IMAGE OPTIMIZATION                                 │
 │     Resize for optimal display                         │
 │     Optimize for file size and quality                 │
 ├─────────────────────────────────────────────────────────┤
-│  5. OUTPUT GENERATION                                  │
+│  6. OUTPUT GENERATION                                  │
 │     Save as PNG, JPEG, or SVG                          │
 │     Return image data for chat integration             │
 └─────────────────────────────────────────────────────────┘
@@ -270,6 +298,89 @@ def create_pivot_visualization(df, index, columns, values, aggfunc='mean'):
     return process_dataframe(pivot_df)
 ```
 
+### Multi-Table Visualization (Max 2 Tables Per Image)
+```python
+import matplotlib.pyplot as plt
+import pandas as pd
+from io import BytesIO
+
+def create_multi_table_image(tables: list, titles: list = None, style='basic') -> bytes:
+    """
+    Create an image with up to 2 tables displayed side by side
+    
+    Args:
+        tables: List of DataFrames (max 2)
+        titles: Optional list of titles for each table
+        style: Style to apply to tables
+        
+    Returns:
+        Image bytes
+    """
+    MAX_TABLES_PER_IMAGE = 2
+    
+    if len(tables) > MAX_TABLES_PER_IMAGE:
+        raise ValueError(
+            f"Maximum {MAX_TABLES_PER_IMAGE} tables per image allowed. "
+            f"Found {len(tables)} tables. Please split into multiple images."
+        )
+    
+    if titles is None:
+        titles = [f"Table {i+1}" for i in range(len(tables))]
+    
+    # Create figure with subplots for side-by-side display
+    fig, axes = plt.subplots(1, len(tables), figsize=(12, 6))
+    if len(tables) == 1:
+        axes = [axes]  # Make it iterable for single table
+    
+    for idx, (df, ax) in enumerate(zip(tables, axes)):
+        ax.axis('tight')
+        ax.axis('off')
+        
+        # Create table
+        table = ax.table(cellText=df.values,
+                        colLabels=df.columns,
+                        cellLoc='center',
+                        loc='center')
+        
+        # Style the table
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(1.2, 1.5)
+        
+        # Apply alternating row colors
+        for i in range(len(df)):
+            for j in range(len(df.columns)):
+                if i % 2 == 0:
+                    table[(i + 1, j)].set_facecolor('#f5f5f5')
+                else:
+                    table[(i + 1, j)].set_facecolor('white')
+        
+        # Style header
+        for j in range(len(df.columns)):
+            table[(0, j)].set_facecolor('#4CAF50')
+            table[(0, j)].set_text_props(weight='bold', color='white')
+        
+        # Add title
+        ax.set_title(titles[idx], fontsize=14, pad=20, fontweight='bold')
+    
+    plt.tight_layout()
+    
+    # Save to bytes
+    img_buffer = BytesIO()
+    plt.savefig(img_buffer, format='png', bbox_inches='tight', dpi=150)
+    img_buffer.seek(0)
+    img_bytes = img_buffer.read()
+    plt.close()
+    
+    return img_bytes
+
+
+# Example usage:
+# df1 = pd.DataFrame({'Product': ['A', 'B'], 'Sales': [100, 150]})
+# df2 = pd.DataFrame({'Product': ['C', 'D'], 'Sales': [200, 120]})
+# img_bytes = create_multi_table_image([df1, df2], titles=['Q1 Sales', 'Q2 Sales'])
+```
+
 ## Image Optimization
 
 ### Size Optimization
@@ -448,6 +559,12 @@ img_bytes = create_table_image(json_data, title="Sales Report from JSON")
 3. **Provide styling options** to match different use cases
 4. **Optimize images** for the target chat platform's display capabilities
 
+### Table Management
+1. **Maximum 2 tables per image** to ensure optimal visibility and readability
+2. **Split large datasets** into multiple images when more than 2 tables are needed
+3. **Group related tables** together when splitting into multiple images
+4. **Provide clear labels** for each table when displaying multiple tables in one image
+
 ## Troubleshooting
 
 ### Common Issues
@@ -458,6 +575,40 @@ img_bytes = create_table_image(json_data, title="Sales Report from JSON")
 | **Parsing errors** | Invalid data format | Validate input format before processing |
 | **Memory issues** | Large datasets | Implement data sampling or aggregation |
 | **Missing fonts** | Font rendering issues | Ensure system has required fonts installed |
+| **Too many tables error** | Attempting to render more than 2 tables per image | Split tables into multiple images using split_multiple_tables() function |
+
+### Handling Multiple Tables
+```python
+def split_multiple_tables(tables: list, title_prefix: str = "Table") -> list:
+    """
+    Split multiple tables into batches of maximum 2 tables per image
+    
+    Args:
+        tables: List of DataFrames or data to be rendered
+        title_prefix: Prefix for image titles
+        
+    Returns:
+        List of tuples: [(tables_batch_1, title_1), (tables_batch_2, title_2), ...]
+    """
+    MAX_TABLES_PER_IMAGE = 2
+    batches = []
+    
+    for i in range(0, len(tables), MAX_TABLES_PER_IMAGE):
+        batch = tables[i:i + MAX_TABLES_PER_IMAGE]
+        batch_num = (i // MAX_TABLES_PER_IMAGE) + 1
+        title = f"{title_prefix} {batch_num}-{batch_num + len(batch) - 1}" if len(batch) > 1 else f"{title_prefix} {batch_num}"
+        batches.append((batch, title))
+    
+    return batches
+
+
+# Example usage:
+# tables = [df1, df2, df3, df4, df5]
+# batches = split_multiple_tables(tables, title_prefix="Sales Data")
+# for batch, title in batches:
+#     # Render each batch as a separate image
+#     img_bytes = create_multi_table_image(batch, title=title)
+```
 
 ## Related Skills
 - [`image-processing-chat`](../image-processing-chat/SKILL.md) — For image handling and chat integration
