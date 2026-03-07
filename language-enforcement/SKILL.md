@@ -25,6 +25,10 @@ All AI models in openclaw use a provider prefix format to clearly identify which
 | **Zhipu AI** | `zai/` | `zai/glm-4.6v`, `zai/glm-4.6v-flash`, `zai/glm-4.5v` |
 | **Anthropic** | `anthropic/` | `anthropic/claude-3-5-sonnet`, `anthropic/claude-3-5-haiku` |
 | **Google** | `google/` | `google/gemini-2.0-flash`, `google/gemini-2.5-pro` |
+| **Alibaba Cloud** | `bailian/` | `bailian/qwen3.5-plus`, `bailian/qwen3-max-2026-01-23`, `bailian/qwen3-coder-next`, `bailian/qwen3-coder-plus` |
+| **Zhipu AI Extended** | `bailian/` | `bailian/glm-5`, `bailian/glm-4.7` |
+| **MiniMax** | `bailian/` | `bailian/MiniMax-M2.5` |
+| **Moonshot AI** | `bailian/` | `bailian/kimi-k2.5` |
 
 **Important**: Always use the provider-prefixed format when specifying models in code or configuration. For example, use `zai/glm-4.6v` instead of `glm-4.6v` or `anthropic/glm-4.6v` (which would be incorrect).
 
