@@ -82,6 +82,44 @@ All outputs MUST include these sections in order:
   - **Aggressive**: emphasize risk awareness and clear invalidation levels.
 - If the user provides holdings, time horizon, or risk tolerance, reflect them directly in the guidance.
 
+## Dependencies
+
+This skill integrates with:
+
+- **pinchtab-web-automation**: Required for news/current events data
+- **us-financial-market-analysis**: For cross-border market context
+- **chart-image**: For creating visual charts of analysis results
+
+### External Data Sources
+
+- **Official**: DStock VNDIRECT (https://dstock.vndirect.com.vn/)
+- **Exchanges**: HOSE (https://www.hsx.vn), HNX (https://www.hnx.vn), UPCoM
+- **Regulatory**: SSC (https://www.ssc.gov.vn), VSD (https://vsd.vn)
+
+## Regulatory Compliance Requirements
+
+### Vietnam Stock Exchange Trading Rules
+
+All recommendations must comply with:
+
+1. **Price Bands**
+   - HOSE: ±7% from last settlement price
+   - HNX: ±10% from last settlement price  
+   - UPCoM: ±15% from last traded price
+
+2. **Lot Sizes**
+   - Standard: 10 shares minimum
+   - Some stocks require specific lot multiples
+
+3. **Trading Sessions**
+   - Continuous session: 9:00-14:30 (HOSE), 9:00-11:30 (HNX)
+   - Call auction at market open and close
+
+4. **Order Types**
+   - Limit orders: Standard
+   - Match price orders: For immediate execution
+   - ATO/ATC: At-the-open/at-the-close orders
+
 ## Workflow Steps
 
 1. **Parse user context**
@@ -129,6 +167,8 @@ This skill incorporates specialized knowledge from the following modular compone
 
 ## Constraints
 
+## Security & Compliance
+
 - Do not fabricate news or corporate events. If news is needed, use PinchTab via the required skill.
 - Do not fabricate market/stock/index data. Use PinchTab to fetch DStock VNDIRECT data from:
    - https://dstock.vndirect.com.vn/ for general market/index/sector information.
@@ -144,6 +184,10 @@ This skill incorporates specialized knowledge from the following modular compone
 - **Pre-calculate and state whether the position would be at a loss upon settlement (T+2/T+3) given the proposed entry/exit path.**
 - Output must be deterministic: use **low-temperature / zero-variance** wording and avoid stochastic phrasing.
 - Keep analysis factual, structured, and aligned to Vietnamese market context.
+
+## Chinese Language Output
+
+If user input is in Chinese, output must be in simplified Chinese with proper financial terminology.
 
 ## Output Format
 

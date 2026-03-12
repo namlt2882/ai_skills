@@ -143,6 +143,27 @@ bool ShouldPauseTrading(datetime currentTime) {
 
 **Remember**: MQL4 code runs in a trading environment where errors can cost real money. Always validate inputs, check return values, and implement proper risk management. Additionally, integrate broader financial market analysis concepts to enhance your trading strategies with market context awareness.
 
+## Security Best Practices
+
+### Code Security
+- **Input Validation**: Validate all external inputs and price data
+- **Error Handling**: Check return values for all trading functions
+- **Secrets Management**: Use global variables for API keys (never hardcode)
+- **Logging**: Implement structured logging for debugging
+
+### Trading Safety
+- **Position Sizing**: Calculate based on account risk percentage (recommended 0.5-2%)
+- **Stop Loss**: Always validate stop loss levels before order execution
+- **Margin Checks**: Use `AccountMargin()` to verify sufficient funds
+- **Order Confirmation**: Always check trade response codes and log failures
+- **Slippage**: Set reasonable slippage values (3-5 pips for major pairs)
+
+### Platform Integration
+- **RefreshRates()**: Call before order operations to get latest prices
+- **IsTradeAllowed()**: Verify trading permissions before operations
+- **TerminalState**: Check if market is open before placing orders
+- **Memory Management**: Clean up indicators in `Deinit()` event
+
 ## Additional Resources
 
 For a comprehensive overview of Expert Advisors and indicators available on the MQL Market, including detailed analysis of various trading strategies, implementation methods, and pros/cons of different approaches, see: [`knowledge-document-mql4-eas-indicators.md`](knowledge-document-mql4-eas-indicators.md)

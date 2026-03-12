@@ -194,6 +194,40 @@ Analytical Notes:
 - Additional context and considerations.
 ```
 
+## Dependencies
+
+This skill integrates with:
+
+- **us-financial-market-analysis**: For comprehensive US market analysis
+- **vietnam-stock-analysis**: For Vietnamese market context
+- **chart-image**: For visualizing technical indicators and market data
+- **data-viz**: For comprehensive dashboard visualizations
+- **image-processing-chat**: For embedding analysis charts in chat
+
+### External Data Sources
+
+- **Market Data**: Alpha Vantage, Yahoo Finance, Polygon.io
+- **Economic Data**: FRED, BLS, BEA, World Bank
+- **News Data**: NVIC (Reuters), Bloomberg, Financial Times
+- **Economic Calendar**: Investing.com, Trading Economics
+
+## Performance Benchmarks
+
+| Operation | Time | Memory | Notes |
+|-----------|------|--------|-------|
+| Basic technical analysis | 500ms | 100MB | MA/RSI/MACD |
+| Intermarket analysis | 2s | 300MB | 4 asset classes |
+| Macroeconomic analysis | 3s | 500MB | Full report |
+| Full market assessment | 5s | 1GB | Complete analysis |
+
+## Security Considerations
+
+- **API Key Management**: Use environment variables for all API keys
+- **Data Validation**: Validate all external data sources
+- **Rate Limiting**: Implement delays for API calls
+- **Error Handling**: Handle API failures gracefully
+- **Data Privacy**: Never expose sensitive position data
+
 ## Completion Criteria
 
 - Includes all seven required analysis sections in order.

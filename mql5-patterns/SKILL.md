@@ -7,6 +7,20 @@ description: MQL5 patterns, best practices, and conventions for building robust,
 
 Idiomatic MQL5 patterns and best practices for building robust, efficient, and maintainable Expert Advisors (EAs), indicators, and scripts for MetaTrader 5.
 
+## Dependencies
+
+### Required Environment
+- **MetaTrader 5**: Version 6.00+ (build 1395+ recommended)
+- **MQL5 Standard Library**: Included with MT5 installation
+- **Compiler**: MetaEditor 5 (build 1395+)
+- **Platform**: Windows (native), or MT5 WebTerminal (limited)
+
+### Optional Enhancements
+- **MT5 Strategy Tester**: For backtesting and optimization
+- **MQL5 Cloud Network**: For distributed computing
+- **MT5 Market**: For publishing and monetizing EAs/indicators
+- **External APIs**: REST/FTP bridges for economic data integration
+
 ## When to Activate
 
 - Writing new MQL5 Expert Advisors
@@ -143,6 +157,28 @@ bool ShouldPauseTrading(datetime currentTime) {
 ```
 
 **Remember**: MQL5 is more powerful and object-oriented than MQL4. Leverage the standard library classes, use proper OOP design, and always handle errors gracefully. The transition from MQL4 requires understanding the new event-driven architecture and handle-based indicator system. Additionally, integrate broader financial market analysis concepts to enhance your trading strategies with market context awareness.
+
+## Security Best Practices
+
+### Code Security
+- **Input Validation**: Always validate all external inputs (file paths, URL parameters, API responses)
+- **Error Containment**: Use Try-Catch blocks to prevent cascading failures
+- **Secrets Management**: Never hardcode API keys, use global variables or config files
+- **Rate Limiting**: Implement delays for external API calls to avoid IP bans
+- **Code Signing**: Sign published EAs/indicators for authenticity
+
+### Trading Safety
+- **Position Sizing**: Always calculate position size based on risk percentage (typically 1-2%)
+- **Stop Loss Required**: Never enter trades without predefined stop-loss
+- **Margin Checks**: Verify available margin before opening positions
+- **Order Confirmation**: Always check trade response codes and log failures
+- **Circuit Breakers**: Implement daily loss limits and auto-stop controls
+
+### Platform Integration
+- **Log Management**: Use `Print()` strategically but avoid excessive logging (impact performance)
+- **Memory Management**: Release indicator handles properly in `OnDeinit()`
+- **Cleanup**: Close file handles and network connections on EA removal
+- **Resource Limits**: Don't exceed 50 open charts or 100 EAs per terminal
 
 ## Additional Resources
 
