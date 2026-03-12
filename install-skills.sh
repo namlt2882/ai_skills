@@ -35,10 +35,8 @@ NC='\033[0m' # No Color
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Target paths
 ROOCODE_SKILLS_DIR="$HOME/.roo/skills"
-OPENCODE_CONFIG_DIR="$HOME/.config/opencode"
-OPENCODE_CONFIG_FILE="$OPENCODE_CONFIG_DIR/opencode.json"
+OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skills/"
 OPENCLAW_SKILLS_DIR="$HOME/.openclaw/workspace/skills/"
 
 # Available skills (detected from current directory)
@@ -235,10 +233,10 @@ install_to_opencode() {
     local skills=("$@")
     local skill_count=${#skills[@]}
 
-    print_header "Configuring for OpenCode"
+    print_header "Installing to OpenCode (OhMyOpenCode)"
 
-    # Ensure OpenCode config directory exists
-    if ! ensure_directory "$OPENCODE_CONFIG_DIR"; then
+    # Ensure OpenCode skills directory exists
+    if ! ensure_directory "$OPENCODE_SKILLS_DIR"; then
         return 1
     fi
 
@@ -250,60 +248,62 @@ install_to_opencode() {
         fi
     done
 
-    # Create or update opencode.json
-    local config_content=""
-    local needs_update=false
-
-    if [[ -f "$OPENCODE_CONFIG_FILE" ]]; then
-        print_info "Reading existing configuration..."
-        config_content=$(cat "$OPENCODE_CONFIG_FILE")
-    fi
-
-    # Check if skills directory is already configured
-    if echo "$config_content" | grep -q "\"skillsDir\""; then
-        if echo "$config_content" | grep -q "\"$SCRIPT_DIR\""; then
-            print_success "Skills directory already configured: $SCRIPT_DIR"
-        else
-            print_warning "Updating skills directory in configuration..."
-            # Replace existing skillsDir
-            config_content=$(echo "$config_content" | sed "s|\"skillsDir\".*|\"skillsDir\": \"$SCRIPT_DIR\",|")
-            needs_update=true
+    # Install each skill to OpenCode
+    local success_count=0
+    local failed_count=0
+    
+    for skill in "${skills[@]}"; do
+        local source_dir="$SCRIPT_DIR/$skill"
+        local target_dir="$OPENCODE_SKILLS_DIR/$skill"
+        
+        print_info "Installing: $skill to $OPENCODE_SKILLS_DIR"
+        
+        if [[ ! -d "$source_dir" ]]; then
+            print_error "Source directory not found: $source_dir"
+            ((failed_count++))
+            continue
         fi
-    else
-        # Add skillsDir to config
-        if [[ -n "$config_content" ]]; then
-            # Insert skillsDir before closing brace
-            config_content=$(echo "$config_content" | sed 's/}/,  "skillsDir": "'"$SCRIPT_DIR"'"/')
-        else
-            # Create new config
-            config_content="{\n  \"skillsDir\": \"$SCRIPT_DIR\"\n}"
+        
+        # Handle existing skill by backing it up
+        local backup_dir="$target_dir.backup_$(date +%s)"
+        if [[ -d "$target_dir" ]]; then
+            mv "$target_dir" "$backup_dir"
+            print_warning "Backed up previous installation to: $backup_dir"
         fi
-        needs_update=true
-    fi
-
-    # Write configuration if needed
-    if [[ "$needs_update" == true ]]; then
-        print_info "Writing configuration to: $OPENCODE_CONFIG_FILE"
-        echo "$config_content" > "$OPENCODE_CONFIG_FILE"
-        if [[ $? -eq 0 ]]; then
-            print_success "Configuration updated successfully"
+        
+        # Copy the skill
+        if cp -r "$source_dir" "$target_dir"; then
+            print_success "Installed: $skill"
+            ((success_count++))
+            # Clean up backup on success
+            if [[ -d "$backup_dir" ]]; then
+                rm -rf "$backup_dir"
+            fi
         else
-            print_error "Failed to write configuration"
-            return 1
+            print_error "Failed to install: $skill"
+            ((failed_count++))
+            # Restore backup on failure
+            if [[ -d "$backup_dir" ]]; then
+                mv "$backup_dir" "$target_dir"
+                print_info "Restored previous installation"
+            fi
         fi
-    fi
-
+    done
+    
     # Summary
     echo ""
-    print_header "Configuration Summary"
-    echo "  Skills directory: $SCRIPT_DIR"
-    echo "  Config file: $OPENCODE_CONFIG_FILE"
-    echo "  Available skills: $skill_count"
+    print_header "OpenCode Installation Summary"
+    echo "  Total skills: $skill_count"
+    echo "  OpenCode skills directory: $OPENCODE_SKILLS_DIR"
+    print_success "  Successful: $success_count"
+    if [[ $failed_count -gt 0 ]]; then
+        print_error "  Failed: $failed_count"
+    fi
     echo ""
-    print_success "OpenCode configuration complete"
-    echo ""
-
-    return 0
+    
+    print_info "Tip: Restart OhMyOpenCode to load new skills from the skills directory"
+    
+    return $failed_count
 }
 
 # Install skills to OpenClaw
