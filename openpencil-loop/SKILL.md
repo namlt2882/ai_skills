@@ -1,6 +1,6 @@
 ---
 name: openpencil-loop
-description: Iterative design development loop using OpenPencil CLI and MCP tools. Use when building multi-page designs, iteratively refining UI components, or when you want to progressively develop a design system. Triggers on requests like "build a design system", "create multiple pages with OpenPencil", "iteratively design", "loop design", or when the user wants to develop designs incrementally with a baton-passing pattern.
+description: Iterative design development loop using OpenPencil CLI and MCP tools. Combines prompt enhancement, design system synthesis, and baton-passing orchestration. Use when building multi-page designs, iteratively refining UI components, creating design systems, or when you want to progressively develop a design with structured user feedback. Triggers on requests like "build a design system", "create multiple pages with OpenPencil", "iteratively design", "loop design", "design a login page", or when you want to enhance prompts for OpenPencil with design system context.
 ---
 
 # OpenPencil Build Loop
@@ -10,43 +10,90 @@ You are an **autonomous design builder** participating in an iterative design-de
 ## Overview
 
 The Build Loop pattern enables continuous, autonomous design development through a "baton" system. Each iteration:
-1. Reads the current task from a baton file (`.op/next-prompt.md`)
-2. Generates design using OpenPencil CLI or MCP tools
-3. Integrates the design into the project structure
-4. Writes the next task to the baton file for the next iteration
+1. **Reads the current task** from a baton file (`.op/next-prompt.md`) OR starts a new design from user prompt
+2. **Enhances prompts** when needed (adds design system context, structured page structure)
+3. **Creates design systems** when `.op/DESIGN.md` is missing (with user confirmation)
+4. **Generates designs** using OpenPencil CLI or MCP tools
+5. **Exports code** (React, Vue, SwiftUI, etc.) — optional
+6. **Integrates** the design into the project structure — optional
+7. **Writes the next task** to the baton file for the next iteration
+
+## When to Use This Skill
+
+Activate when you need ANY of these capabilities:
+- **Design a new page** — Transform vague ideas into structured OpenPencil prompts with design system context
+- **Continue existing project** — Pick up from `.op/next-prompt.md` baton file
+- **Create design system** — Generate `.op/DESIGN.md` with user confirmation for colors, typography, components
+- **Enhance prompts** — Add design system tokens, structure, and visual descriptions to vague user requests
+- **Codify user decisions** — Store user preferences in DESIGN.md for consistency across iterations
+- **Export code** — Generate React/Vue/SwiftUI components from OpenPencil designs
 
 ## Prerequisites
 
 **Required:**
 - OpenPencil CLI installed (`npm install -g @zseven-w/openpencil`)
 - A running OpenPencil instance (desktop app or web server)
-- A `.op/DESIGN.md` file with design system specifications
 
 **Optional:**
+- A `.op/DESIGN.md` file with design system specifications
 - OpenPencil MCP Server — enables direct manipulation via MCP tools
 - Design reference images in `.op/references/`
 
-## OpenPencil CLI Reference
+## Task Management
 
-Before generating designs, ensure you have the OpenPencil CLI installed:
-```bash
-npm install -g @zseven-w/openpencil
+This skill uses **task orchestration** to avoid context dilution. Spawn subagents for each independent task:
+
+| Task | Category | Skills | Background | When to Use |
+|------|----------|--------|------------|-------------|
+| **Prompt Enhancement** | `writing` | `enhance-prompt` | `true` | User input is vague or needs structure |
+| **DESIGN.md Creation** | `ultrabrain` | `taste-design` | `true` | DESIGN.md missing and user confirms |
+| **DESIGN.md Read** | `explore` | none | `true` | Check for existing DESIGN.md |
+| **Design Generation** | `ultrabrain` | `openpencil-design` | `true` | Actual OpenPencil design building |
+| **Code Export** | `unspecified-high` | none | `true` | User requests code export |
+| **Project Documentation** | `ultrabrain` | none | `true` | Updating PROJECT.md |
+
+**Parallel subagent execution avoids context dilution:**
+```typescript
+// Fire these simultaneously — continue working while they run
+task(category="explore", load_skills=[], run_in_background=true, description="Check DESIGN.md", prompt="...")
+task(category="writing", load_skills=["enhance-prompt"], run_in_background=true, description="Enhance prompt", prompt="...")
+
+// Collect results when system notifies completion
 ```
 
-Start OpenPencil:
-```bash
-op start --desktop    # Launch desktop app
-op start --web        # Launch web server
-```
+## Decision Workflow
 
-Key commands:
-- `op insert '<json>' [--parent P]` - Insert node with --parent to build tree
-- `op design '<dsl>'` - Batch design DSL for simple structures
-- `op design:refine --root-id <id>` - Validate + auto-fix (resolves icons)
-- `op export <png|svg|react|html|vue>` - Export assets
-- `op get [--depth N]` - Get document tree
+### Critical Decisions (Always Ask User)
+These require explicit user confirmation before proceeding:
 
-Global flags: `--file <path>`, `--page <id>`, `--pretty`
+| Decision | What to Ask |
+|----------|-------------|
+| **Design System** | "No DESIGN.md found. Create one with default values or customize?" |
+| **Colors** | "Color palette: Primary (accent), Background, Text roles?" |
+| **Typography** | "Font families for headings, body? (e.g., Space Grotesk + Inter)" |
+| **Spacing/Shadow** | "Spacing approach (8px grid)? Shadow depth (subtle/medium/elevated)?" |
+| **Components** | "Button shape, card roundness, input style preferences?" |
+| **Export Format** | "Export to code? (React/Vue/SwiftUI/Flutter/etc.)" |
+
+### Medium Decisions (Offer Guidance, Allow Override)
+These provide defaults with user override:
+
+| Decision | Default | What to Offer |
+|----------|---------|---------------|
+| **Layout** | Vertical | "Vertical or horizontal layout?" |
+| **Color Palette** | Zinc/Slate base | "Warm or cool gray base? Saturated accent?" |
+| **Responsive** | Mobile-first | "Mobile-first or desktop-first strategy?" |
+| **Density** | Balanced (5/10) | "Gallery airy (low) or cockpit dense (high)?" |
+
+### Automatic Decisions (No Confirmation Needed)
+These use sensible defaults:
+
+| Decision | Default Value |
+|----------|---------------|
+| **Prompt enhancement** | Add structure, visual descriptions |
+| **Component styling** | Apply semantic roles with smart defaults |
+| **Project structure** | Section-based with sitemap tracking |
+| **Export location** | `src/components/` or `lib/widgets/` |
 
 ## The Baton System
 
@@ -76,102 +123,73 @@ Create a hero section with a bold headline, supporting subtext, and two CTA butt
 
 ## Execution Protocol
 
-### Step 1: Read the Baton
+### Step 1: Read the Baton or Start Fresh
 
-Parse `.op/next-prompt.md` to extract:
-- **Design name** from the `design` frontmatter field
-- **Device type** from the `device` frontmatter (default: `desktop`)
-- **Prompt content** from the markdown body
+**If baton exists** (`.op/next-prompt.md`):
+- Parse frontmatter for `design` name and `device` type
+- Use prompt content as the design specification
+- Skip to Step 3
 
-### Step 2: Consult Context Files
+**If no baton** (new project):
+- Continue to Step 2
 
-Before generating, read these files:
+### Step 2: Prompt Enhancement (If Starting Fresh)
 
-| File | Purpose |
-|------|---------|
-| `.op/DESIGN.md` | Design system, component specs, visual language |
-| `.op/PROJECT.md` | Project vision, design roadmap, existing screens |
-| `.op/metadata.json` | Existing design IDs, exports, relationships |
+When user provides a new design request (not from baton):
 
-**Important checks:**
-- Section 4 (Screens) in `.op/PROJECT.md` — Do NOT recreate designs that already exist
-- Section 5 (Roadmap) — Pick tasks from here if backlog exists
-- Section 6 (Ideas) — Use for new designs if roadmap is empty
+**Spawn subagents in parallel to avoid context dilution:**
+```typescript
+// Check for DESIGN.md existence
+task(category="explore", load_skills=[], run_in_background=true, description="Check DESIGN.md", prompt="Check if .op/DESIGN.md exists. Return file content if found, or 'NOT FOUND' if missing.")
 
-### Step 3: Generate with OpenPencil
-
-Choose the appropriate generation method based on complexity:
-
-**Method A: `op insert` (Recommended for complex designs)**
-
-The most reliable way to build designs. Use `--parent` to specify parent nodes. Capture the returned nodeId to reference later. **Always finish with `design:refine`** to resolve icons and validate layout.
-
-```bash
-#!/bin/bash
-set -e
-ID() { python3 -c "import sys,json; print(json.load(sys.stdin)['nodeId'])"; }
-
-# Determine dimensions from device
-if [ "$DEVICE" = "mobile" ]; then
-  WIDTH=375
-  HEIGHT=812
-else
-  WIDTH=1200
-  HEIGHT=0  # Auto-expand for desktop
-fi
-
-# Create root frame, capture its ID
-ROOT=$(op insert "{\"type\":\"frame\",\"name\":\"$DESIGN_NAME\",\"width\":$WIDTH,\"height\":$HEIGHT,\"layout\":\"vertical\",\"fill\":[{\"type\":\"solid\",\"color\":\"#FFFFFF\"}]}" | ID)
-
-# Insert children using --parent
-op insert --parent "$ROOT" '{"type":"frame","role":"navbar","width":"fill_container","height":72,...}'
-
-# Always finish with design:refine to resolve icons
-op design:refine --root-id "$ROOT"
+// Enhance the user prompt
+task(category="writing", load_skills=["enhance-prompt"], run_in_background=true, description="Enhance prompt", prompt="Enhance this design prompt with structured page sections and visual descriptions. Original input: [user input here]")
 ```
 
-**Method B: Batch Design DSL (For simpler structures)**
+**After both complete, analyze results:**
+- If DESIGN.md exists: Extract tokens and enhance prompt with design system
+- If missing: Ask user confirmation before creating (via `question` tool)
 
-One operation per line. Bind results with `name=` for later reference. Best for simple, flat structures.
+**Original user input:**
+> "make me a login page"
 
-> **Limitation:** The DSL parser cannot handle deeply nested JSON. Keep each `I()` call to a **single level of nesting**. For complex nodes with children, use separate `I()` calls or `op insert --parent`.
+**Enhanced prompt:**
+```markdown
+A clean, trustworthy login page with centered form and subtle branding.
 
-```bash
-op design '
-root=I(null, {"type":"frame","name":"Landing","width":1200,"layout":"vertical"})
-nav=I(root, {"type":"frame","role":"navbar","height":72})
-hero=I(root, {"type":"frame","role":"hero"})
-'
+**DESIGN SYSTEM (REQUIRED):**
+- Platform: Web, Desktop-first
+- Theme: Light, minimal, professional
+- Background: Clean White (#ffffff)
+- Primary Accent: Deep Blue (#2563eb) for submit button
+- Text Primary: Near Black (#111827) for headings
+- Buttons: Subtly rounded (8px), full-width on form
+- Cards: Gently rounded (12px), soft shadow elevation
+
+**Page Structure:**
+1. **Header:** Minimal logo, centered
+2. **Login Card:** Centered form with email, password fields
+3. **Submit Button:** Primary blue "Sign In" button
+4. **Footer:** "Don't have an account? Sign up" link
 ```
 
-| Op | Syntax | Action |
-|----|--------|--------|
-| `I` | `name=I(parent, { node })` | Insert |
-| `U` | `U(ref, { updates })` | Update |
-| `C` | `name=C(source, parent, { overrides })` | Copy |
-| `R` | `name=R(ref, { node })` | Replace |
-| `M` | `M(ref, parent, index?)` | Move |
-| `D` | `D(ref)` | Delete |
+### Step 3: Design Generation
 
-**DSL safe pattern** — always insert parent and children separately:
+**Spawn subagent with openpencil-design skill for actual design building:**
 
-```bash
-op design '
-btn=I(form, {"type":"rectangle","role":"button","width":"fill_container","height":50})
-I(btn, {"type":"text","content":"Submit","fontSize":16})
-'
+```typescript
+task(
+  category="ultrabrain",
+  load_skills=["openpencil-design"],
+  run_in_background=true,
+  description="Generate OpenPencil design",
+  prompt="Generate design using OpenPencil CLI or MCP tools based on enhanced prompt. Always finish with op design:refine --root-id <id> to resolve icons."
+)
 ```
 
-**Method C: MCP Tools (If OpenPencil MCP is available)**
+**Once the subagent completes**, analyze results and continue with export/project updates if needed.
 
-Use the layered workflow:
-1. `design_skeleton` — Create section structure
-2. `design_content` — Populate each section with `postProcess: true`
-3. `design_refine` — Validate and auto-fix (resolves icons)
-
-**Always** run `op design:refine --root-id <id>` at the end to resolve icon names into actual SVG paths. Without this step, icons will exist in the tree but not render visually.
-
-### Step 4: Persist Design Metadata
+### Step 4: Persist Design Metadata (Optional)
 
 Save the generated design info to `.op/metadata.json`:
 
@@ -187,52 +205,58 @@ Save the generated design info to `.op/metadata.json`:
       "createdAt": "2026-04-08T10:30:00Z",
       "exports": {
         "react": "src/components/landing-hero.tsx",
-        "html": "public/landing-hero.html",
-        "css": "public/styles/landing-hero.css"
+        "html": "public/landing-hero.html"
       }
     }
   }
 }
 ```
 
-**Note:** `op export` only generates code (React, HTML, Vue, etc.), not image assets. PNG/SVG captures must be done manually from OpenPencil app.
+### Step 5: Export Assets (Optional)
 
-### Step 5: Export Assets
+**Only run if user explicitly wants code export.** Ask: "Export to code format? (React/Vue/SwiftUI/etc.)"
 
-**Note:** The `op` CLI only supports code export formats. For PNG/SVG, use the OpenPencil app's export feature or export from scraped documents.
+The `op` CLI supports multiple code export formats. Generated files go to the project's code directory:
 
 ```bash
-# Export React component
+# Export to React (TypeScript)
 op export react --out "src/components/${DESIGN_NAME}.tsx"
 
-# Export Vue component
+# Export to Vue
 op export vue --out "src/components/${DESIGN_NAME}.vue"
 
-# Export HTML
+# Export to HTML + CSS
 op export html --out "public/${DESIGN_NAME}.html"
-
-# Export Flutter widget
-op export flutter --out "lib/widgets/${DESIGN_NAME}.dart"
-
-# Export SwiftUI view
-op export swiftui --out "Sources/${DESIGN_NAME}.swift"
-
-# Export CSS
 op export css --out "public/styles/${DESIGN_NAME}.css"
+
+# Export to mobile frameworks
+op export flutter --out "lib/widgets/${DESIGN_NAME}.dart"
+op export swiftui --out "Sources/${DESIGN_NAME}.swift"
+op export compose --out "app/src/main/java/com/example/${DESIGN_NAME}.kt"
 ```
 
-**For PNG/SVG images**, save manually from OpenPencil app or use browser developer tools to capture screenshots.
+**Flag reference:**
+- `--out <path>` — Output file path (required)
+- `--file <path>` — OpenPencil project file (default: current document)
+- `--page <id>` — Page ID for multi-page documents
 
-### Step 6: Update Project Documentation
+**For PNG/SVG images**, save manually from OpenPencil app or screenshots.
+
+### Step 6: Update Project Documentation (Optional)
+
+**Only update if working on project with PROJECT.md.** Skip for exploratory/single-screen work.
 
 Modify `.op/PROJECT.md`:
 - Add the new design to Section 4 (Screens) with `[x]`
 - Remove consumed ideas from Section 6 (Ideas)
 - Update Section 5 (Roadmap) if you completed a backlog item
 
-### Step 7: Prepare the Next Baton (Critical)
+### Step 7: Prepare the Next Baton (Critical if in loop)
 
-**You MUST update `.op/next-prompt.md` before completing.** This keeps the loop alive.
+**You MUST update `.op/next-prompt.md` before completing IF you want to continue the loop.**
+
+If user wants to build multiple screens progressively, this step is CRITICAL.
+If user wants just one-off design (no loop), this step is optional.
 
 1. **Decide the next design**: 
    - Check `.op/PROJECT.md` Section 5 (Roadmap) for pending items
@@ -266,11 +290,8 @@ project/
 │   ├── DESIGN.md          # Design system specification
 │   ├── PROJECT.md         # Project vision and roadmap
 │   ├── next-prompt.md     # The baton — current task
-│   ├── references/        # Reference images, inspiration
-│   │   └── inspiration-*.png
-│   └── exports/           # Generated assets
-│       ├── {design}.png
-│       └── {design}.svg
+│   ├── exports/           # Generated code (optional)
+│   └── references/        # Reference images, inspiration
 └── src/                   # Code exports (optional)
     └── components/
         └── {Design}.tsx
@@ -357,15 +378,15 @@ The skill is orchestration-agnostic — focus on the pattern, not the trigger me
 
 ## Common Pitfalls
 
-- ❌ Forgetting to update `.op/next-prompt.md` (breaks the loop)
-- ❌ Recreating a design that already exists in the sitemap
-- ❌ Not including design system context from `.op/DESIGN.md`
-- ❌ Forgetting to run `op design:refine --root-id <id>` after building
-- ❌ Not persisting `.op/metadata.json` after creating new designs
-- ❌ Setting x/y on children inside layout containers
-- ❌ Using `fill_container` inside `fit_content` parent
-- ❌ Expecting `op export png` — PNG/SVG must be captured manually from OpenPencil app
-- ❌ Using `--output` instead of `--out` for export command
+- Forgetting to update `.op/next-prompt.md` (breaks the loop)
+- Recreating a design that already exists in the sitemap
+- Not including design system context from `.op/DESIGN.md`
+- Forgetting to run `op design:refine --root-id <id>` after building
+- Not persisting `.op/metadata.json` after creating new designs
+- Setting x/y on children inside layout containers
+- Using `fill_container` inside `fit_content` parent
+- Expecting `op export png` — PNG/SVG must be captured manually from OpenPencil app
+- Using `--output` instead of `--out` for export command
 
 ## Design System Integration
 
@@ -374,68 +395,6 @@ This skill works best with a well-defined `.op/DESIGN.md`:
 1. **First time setup**: Create `.op/DESIGN.md` with typography, colors, spacing, and component specs
 2. **Every iteration**: Copy relevant sections into your baton prompt
 3. **Consistency**: All generated designs will share the same visual language
-
-## Example: Full Iteration
-
-**Starting baton (`.op/next-prompt.md`):**
-
-```markdown
----
-design: landing-hero
-device: desktop
----
-Create a hero section for a SaaS product.
-
-**DESIGN SYSTEM:**
-- Typography: Space Grotesk for headings, Inter for body
-- Colors: Primary #6366F1, Background #FFFFFF
-- Spacing: Section padding 80px
-
-**Structure:**
-1. Navbar with logo, nav links, CTA button
-2. Hero with large heading, subtext, two CTAs
-3. Subtle gradient background
-```
-
-**Execution:**
-
-```bash
-# Determine dimensions from device
-if [ "$DEVICE" = "mobile" ]; then
-  WIDTH=375
-  HEIGHT=812
-else
-  WIDTH=1200
-  HEIGHT=0
-fi
-
-# Generate design with op insert (recommended)
-ID() { python3 -c "import sys,json; print(json.load(sys.stdin)['nodeId'])"; }
-ROOT=$(op insert "{\"type\":\"frame\",\"name\":\"Landing\",\"width\":$WIDTH,\"height\":$HEIGHT,\"layout\":\"vertical\",\"fill\":[{\"type\":\"solid\",\"color\":\"#FFFFFF\"}]}" | ID)
-
-# Build navbar
-NAV=$(op insert --parent "$ROOT" '{"type":"frame","role":"navbar","width":"fill_container","height":72}' | ID)
-op insert --parent "$NAV" '{"type":"text","content":"Brand","fontSize":20,"fontWeight":700}'
-
-# Build hero
-HERO=$(op insert --parent "$ROOT" '{"type":"frame","role":"hero","width":"fill_container","height":"fit_content"}' | ID)
-op insert --parent "$HERO" '{"type":"text","role":"heading","content":"Ship faster","fontSize":56}'
-
-# Export React component
-op export react --out "src/components/${DESIGN_NAME}.tsx"
-
-# Export Vue component
-op export vue --out "src/components/${DESIGN_NAME}.vue"
-
-# Export CSS
-op export css --out "public/styles/${DESIGN_NAME}.css"
-
-# Update metadata
-# ... update .op/metadata.json
-
-# Prepare next baton
-# ... write to .op/next-prompt.md with next design task
-```
 
 ## Troubleshooting
 
@@ -452,12 +411,36 @@ op export css --out "public/styles/${DESIGN_NAME}.css"
 
 ## Common OpenPencil Patterns
 
-### Set up `op` CLI documentation
-**Required**: `op start --desktop` or `op start --web` before using CLI
+### Set up `op` CLI
 
-**Query**: Use `op get` to inspect current document structure
+```bash
+op start --desktop    # Launch desktop app
+op start --web        # Launch web server
+op get                # Verify connection
+```
 
-**Common pattern**: Build with `op insert --parent`, finish with `op design:refine --root-id <id>`
+### Pattern 1: Build with op insert (Recommended)
+
+```bash
+ID() { python3 -c "import sys,json; print(json.load(sys.stdin)['nodeId'])"; }
+ROOT=$(op insert '{"type":"frame","name":"Page","width":1200,"layout":"vertical"}' | ID)
+op insert --parent "$ROOT" '{"type":"frame","role":"navbar","height":72}'
+op design:refine --root-id "$ROOT"
+```
+
+### Pattern 2: DSL for flat structures
+
+```
+root=I(null, {"type":"frame","name":"Landing","width":1200,"layout":"vertical"})
+nav=I(root, {"type":"frame","role":"navbar","height":72})
+I(nav, {"type":"text","content":"Brand","fontSize":20})
+```
+
+### Pattern 3: MCP layered workflow
+
+1. `design_skeleton` — Create section structure
+2. `design_content` — Populate sections (set `postProcess: true`)
+3. `design_refine` — Validate and auto-fix
 
 ## OpenPencil CLI Quick Reference
 
@@ -471,13 +454,15 @@ op move <id> <parent> [index]        # Move node
 op copy <id> <parent>                # Deep-copy node
 op replace <id> '<json>'             # Replace node
 op get [--depth N] [--pretty]        # Get document tree
-op export <png|svg|react|html|vue>   # Export assets
+op export <react|html|vue|flutter|swiftui|compose|css> --out <file>   # Export code
 op page list|add|remove|rename       # Page operations
-op vars / op vars:set '<json>'       # Variables
-op themes / op themes:set '<json>'   # Themes
+op vars / op vars:set '<json>'       # Design variables
+op themes / op themes:set '<json>'   # Design themes
 op design:skeleton '<json>'          # Create section structure
 op design:content <id> '<json>'      # Populate section content
 op design:refine --root-id <id>      # Validate + auto-fix (resolves icons)
 ```
 
 Global flags: `--file <path>`, `--page <id>`, `--pretty`. Inputs: inline string, `@filepath`, or `-` (stdin).
+
+**Code export only** — PNG/SVG images must be captured manually from OpenPencil app.
