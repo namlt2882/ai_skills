@@ -1,0 +1,37 @@
+{
+  "eval_id": 1,
+  "eval_name": "continue-existing-loop",
+  "prompt": "I have an existing .op project. Continue the loop by reading the next-prompt.md and generate the pricing section design.",
+  "assertions": [
+    {
+      "text": "Baton file exists and is readable",
+      "passed": true,
+      "evidence": ".op/next-prompt.md parsed successfully with design field: pricing-cards"
+    },
+    {
+      "text": "OpenPencil project initialized",
+      "passed": true,
+      "evidence": "Project created with correct dimensions based on device field"
+    },
+    {
+      "text": "Design exported to PNG",
+      "passed": true,
+      "evidence": ".op/exports/pricing-cards.png exists"
+    },
+    {
+      "text": "Design exported to SVG",
+      "passed": true,
+      "evidence": ".op/exports/pricing-cards.svg exists"
+    },
+    {
+      "text": "Metadata updated with new design",
+      "passed": true,
+      "evidence": ".op/metadata.json now contains pricing-cards entry with ID, dimensions, exports"
+    },
+    {
+      "text": "Baton updated for next iteration",
+      "passed": true,
+      "evidence": ".op/next-prompt.md updated with next design task"
+    }
+  ]
+}

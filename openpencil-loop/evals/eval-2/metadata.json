@@ -1,0 +1,37 @@
+{
+  "eval_id": 2,
+  "eval_name": "multi-page-mobile-loop",
+  "prompt": "Build a multi-page mobile app design using the loop pattern. Start with a login screen, then iterate to create a dashboard screen.",
+  "assertions": [
+    {
+      "text": "Login screen created with mobile dimensions",
+      "passed": true,
+      "evidence": "Initial design used 375x812 dimensions from device: mobile"
+    },
+    {
+      "text": "Login screen exports created",
+      "passed": true,
+      "evidence": ".op/exports/login.png and .op/exports/login.svg exist"
+    },
+    {
+      "text": "Metadata updated after login",
+      "passed": true,
+      "evidence": ".op/metadata.json contains login-screen entry"
+    },
+    {
+      "text": "Baton updated for dashboard",
+      "passed": true,
+      "evidence": ".op/next-prompt.md updated with dashboard design task"
+    },
+    {
+      "text": "Dashboard screen created",
+      "passed": true,
+      "evidence": "Dashboard design generated using same mobile dimensions"
+    },
+    {
+      "text": "Both screens in metadata",
+      "passed": true,
+      "evidence": ".op/metadata.json contains both login and dashboard entries"
+    }
+  ]
+}
