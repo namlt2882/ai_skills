@@ -20,7 +20,7 @@ echo "=== Test 1: Initialize New Project ==="
 mkdir -p "$WORKSPACE/iteration-1/eval-0-with_skill/outputs"
 cd "$WORKSPACE/iteration-1/eval-0-with_skill/outputs"
 cp "$SKILL_PATH/scripts/init-project.sh" .
-bash init-project.sh .op landing-hero
+SKILL_ROOT="$SKILL_PATH" bash init-project.sh .op landing-hero
 
 # Test 2: Continue existing loop
 echo ""
@@ -28,7 +28,7 @@ echo "=== Test 2: Continue Existing Loop ==="
 mkdir -p "$WORKSPACE/iteration-1/eval-1-with_skill/outputs"
 cd "$WORKSPACE/iteration-1/eval-1-with_skill/outputs"
 cp "$SKILL_PATH/scripts/init-project.sh" .
-bash init-project.sh .op pricing-cards
+SKILL_ROOT="$SKILL_PATH" bash init-project.sh .op pricing-cards
 echo "Updated .op/next-prompt.md with next task" > .op/next-prompt.md
 
 # Test 3: Multi-page mobile loop
@@ -37,7 +37,7 @@ echo "=== Test 3: Multi-page Mobile Loop ==="
 mkdir -p "$WORKSPACE/iteration-1/eval-2-with_skill/outputs"
 cd "$WORKSPACE/iteration-1/eval-2-with_skill/outputs"
 cp "$SKILL_PATH/scripts/init-project.sh" .
-bash init-project.sh .op login-screen --device mobile
+SKILL_ROOT="$SKILL_PATH" bash init-project.sh .op login-screen --device mobile
 echo "Updated .op/next-prompt.md with dashboard task" > .op/next-prompt.md
 
 echo ""

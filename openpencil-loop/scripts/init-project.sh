@@ -51,7 +51,43 @@ EOF
 
 # Create DESIGN.md
 echo "Creating DESIGN.md..."
-cp "$(dirname "$0")/templates/DESIGN.md" "$PROJECT_DIR/DESIGN.md" 2>/dev/null || echo "DESIGN.md template not found, create manually"
+if [ -n "$SKILL_ROOT" ]; then
+  SKILL_TEMPLATES="$SKILL_ROOT/templates"
+elif [ -d "$(dirname "$0")/../templates" ]; then
+  SKILL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+  SKILL_TEMPLATES="$SKILL_ROOT/templates"
+else
+  SKILL_TEMPLATES=""
+fi
+if [ -f "$SKILL_TEMPLATES/DESIGN.md" ]; then
+  cp "$SKILL_TEMPLATES/DESIGN.md" "$PROJECT_DIR/DESIGN.md"
+else
+  echo "DESIGN.md template not found at $SKILL_TEMPLATES, creating basic version"
+  cat > "$PROJECT_DIR/DESIGN.md" << 'EOF'
+# Design System
+
+## 1. Typography
+- Display: Space Grotesk, 40-56px, 700
+- Heading: Space Grotesk, 28-36px, 700
+- Body: Inter, 15-18px, 400
+
+## 2. Colors
+- Primary: #6366F1 (Indigo)
+- Background: #FFFFFF
+- Text: #111111
+- Muted: #6B7280
+
+## 3. Spacing
+- Section padding: 80px
+- Component gap: 16-24px
+- Grid gap: 24px
+
+## 4. Components
+- Button: padding [12,24], radius 8, centered
+- Card: padding 24, radius 12, gap 12
+- Navbar: height 72, horizontal, space_between
+EOF
+fi
 
 # Create metadata.json
 echo "Creating metadata.json..."
