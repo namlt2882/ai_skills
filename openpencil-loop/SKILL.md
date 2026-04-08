@@ -23,10 +23,15 @@ openpencil-loop/
 │   │   ├── text-rules.md         ← Text node rules
 │   │   └── schema.md             ← PenNode schema reference
 │   ├── validation/
-│   │   └── vision-feedback.md     ← Vision QA (MCP: batch_get, snapshot_layout)
-│   └── maintenance/
-│       ├── local-edit.md         ← Update nodes (MCP: batch_design, update_node, delete_node, batch_get)
-│       └── incremental-add.md     ← Add nodes (MCP: batch_design, insert_node, copy_node, batch_get)
+│   │   └── vision-feedback.md    ← Vision QA (MCP: batch_get, snapshot_layout)
+│   ├── maintenance/
+│   │   ├── local-edit.md         ← Update nodes (MCP: batch_design, update_node, delete_node)
+│   │   └── incremental-add.md    ← Add nodes (MCP: batch_design, insert_node, copy_node)
+│   └── codegen/
+│       ├── analyze.md            ← Project structure & design validation
+│       ├── discover.md           ← Find existing implementations in src/
+│       ├── deduplicate.md        ← SHA256-based component deduplication
+│       └── generate.md           ← Production code generation with safety
 ├── knowledge/
 │   ├── codegen/
 │   │   ├── codegen.md            ← Codegen main (MCP: export_nodes)
@@ -46,7 +51,8 @@ openpencil-loop/
 ├── templates/
 │   ├── DESIGN.md                 ← Design spec template
 │   ├── PROJECT.md                ← Project template
-│   └── next-prompt.md            ← Baton-passing template
+│   ├── next-prompt.md            ← Baton-passing template
+│   └── codegen-state.md          ← Codegen state baton template
 ├── scripts/
 │   ├── run-tests.sh              ← Test runner
 │   ├── init-project.sh           ← Project setup
@@ -59,7 +65,7 @@ openpencil-loop/
     └── openpencil-ai/            ← For future AI integrations
 ```
 
-## When to Use This Skill
+## When to Use
 
 Activate when you need ANY of these capabilities:
 - **Design a new page** — Transform vague ideas into structured OpenPencil prompts with design system context
@@ -71,88 +77,151 @@ Activate when you need ANY of these capabilities:
 
 ## Prerequisites
 
-**Required:**
-- OpenPencil CLI installed (`npm install -g @zseven-w/openpencil`)
-- A running OpenPencil instance (desktop app or web server)
+**Required:** OpenPencil CLI (`npm install -g @zseven-w/openpencil`) + running instance (desktop or web server)
 
-**Optional:**
-- A `.op/DESIGN.md` file with design system specifications
-- OpenPencil MCP Server — enables direct manipulation via MCP tools
-- Design reference images in `.op/references/`
+**Optional:** `.op/DESIGN.md` file, OpenPencil MCP Server, design reference images in `.op/references/`
+
+## Multi-Agent Compatibility
+
+This skill works across agent frameworks. Workflow, file formats, and phase logic are identical — only tool invocation syntax differs.
+
+| Framework | Task Orchestration | MCP Tool Call | File I/O |
+|-----------|-------------------|---------------|----------|
+| **OpenCode** | `task(category, load_skills, ...)` | `skill_mcp({ mcp_name, tool_name, arguments })` | `read()`, `write()`, `edit()` |
+| **Claude Code** | Background tasks via tool_use | `mcp__<server>__<tool>(args)` | `Read`, `Write`, `Edit` |
+| **Codex** | `Agent.run()` or subprocess | HTTP MCP client or CLI | `fs.readFile`, `fs.writeFile` |
+| **Aider** | Sequential (no native subagents) | CLI subprocess or HTTP | File read/write |
+| **Custom** | Any orchestrator | MCP JSON-RPC or HTTP | Any filesystem API |
+
+### Generic Patterns
+
+```
+// MCP Call — replace syntax per framework:
+mcp_call("openpencil", "batch_get", { filePath, parentId, readDepth })
+// OpenCode:    skill_mcp({ mcp_name: "openpencil", tool_name: "batch_get", arguments: {...} })
+// Claude Code: mcp__openpencil__batch_get({ filePath, parentId, readDepth })
+// Codex:       await openpencilMcp.batch_get({ filePath, parentId, readDepth })
+
+// Task Dispatch — replace syntax per framework:
+spawn_task(category="...", skills=[...], background=true, prompt="...")
+// OpenCode:    task(category="ultrabrain", load_skills=["openpencil-design"], run_in_background=true, prompt="...")
+// Claude Code: tool_use with subagent_type or background execution
+// Codex:       Agent.run({ model: "o3", prompt: "...", background: true })
+```
 
 ## Task Management
 
-This skill uses **task orchestration** to avoid context dilution. The Build Loop follows 4 phases, each mapped to a task entry below. Spawn subagents for each independent task.
+This skill uses **task orchestration** to avoid context dilution. The Build Loop follows 4 phases per loop type, each mapped to a task entry. Spawn subagents for each independent task.
 
 ### Phase-Based Tasks
 
-| Task | Category | Skills | Background | MCP Tools | Sub-Skills | When to Use |
-|------|----------|--------|------------|-----------|------------|-------------|
-| **Phase 1: PLANNING** | `ultrabrain` | `openpencil-design` | `true` | design_skeleton | phases/planning/design-type.md, phases/planning/decomposition.md | User gives new design request |
-| **Phase 2: GENERATION** | `ultrabrain` | `openpencil-design` | `true` | batch_design, insert_node | phases/generation/*.md, knowledge/role-definitions.md, knowledge/icon-catalog.md | Have decomposed plan, build each section |
-| **Phase 3: VALIDATION** | `ultrabrain` | `openpencil-design` | `true` | batch_get, snapshot_layout | phases/validation/vision-feedback.md | Design is built, validate quality |
-| **Phase 4: MAINTENANCE** | `ultrabrain` | `openpencil-design` | `true` | batch_design, update_node, delete_node, insert_node | phases/maintenance/*.md | User wants to edit or add to existing design |
+| Task | Category | Skills | MCP Tools | Sub-Skills | When to Use |
+|------|----------|--------|-----------|------------|-------------|
+| **Phase 1: PLANNING** | `ultrabrain` | `openpencil-design` | design_skeleton | design-type.md, decomposition.md | User gives new design request |
+| **Phase 2: GENERATION** | `ultrabrain` | `openpencil-design` | batch_design, insert_node | generation/*.md, role-definitions.md, icon-catalog.md | Have decomposed plan, build each section |
+| **Phase 3: VALIDATION** | `ultrabrain` | `openpencil-design` | batch_get, snapshot_layout | vision-feedback.md | Design is built, validate quality |
+| **Phase 4: MAINTENANCE** | `ultrabrain` | `openpencil-design` | batch_design, update_node, delete_node, insert_node | maintenance/*.md | User wants to edit or add to existing design |
 
 ### Supporting Tasks
 
-| Task | Category | Skills | Background | MCP Tools | When to Use |
-|------|----------|--------|------------|-----------|-------------|
-| **Prompt Enhancement** | `writing` | `enhance-prompt` | `true` | MCP tools for reading codegen guidelines | User input is vague or needs structure |
-| **DESIGN.md Creation** | `ultrabrain` | `taste-design` | `true` | No MCP tools needed for creation | DESIGN.md missing and user confirms |
-| **DESIGN.md Read** | `explore` | none | `true` | No MCP tools (just file read) | Check for existing DESIGN.md |
-| **Code Export** | `unspecified-high` | none | `true` | export_nodes | User requests code export |
-| **Project Documentation** | `ultrabrain` | none | `true` | No MCP tools | Updating PROJECT.md |
+| Task | Category | Skills | MCP Tools | When to Use |
+|------|----------|--------|-----------|-------------|
+| **Prompt Enhancement** | `writing` | `enhance-prompt` | None (reads codegen guidelines) | User input is vague or needs structure |
+| **DESIGN.md Creation** | `ultrabrain` | `taste-design` | None | DESIGN.md missing and user confirms |
+| **DESIGN.md Read** | `explore` | none | None | Check for existing DESIGN.md |
+| **CodeGen Phase 1: ANALYZE** | `ultrabrain` | `openpencil-design` | batch_get, get_design_md, snapshot_layout | Project structure check, design validation |
+| **CodeGen Phase 2: DISCOVER** | `ultrabrain` | `openpencil-design` | batch_get, export_nodes | Find existing implementations in src/ |
+| **CodeGen Phase 3: DEDUPE** | `ultrabrain` | `openpencil-design` | export_nodes | Hash-based component deduplication |
+| **CodeGen Phase 4: GENERATE** | `ultrabrain` | `openpencil-design` | export_nodes | Production code generation with safety |
+| **Project Documentation** | `ultrabrain` | none | None | Updating PROJECT.md |
 
-**Parallel subagent execution avoids context dilution:**
+All tasks use `run_in_background=true` for parallel execution. Example:
+
 ```typescript
-// Fire these simultaneously — continue working while they run
-task(category="explore", load_skills=[], run_in_background=true, description="Check DESIGN.md", prompt="Check if .op/DESIGN.md exists. Return file content if found, or 'NOT FOUND' if missing.")
-task(category="writing", load_skills=["enhance-prompt"], run_in_background=true, description="Enhance prompt", prompt="Enhance this design prompt with structured page sections and visual descriptions...")
-
-// Collect results when system notifies completion
+// OpenCode:
+task(category="explore", load_skills=[], run_in_background=true, prompt="Check if .op/DESIGN.md exists...")
+task(category="writing", load_skills=["enhance-prompt"], run_in_background=true, prompt="Enhance this design prompt...")
+// Claude Code: tool_use with background=true
+// Codex: Agent.run({ model: "o3-mini", prompt: "...", background: true })
 ```
 
 ## Decision Workflow
 
-### Critical Decisions (Always Ask User)
-These require explicit user confirmation before proceeding:
-
-| Decision | What to Ask |
-|----------|-------------|
-| **Design System** | "No DESIGN.md found. Create one with default values or customize?" |
-| **Colors** | "Color palette: Primary (accent), Background, Text roles?" |
-| **Typography** | "Font families for headings, body? (e.g., Space Grotesk + Inter)" |
-| **Spacing/Shadow** | "Spacing approach (8px grid)? Shadow depth (subtle/medium/elevated)?" |
-| **Components** | "Button shape, card roundness, input style preferences?" |
-| **Export Format** | "Export to code? (React/Vue/SwiftUI/Flutter/etc.)" |
-
-### Medium Decisions (Offer Guidance, Allow Override)
-These provide defaults with user override:
-
-| Decision | Default | What to Offer |
-|----------|---------|---------------|
-| **Layout** | Vertical | "Vertical or horizontal layout?" |
-| **Color Palette** | Zinc/Slate base | "Warm or cool gray base? Saturated accent?" |
-| **Responsive** | Mobile-first | "Mobile-first or desktop-first strategy?" |
-| **Density** | Balanced (5/10) | "Gallery airy (low) or cockpit dense (high)?" |
-
-### Automatic Decisions (No Confirmation Needed)
-These use sensible defaults:
-
-| Decision | Default Value |
-|----------|---------------|
-| **Prompt enhancement** | Add structure, visual descriptions |
-| **Component styling** | Apply semantic roles with smart defaults |
-| **Project structure** | Section-based with sitemap tracking |
-| **Export location** | `src/components/` or `lib/widgets/` |
+| Decision | Type | What to Ask / Default |
+|----------|------|----------------------|
+| **Design System** | Critical | "No DESIGN.md found. Create one with default values or customize?" |
+| **Colors** | Critical | "Color palette: Primary (accent), Background, Text roles?" |
+| **Typography** | Critical | "Font families for headings, body? (e.g., Space Grotesk + Inter)" |
+| **Spacing/Shadow** | Critical | "Spacing approach (8px grid)? Shadow depth (subtle/medium/elevated)?" |
+| **Components** | Critical | "Button shape, card roundness, input style preferences?" |
+| **Export Format** | Critical | "Export to code? (React/Vue/SwiftUI/Flutter/etc.)" |
+| **Layout** | Medium | Default: Vertical. Offer: "Vertical or horizontal layout?" |
+| **Color Palette** | Medium | Default: Zinc/Slate base. Offer: "Warm or cool gray base?" |
+| **Responsive** | Medium | Default: Mobile-first. Offer: "Mobile-first or desktop-first?" |
+| **Density** | Medium | Default: Balanced (5/10). Offer: "Gallery airy or cockpit dense?" |
+| **Prompt enhancement** | Auto | Add structure, visual descriptions |
+| **Component styling** | Auto | Apply semantic roles with smart defaults |
+| **Project structure** | Auto | Section-based with sitemap tracking |
+| **Export location** | Auto | `src/components/` or `lib/widgets/` |
 
 ## Overview
 
-The Build Loop pattern enables continuous, autonomous design development through a "baton" system. Each iteration cycles through 4 phases defined in the **Task Management** table above: PLANNING → GENERATION → VALIDATION → MAINTENANCE → (repeat).
+The Build Loop pattern enables continuous, autonomous design development through a "baton" system. Two mode sets:
+
+- **Design Build Loop:** PLANNING → GENERATION → VALIDATION → MAINTENANCE → (repeat)
+- **Codegen Build Loop:** ANALYZE → DISCOVER → DEDUPE → GENERATE
+
+Each codegen iteration uses `.op/codegen-state.md` to pass state between phases.
+
+### Baton Format (`.op/next-prompt.md`)
+
+YAML frontmatter with `design` and `device` fields, followed by structured sections carrying design system context and page structure forward.
+
+```markdown
+---
+design: saas-landing-page
+device: desktop
+---
+
+Build the Pricing section. Three-tier pricing table with Free, Pro (highlighted as recommended), and Enterprise plans.
+
+**DESIGN SYSTEM:**
+- Typography: Space Grotesk (headings), Inter (body)
+- Primary: #6366F1, Background: #FFFFFF, Surface: #F9FAFB
+- Button: cornerRadius 8, padding [12,24], fill #111111
+- Card: cornerRadius 12, padding 24, fill #F9FAFB
+- Spacing: 8px grid, section padding 80px
+
+**Page Structure:**
+1. Section header — "Simple, transparent pricing" + subtitle
+2. Toggle — Monthly/Annual billing switch
+3. Pricing cards row — Free, Pro (highlighted), Enterprise
+4. FAQ accordion — 4-6 common questions
+```
+
+**Critical baton rules:**
+- ✅ ALWAYS update the baton after each iteration with the next task
+- ✅ ALWAYS include DESIGN SYSTEM section — copy relevant tokens from `.op/DESIGN.md`
+- ✅ ALWAYS include Page Structure section — enumerate sections to build
+- ✅ Set `device` to match the target viewport (`desktop` or `mobile`)
+- ❌ NEVER leave the baton empty or with only frontmatter — next agent has no context
+- ❌ NEVER skip the DESIGN SYSTEM section — generation quality degrades without tokens
+
+Full template: `templates/next-prompt.md`
+
+### Enhance Prompt Example
+
+Transforms vague input into structured OpenPencil-ready prompts with design system context. Triggered automatically when user input lacks structure.
+
+**Original:** `make me a login page`
+
+**Enhanced:** Design a modern login page with clean visual hierarchy. Include DESIGN SYSTEM section (typography, colors, spacing, component tokens), Page Structure (left panel hero + right panel form with email/password inputs, forgot password link, sign in button, social login row, signup footer link), Layout notes (horizontal split desktop 1200px), and Visual Notes (subtle shadow, rounded inputs).
+
+See `enhance-prompt` skill for the full transformation pipeline.
 
 ## Phase Workflow Summary
 
-The Build Loop follows 4 phases, each implemented as a Task Management entry above:
+**Design Build Loop** (for UI design):
 
 | Phase | Task | Key Sub-Skills | MCP Tools |
 |-------|------|----------------|-----------|
@@ -161,113 +230,56 @@ The Build Loop follows 4 phases, each implemented as a Task Management entry abo
 | 3. VALIDATION | Phase 3: VALIDATION | vision-feedback.md | batch_get, snapshot_layout |
 | 4. MAINTENANCE | Phase 4: MAINTENANCE | local-edit.md, incremental-add.md | batch_design, update_node, delete_node |
 
-For detailed phase content, see the sub-skill files referenced above.
+**Codegen Build Loop** (for production code):
 
-## OpenPencil MCP Tools (Actual from ZSeven-W/openpencil)
+| Phase | Task | Key Sub-Skills | MCP Tools |
+|-------|------|----------------|-----------|
+| 1. ANALYZE | CodeGen Phase 1: ANALYZE | analyze.md | batch_get, get_design_md, snapshot_layout |
+| 2. DISCOVER | CodeGen Phase 2: DISCOVER | discover.md | batch_get, export_nodes |
+| 3. DEDUPE | CodeGen Phase 3: DEDUPE | deduplicate.md | export_nodes |
+| 4. GENERATE | CodeGen Phase 4: GENERATE | generate.md | export_nodes |
+
+For detailed phase content, see the sub-skill files referenced above. Baton template: `templates/codegen-state.md`
+
+## OpenPencil MCP Tools
+
+All MCP calls follow: `mcp_call(server, tool, arguments)`. Below shows OpenCode syntax — see **Multi-Agent Compatibility** for Claude Code/Codex equivalents.
 
 ```javascript
-// Document operations
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "open_document",
-  arguments: { filePath: "path/to/design.op" }
-})
-
-// Read nodes
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "batch_get",
-  arguments: { filePath: "path/to/design.op", parentId: "node-id", readDepth: 2 }
-})
-
-// Node CRUD (insert, update, delete, move, copy, replace)
-// All node tools support pageId to target a specific page (defaults to first page)
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "insert_node",
-  arguments: { filePath: "path/to/design.op", parent: "parent-id", data: {...}, postProcess: true, pageId: "target-page-id" }
-})
-
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "update_node",
-  arguments: { filePath: "path/to/design.op", nodeId: "node-id", data: {...}, pageId: "target-page-id" }
-})
-
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "delete_node",
-  arguments: { filePath: "path/to/design.op", nodeId: "node-to-delete", pageId: "target-page-id" }
-})
-
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "move_node",
-  arguments: { filePath: "path/to/design.op", nodeId: "node-id", parent: "new-parent", index: 0, pageId: "target-page-id" }
-})
-
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "copy_node",
-  arguments: { filePath: "path/to/design.op", sourceId: "source-id", parent: "parent-id", overrides: {...}, pageId: "target-page-id" }
-})
-
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "replace_node",
-  arguments: { filePath: "path/to/design.op", nodeId: "node-id", data: {...}, pageId: "target-page-id" }
-})
-
-// Batch design (DSL) — pageId targets which page to write to
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "batch_design",
-  arguments: {
-    filePath: "path/to/design.op",
-    operations: "root=I(null, {...})\nchild=I(root, {...})",
-    postProcess: true,
-    pageId: "target-page-id"
-  }
-})
-
-// Layered design workflow
-skill_mcp({ mcp_name: "openpencil", tool_name: "design_skeleton", arguments: {...} })
-skill_mcp({ mcp_name: "openpencil", tool_name: "design_content", arguments: {...} })
-skill_mcp({ mcp_name: "openpencil", tool_name: "design_refine", arguments: {...} })
-
-// Variables & themes
-skill_mcp({ mcp_name: "openpencil", tool_name: "get_variables", arguments: { filePath: "..." } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "set_variables", arguments: { filePath: "...", variables: {...} } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "set_themes", arguments: { filePath: "...", themes: {...} } })
-
-// Design MD
-skill_mcp({ mcp_name: "openpencil", tool_name: "get_design_md", arguments: { filePath: "..." } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "set_design_md", arguments: { filePath: "...", markdown: "..." } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "export_design_md", arguments: { filePath: "..." } })
-
-// Layout & structure
-skill_mcp({ mcp_name: "openpencil", tool_name: "snapshot_layout", arguments: { filePath: "...", maxDepth: 2 } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "find_empty_space", arguments: { filePath: "...", width: 100, height: 100, direction: "right" } })
-
-// Pages
-skill_mcp({ mcp_name: "openpencil", tool_name: "add_page", arguments: { filePath: "...", name: "Page 2" } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "remove_page", arguments: { filePath: "...", pageId: "..." } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "rename_page", arguments: { filePath: "...", pageId: "...", name: "New Name" } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "reorder_page", arguments: { filePath: "...", pageId: "...", index: 0 } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "duplicate_page", arguments: { filePath: "...", pageId: "..." } })
-
-// Import/export
-skill_mcp({ mcp_name: "openpencil", tool_name: "import_svg", arguments: { filePath: "...", svgPath: "..." } })
-skill_mcp({ mcp_name: "openpencil", tool_name: "export_nodes", arguments: { filePath: "..." } })
-
-// Design prompt (knowledge)
-skill_mcp({ mcp_name: "openpencil", tool_name: "get_design_prompt", arguments: { section: "schema" } })
+// Document: open_document({ filePath })
+// Read: batch_get({ filePath, parentId, readDepth })
+// CRUD: insert_node, update_node, delete_node, move_node, copy_node, replace_node
+//       All support pageId to target specific page (defaults to first)
+// Batch DSL: batch_design({ filePath, operations, postProcess, pageId })
+// Layered: design_skeleton, design_content, design_refine
+// Variables: get_variables, set_variables, set_themes
+// Design MD: get_design_md, set_design_md, export_design_md
+// Layout: snapshot_layout({ filePath, maxDepth }), find_empty_space({ filePath, width, height, direction })
+// Pages: add_page, remove_page, rename_page, reorder_page, duplicate_page
+// Import/Export: import_svg({ filePath, svgPath }), export_nodes({ filePath })
+// Knowledge: get_design_prompt({ section: "schema" })
 ```
 
-**MCP Cannot Do:**
-- Screenshot capture (use Playwright)
-- AI code generation (use AI with knowledge files)
-- Trigger sub-skills (use read() or task())
+**MCP Cannot Do:** Screenshot capture (use Playwright), AI code generation (use AI with knowledge files), Trigger sub-skills (use read() or task())
+
+## Agent Platform Tools Reference
+
+Beyond MCP, this skill uses built-in agent tools. Full syntax mapping per framework:
+
+| Category | Purpose | OpenCode | Claude Code | Codex |
+|----------|---------|----------|-------------|-------|
+| **Filesystem** | Read/write/edit files, list dirs, search, create dirs | `read()`, `write()`, `edit()`, `filesystem_*()` | `Read`, `Write`, `Edit`, `Glob`, `Bash` | `fs.*`, `glob.sync()` |
+| **LSP** | Diagnostics, goto def, find refs, symbols, rename | `lsp_diagnostics()`, `lsp_goto_definition()`, etc. | `Bash(tsc --noEmit)` | LSP client |
+| **AST** | Search/replace code patterns | `ast_grep_search()`, `ast_grep_replace()` | ast-grep CLI | ast-grep CLI |
+| **Task Mgmt** | Create/list/get/update/delete tasks | `task_create()`, `task_list()`, `task_update()` | `TodoWrite`, `TodoRead` | Custom tracker |
+| **Browser** | Screenshot, navigate, snapshot | `playwright_browser_*()` | Playwright CLI | Puppeteer |
+| **Session** | Background tasks, output collection, cancel | `task(run_in_background)`, `background_output()`, `background_cancel()` | tool_use background | `Agent.run(background)` |
+
+**Codegen phase → tool mapping:**
+- **Analyze:** `read()`, `lsp_diagnostics()`, `filesystem_list_directory()` — check .op file, scan project
+- **Discover:** `filesystem_search_files()`, `lsp_symbols()`, `ast_grep_search()` — find components, parse exports
+- **Deduplicate:** `read()`, in-memory hashing — hash nodes, map duplicates
+- **Generate:** `write()`, `filesystem_create_directory()`, `lsp_diagnostics()` — write files, validate output
 
 ---
 
@@ -278,11 +290,7 @@ User: "I want a mobile login screen with social login options"
 
 PHASE 1: PLANNING
 - Detect: Type 2 (Single-task screen, 375x812)
-- Output subtasks:
-  - "header" — Logo + title
-  - "form" — Email/password inputs
-  - "submit" — Primary button
-  - "social" — Google/Apple login buttons
+- Output subtasks: "header" (Logo+title), "form" (Email/password), "submit" (Primary button), "social" (Google/Apple login)
 
 PHASE 2: GENERATION
 - Build each section via MCP insert_node / batch_design
@@ -302,30 +310,11 @@ PHASE 4: MAINTENANCE
 
 ## Multi-Page Parallel Build
 
-See Task Management (Phase-Based Tasks) for sub-skills to spawn per section.
-
-Build multiple pages in the same `.op` file simultaneously using page-scoped agents.
-
-### Why Multi-Page?
-
-- Each page is a fully independent design canvas (own width/height/viewport)
-- Page content does NOT affect other pages — safe for parallel writes
-- Single `.op` file = one source of truth, easier to manage than multiple files
+Build multiple pages in the same `.op` file simultaneously using page-scoped agents. Each page is a fully independent design canvas (own width/height/viewport) — content does NOT affect other pages. Single `.op` file = one source of truth.
 
 ### Page Data Model
 
-`.op` files store pages at top level:
-
-```json
-{
-  "pages": [
-    { "id": "page-uuid-1", "name": "Page 1", "children": [...] },
-    { "id": "page-uuid-2", "name": "Page 2", "children": [...] }
-  ]
-}
-```
-
-All node operations accept `pageId` to target a specific page. Omit → defaults to first page.
+`.op` files store pages at top level. All node operations accept `pageId` to target a specific page. Omit → defaults to first page.
 
 ### Parallel Build Workflow
 
@@ -333,43 +322,27 @@ All node operations accept `pageId` to target a specific page. Omit → defaults
 Step 1: Create pages (sequential — needed to get pageIds)
   add_page(name="LoginScreen")     → pageId-A
   add_page(name="DashboardScreen") → pageId-B
-  add_page(name="SettingsScreen")   → pageId-C
 
 Step 2: Decompose each page into subtasks (sequential)
   openpencil-loop → page-A subtasks: header, form, social-login
   openpencil-loop → page-B subtasks: sidebar, metrics-row, chart-area
-  openpencil-loop → page-C subtasks: profile-form, notifications
 
 Step 3: Build in parallel (each page isolated)
-  Agent-Login:     batch_design({ pageId: pageId-A, ... })  // Login page
-  Agent-Dashboard:  batch_design({ pageId: pageId-B, ... })  // Dashboard page
-  Agent-Settings:  batch_design({ pageId: pageId-C, ... })  // Settings page
+  Agent-Login:     batch_design({ pageId: pageId-A, ... })
+  Agent-Dashboard: batch_design({ pageId: pageId-B, ... })
 
 Step 4: Validate each page (can be parallel)
   Agent-Login:     snapshot_layout + screenshot review
   Agent-Dashboard: snapshot_layout + screenshot review
-  Agent-Settings:  snapshot_layout + screenshot review
 
 Step 5: Export all pages (sequential — single file export)
   export_nodes({ pageId: pageId-A })
   export_nodes({ pageId: pageId-B })
-  export_nodes({ pageId: pageId-C })
 ```
 
 ### Page Templates
 
-For apps with consistent UI chrome (nav bars, tab bars), create a template page first:
-
-```
-1. Design the master template (LoginScreen-Template)
-   - Nav bar, tab bar, safe areas
-   - Leave content area empty (placeholder frame)
-
-2. Duplicate for each actual screen
-   duplicate_page(pageId: templatePageId, name: "Login - Email")
-
-3. Fill in page-specific content on each duplicate
-```
+For apps with consistent UI chrome, create a template page first, then `duplicate_page()` for each actual screen and fill in page-specific content.
 
 ### Rules
 
@@ -378,15 +351,6 @@ For apps with consistent UI chrome (nav bars, tab bars), create a template page 
 - ✅ DO: `add_page` returns the new `pageId` — capture it
 - ❌ DON'T: Build on the same page from multiple agents simultaneously (race condition)
 - ❌ DON'T: Omit `pageId` when working with multi-page documents (ambiguous)
-
-### Code Export Per Page
-
-Each page exports independently:
-
-```
-export_nodes({ filePath: "app.op", pageId: pageId-A })  // Login screen
-export_nodes({ filePath: "app.op", pageId: pageId-B })  // Dashboard screen
-```
 
 ---
 
@@ -398,21 +362,28 @@ canvas/
   └── design.op    ← ONE file, same location across all iterations
 ```
 
-- Store the `.op` file in a `canvas/` subdirectory next to your project files
-- Use the SAME file path throughout the entire loop — never create ad-hoc copies
-- File path examples: `./canvas/design.op` or `~/projects/login/canvas/login.op`
+- Store `.op` in `canvas/` subdirectory next to project files
+- Use SAME file path throughout entire loop — never create ad-hoc copies
+- Examples: `./canvas/design.op` or `~/projects/login/canvas/login.op`
 
-**Save discipline — prevent state loss:**
-- Save via MCP after every maintenance phase: `skill_mcp({ tool_name: "batch_design", arguments: {...} })` already auto-saves
-- After batch_design operations: the file is saved automatically
-- After manual edits in the OpenPencil app: trigger a save explicitly
+**Save discipline:**
+- `batch_design` auto-saves. After manual edits in OpenPencil app: trigger save explicitly
 - If using CLI: `op save` after operations
-- Before closing the OpenPencil app: always save first
+- Before closing OpenPencil app: always save first
 
-**Never do this:**
-- ❌ `canvas/v1.op`, `canvas/v2_final.op`, `canvas/backup.op` — scattered copies
-- ❌ Working on a file and closing without saving
-- ❌ Overwriting the .op file without a backup of the previous state
+**Never do:** `canvas/v1.op`, `canvas/v2_final.op`, `canvas/backup.op` — scattered copies; working on file and closing without saving; overwriting .op without backup
+
+### `.op/DESIGN.md` Schema
+
+Design system specification file. Created once (with user confirmation), then referenced by every generation phase. Sections: Typography, Colors (light/dark themes), Spacing (8px grid), Components (Button/Card/Navbar/Form specs with JSON), Shadows (Subtle/Medium/Elevated), Design Notes (generation rules, icon reference, semantic role usage).
+
+Full template: `templates/DESIGN.md`
+
+### `.op/PROJECT.md` Schema
+
+Project roadmap file. Tracks overall design direction, completed screens, and future plans. Updated after each iteration. Sections: Vision, Design System Reference, Device Targets, Screens (Sitemap with checkboxes), Roadmap, Ideas.
+
+Full template: `templates/PROJECT.md`
 
 ---
 

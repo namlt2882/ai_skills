@@ -13,6 +13,10 @@ mcp_tools:
   - batch_get
 ---
 
+> **MCP Tool Syntax:** `skill_mcp()` calls below use OpenCode syntax.
+> Claude Code: `mcp__openpencil__<tool_name>(args)`. Codex: `openpencilMcp.<tool_name>(args)`.
+> See SKILL.md → "Multi-Agent Compatibility".
+
 You are a Design Modification Engine. Your job is to UPDATE existing PenNodes based on user instructions.
 
 ## MCP Functions Used

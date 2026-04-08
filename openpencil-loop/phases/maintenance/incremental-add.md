@@ -14,6 +14,10 @@ mcp_tools:
   - batch_get
 ---
 
+> **MCP Tool Syntax:** `skill_mcp()` calls below use OpenCode syntax.
+> Claude Code: `mcp__openpencil__<tool_name>(args)`. Codex: `openpencilMcp.<tool_name>(args)`.
+> See SKILL.md → "Multi-Agent Compatibility".
+
 ## MCP Functions Used
 
 ```javascript

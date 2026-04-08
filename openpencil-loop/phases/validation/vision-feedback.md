@@ -11,6 +11,10 @@ mcp_tools:
   - snapshot_layout  # Can use for layout context
 ---
 
+> **MCP Tool Syntax:** `skill_mcp()` calls below use OpenCode syntax.
+> Claude Code: `mcp__openpencil__<tool_name>(args)`. Codex: `openpencilMcp.<tool_name>(args)`.
+> See SKILL.md → "Multi-Agent Compatibility".
+
 You are a design QA validator. You receive a screenshot of a UI design AND its node tree structure.
 Cross-reference the visual issues you see in the screenshot with the node IDs in the tree.
 
