@@ -53,17 +53,17 @@ After import, the structure becomes:
 
 ## CLI Conversion
 
-Use the `open-pencil` CLI for batch conversions:
+Use the `openpencil` CLI for batch conversions:
 
 ```bash
 # Convert .fig file to .pen format
-open-pencil convert input.fig --output output.pen
+openpencil convert input.fig --output output.pen
 
 # Convert with specific options
-open-pencil convert design.fig --output design.pen --scale 2x --include-hidden
+openpencil convert design.fig --output design.pen --scale 2x --include-hidden
 
 # Batch convert directory
-open-pencil convert ./figma-exports/*.fig --output-dir ./openpencil/
+openpencil convert ./figma-exports/*.fig --output-dir ./openpencil/
 ```
 
 ### Supported Conversions
@@ -82,7 +82,7 @@ Edit designs in OpenPencil and export back to Figma:
 ```bash
 # Export from Figma as .fig or SVG
 # Import to OpenPencil
-open-pencil import design.fig --create-new
+openpencil import design.fig --create-new
 ```
 
 ### Step 2: Edit in OpenPencil
@@ -99,10 +99,10 @@ open-pencil import design.fig --create-new
 ### Step 3: Export Back to Figma
 ```bash
 # Export as Figma-compatible format
-open-pencil export design.pen --format figma --output design-export.fig
+openpencil export design.pen --format figma --output design-export.fig
 
 # Or export as SVG for direct Figma import
-open-pencil export design.pen --format svg --output design-export.svg
+openpencil export design.pen --format svg --output design-export.svg
 ```
 
 ## MCP Tools for Figma Workflows

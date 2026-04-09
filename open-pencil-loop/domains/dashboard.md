@@ -16,7 +16,6 @@ category: domain
 - Sidebar: width=240-280, height="fill_container", layout="vertical"
 - Main content: width="fill_container", layout="vertical", gap=16-24
 
-JSX Example:
 ```jsx
 <Frame w={1200} h="auto" flex="row" bg="#F1F5F9">
   {/* Sidebar */}
@@ -72,11 +71,7 @@ JSX Example:
 - padding=[20,24], gap=8, cornerRadius=12
 
 ## Data Tables
-- Table header: background fill, bold text
-- Table rows: alternating subtle backgrounds
-- Status badges: pill-shaped with semantic colors
 
-JSX Example:
 ```jsx
 <Frame flex="col" rounded={12} bg="#FFF" overflow="hidden">
   {/* Header */}

@@ -11,15 +11,10 @@ category: knowledge
 
 # Design Principles
 
-Craft principles for creating polished, professional designs.
-
 ## Typography
 
-### Type Scale
-Create clear hierarchy with meaningful size jumps:
-
-| Level | Size | Weight | Line Height | Use |
-|-------|------|--------|-------------|-----|
+| Level | Size | Weight | Line | Use |
+|-------|------|--------|------|-----|
 | Display | 48-64px | 700 | 1.05-1.1 | Hero headlines |
 | H1 | 36-40px | 700 | 1.1-1.2 | Page titles |
 | H2 | 28-32px | 600 | 1.2 | Section headings |
@@ -29,108 +24,48 @@ Create clear hierarchy with meaningful size jumps:
 | Small | 14px | 400 | 1.5 | Captions, labels |
 | Tiny | 12px | 500 | 1.4 | Tags, metadata |
 
-### Typography Rules
-- **Tight at large sizes**: 48px+ headlines get 1.05-1.15 line height
-- **Loose at small sizes**: 16px body gets 1.5-1.6 line height
-- **Max width for readability**: Body text should wrap at 65-75 characters
-- **Weight contrast**: Headlines bold (700), body regular (400), labels medium (500)
-- **Never all caps for body text**: Use sentence case
+**Rules:** Tight (1.05-1.15) at 48px+, loose (1.5-1.6) at 16px. Max 65-75 chars for body. Headlines bold (700), body regular (400), labels medium (500). Never all caps body text.
 
 ## Color
 
-### Palette Structure
-- **1 Primary**: Your brand/action color (blue, purple, etc.)
-- **1 Accent**: Secondary highlight (often complementary)
-- **1 Neutral scale**: Grays from white to black (9 steps)
-- **Semantic colors**: Red (error), green (success), yellow (warning), blue (info)
+**Palette Structure:** 1 Primary (brand/action), 1 Accent, 1 Neutral scale (white→black, 9 steps), semantic colors (red/green/yellow/blue).
 
-### Color Usage
-- **Max 2 saturated colors** on any screen
-- **Background**: Slightly tinted (#F8FAFC) not pure white (#FFFFFF)
-- **Surface**: White (#FFFFFF) for cards on tinted backgrounds
-- **Text**: Near-black (#111827) not pure black (#000000)
-- **Borders**: Light gray (#E5E7EB) for subtle separation
+**Usage:** Max 2 saturated colors per screen. Background: #F8FAFC (not pure white). Surface: #FFFFFF for cards. Text: #111827 (not pure black). Borders: #E5E7EB.
 
-### Contrast Requirements
-- **Body text**: 4.5:1 minimum (WCAG AA)
-- **Large text (18px+)**: 3:1 minimum
-- **Interactive elements**: 3:1 against adjacent colors
+**Contrast:** Body text 4.5:1 min, large text (18px+) 3:1, interactive elements 3:1.
 
-## Spacing
-
-### 8-Point Grid
-All spacing uses multiples of 8px:
+## Spacing (8-point grid)
 
 | Token | Value | Use |
 |-------|-------|-----|
-| xs | 4px | Tight inline spacing |
+| xs | 4px | Tight inline |
 | sm | 8px | Related elements |
 | md | 16px | Component padding |
 | lg | 24px | Card padding |
 | xl | 32px | Section gaps |
-| 2xl | 48px | Large section gaps |
-| 3xl | 64px | Major section breaks |
+| 2xl | 48px | Large gaps |
+| 3xl | 64px | Major breaks |
 | 4xl | 80px | Section padding |
 | 5xl | 120px | Hero padding |
 
-### Spacing Patterns
-- **Component internal**: 16-24px (buttons, inputs)
-- **Card padding**: 24px standard, 32px for feature cards
-- **Section padding**: 80-120px vertical, 24-48px horizontal
-- **Grid gaps**: 16px tight, 24px standard, 32px loose
+**Patterns:** Component internal 16-24px. Card padding 24px (32px for feature). Section padding 80-120px vertical. Grid gaps 16px tight, 24px standard, 32px loose.
 
 ## Layout
 
-### Container Widths
-| Type | Width | Use |
-|------|-------|-----|
-| Mobile | 375px | Phone breakpoint |
-| Tablet | 768px | Tablet breakpoint |
-| Desktop | 1200px | Standard max-width |
-| Wide | 1440px | Full-width layouts |
+**Container Widths:** Mobile 375px, Tablet 768px, Desktop 1200px, Wide 1440px.
 
-### Common Patterns
+**Z-Index:** Base 0, Elevated 10 (cards/buttons), Floating 20 (dropdowns/tooltips), Sticky 30 (sticky headers), Overlay 40 (modals), Toast 50 (notifications).
 
-**Hero Section**
-- One headline (2-6 words)
-- One subtitle (1 sentence, max 15 words)
-- One primary CTA button
-- Centered or left-aligned
-- 80-120px vertical padding
+**Hero:** One headline (2-6 words), one subtitle (max 15 words), one CTA. 80-120px vertical padding.
 
-**Navigation**
-- Logo on left
-- 3-5 links in center
-- CTA button on right
-- 64-80px height
-- Sticky positioning
+**Navigation:** Logo left, 3-5 links center, CTA right. 64-80px height, sticky.
 
-**Card Grid**
-- 3-4 cards per row (desktop)
-- 24-32px gaps
-- Consistent card heights
-- Equal padding inside cards
+**Card Grid:** 3-4 cards per row, 24-32px gaps, consistent heights, equal padding.
 
-**Footer**
-- Logo + tagline
-- Link columns (3-4 max)
-- Social icons
-- Copyright + legal
-- 48-64px vertical padding
+**Footer:** Logo + tagline, 3-4 link columns, social icons, copyright. 48-64px vertical padding.
 
-### Z-Index Scale
-| Level | Z-Index | Use |
-|-------|---------|-----|
-| Base | 0 | Default content |
-| Elevated | 10 | Cards, buttons |
-| Floating | 20 | Dropdowns, tooltips |
-| Sticky | 30 | Sticky headers |
-| Overlay | 40 | Modals, backdrops |
-| Toast | 50 | Notifications |
+## Border Radius
 
-## Visual Style
-
-### Border Radius
 | Token | Value | Use |
 |-------|-------|-----|
 | none | 0 | Sharp edges |
@@ -140,11 +75,12 @@ All spacing uses multiples of 8px:
 | xl | 16px | Large cards, images |
 | full | 9999px | Pills, avatars |
 
-### Shadows
+## Shadows
+
 | Token | Shadow | Use |
 |-------|--------|-----|
 | none | none | Flat design |
-| sm | 0 1px 2px rgba(0,0,0,0.05) | Subtle elevation |
+| sm | 0 1px 2px rgba(0,0,0,0.05) | Subtle |
 | md | 0 4px 6px rgba(0,0,0,0.07) | Cards |
 | lg | 0 10px 15px rgba(0,0,0,0.1) | Dropdowns |
 | xl | 0 20px 25px rgba(0,0,0,0.1) | Modals |
@@ -157,14 +93,12 @@ All spacing uses multiples of 8px:
 | Tablet | 640-1024px | 2 columns, adjusted spacing |
 | Desktop | > 1024px | Full layout, 3-4 columns |
 
-## Design Anti-Patterns
+## Anti-Patterns
 
-Avoid these common mistakes:
-
-1. **Too many font sizes** - Stick to 5-6 sizes maximum
-2. **Pure black text** - Use #111827 or #1F2937 instead
-3. **Random spacing** - Always use multiples of 8px
-4. **Inconsistent borders** - Pick one radius and stick with it per component type
-5. **Low contrast** - Always check contrast ratios
-6. **Overcrowding** - White space is not wasted space
-7. **Multiple shadows** - One shadow per element, consistent across the design
+1. Too many font sizes — stick to 5-6 max
+2. Pure black text — use #111827 or #1F2937
+3. Random spacing — always multiples of 8px
+4. Inconsistent borders — pick one radius per component type
+5. Low contrast — always check contrast ratios
+6. Overcrowding — white space is not wasted space
+7. Multiple shadows — one shadow per element, consistent

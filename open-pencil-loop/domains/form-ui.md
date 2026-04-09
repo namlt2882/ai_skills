@@ -3,7 +3,7 @@ name: form-ui
 description: Form, input, and interactive element design guidelines
 phase: [generation]
 trigger:
-  keywords: [form, input, login, signup, sign up, register, password, email, 搜索, 表单, 登录, 注册]
+  keywords: [form, input, login, signup, register, password, email, 搜索, 表单, 登录, 注册]
 priority: 30
 budget: 1500
 category: domain
@@ -11,44 +11,42 @@ category: domain
 
 # Form UI Design Patterns
 
-## Layout
-- Mobile: 375x812. Web: 1200x800 (single) or 1200x3000-5000 (landing page)
-
 ## Buttons
+
 - height 44-52px, cornerRadius 8-12, padding [12, 24]
 - Icon+text: layout="horizontal", gap=8
-- Icon-only buttons: 44x44, justifyContent/alignItems="center"
+- Icon-only: 44x44, align/justify="center"
 
-JSX Example:
 ```jsx
-{/* Primary Button */}
+// Primary
 <Frame h={48} p={[12,24]} rounded={8} bg="#3B82F6" align="center" justify="center">
   <Text size={16} fill="#FFF" weight="600">Submit</Text>
 </Frame>
 
-{/* Secondary Button */}
+// Secondary
 <Frame h={48} p={[12,24]} rounded={8} stroke="#E2E8F0" align="center" justify="center">
   <Text size={16} weight="600">Cancel</Text>
 </Frame>
 
-{/* Button with Icon */}
+// With Icon
 <Frame flex="row" h={48} p={[12,24]} rounded={8} bg="#000" align="center" gap={8}>
   <Frame w={20} h={20} fill="#FFF" />
   <Text size={16} fill="#FFF" weight="600">Download</Text>
 </Frame>
 
-{/* Icon-only Button */}
+// Icon-only
 <Frame w={44} h={44} rounded={8} bg="#F1F5F9" align="center" justify="center">
   <Frame w={20} h={20} fill="#64748B" />
 </Frame>
 ```
 
 ## Inputs
+
 - height 44px, light bg, subtle border
 - width="fill_container" in forms
 
-JSX Example:
 ```jsx
+// Label + Input
 <Frame flex="col" gap={8}>
   <Text size={14} weight="500">Email Address</Text>
   <Frame h={48} p={[0,16]} rounded={8} stroke="#E2E8F0" align="center">
@@ -56,7 +54,7 @@ JSX Example:
   </Frame>
 </Frame>
 
-{/* Input with Icon */}
+// Input with Icon
 <Frame flex="col" gap={8}>
   <Text size={14} weight="500">Search</Text>
   <Frame flex="row" h={48} p={[0,12]} rounded={8} stroke="#E2E8F0" align="center" gap={12}>
@@ -65,7 +63,7 @@ JSX Example:
   </Frame>
 </Frame>
 
-{/* Input with Action */}
+// Input with Action (password show)
 <Frame flex="col" gap={8}>
   <Text size={14} weight="500">Password</Text>
   <Frame flex="row" h={48} p={[0,12,0,16]} rounded={8} stroke="#E2E8F0" align="center">
@@ -78,10 +76,10 @@ JSX Example:
 ```
 
 ## Cards
+
 - cornerRadius 12-16, clipContent: true
 - CARD ROW ALIGNMENT: sibling cards ALL use width/height="fill_container"
 
-JSX Example:
 ```jsx
 <Frame flex="row" gap={24}>
   {/* Card 1 */}
@@ -122,9 +120,9 @@ JSX Example:
 ```
 
 ## Checkboxes and Radios
-JSX Example:
+
 ```jsx
-{/* Checkbox */}
+// Checkbox
 <Frame flex="row" gap={12} align="center">
   <Frame w={20} h={20} rounded={4} stroke="#CBD5E1" align="center" justify="center">
     <Frame w={12} h={12} rounded={2} bg="#3B82F6" />
@@ -132,7 +130,7 @@ JSX Example:
   <Text size={14}>I agree to the terms</Text>
 </Frame>
 
-{/* Radio Group */}
+// Radio Group
 <Frame flex="col" gap={12}>
   <Text size={14} weight="500">Select option</Text>
   <Frame flex="row" gap={12} align="center">
@@ -148,7 +146,8 @@ JSX Example:
 </Frame>
 ```
 
-## Phone Mockup
-- ONE "frame", width 260-300, height 520-580, cornerRadius 32
+## Rules
+
+- Phone mockup: ONE frame, width 260-300, height 520-580, cornerRadius 32
 - NEVER use ellipse for decorative shapes
 - NEVER use emoji as icons

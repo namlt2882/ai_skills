@@ -17,10 +17,7 @@ category: domain
 - Root frame: width=1200, height=0 (auto-expands), gap=0
 
 ## Navigation
-- justifyContent="space_between", 3 groups: logo | nav-links | CTA button
-- padding=[0,80], alignItems="center", height 64-80px
 
-JSX Example:
 ```jsx
 <Frame w={1200} h={72} flex="row" bg="#FFF" p={[0,80]} justify="space-between" align="center">
   <Text size={20} weight="bold">Logo</Text>
@@ -36,11 +33,7 @@ JSX Example:
 ```
 
 ## Hero Section
-- padding=[80,80] or larger
-- ONE headline (40-56px), ONE subtitle (16-18px), ONE CTA button
-- Optional visual: phone mockup or illustration on the right
 
-JSX Example:
 ```jsx
 <Frame w={1200} h="auto" flex="col" p={[80,80]} gap={24} bg="#F8FAFC">
   <Text size={48} weight="bold" align="center">Build Better Products</Text>
@@ -57,11 +50,7 @@ JSX Example:
 ```
 
 ## Feature Sections
-- Cards: width="fill_container", height="fill_container" for even row alignment
-- Alternate section backgrounds (#FFFFFF / #F8FAFC)
-- Section vertical padding: 80-120px
 
-JSX Example:
 ```jsx
 <Frame w={1200} h="auto" flex="col" p={[80,80]} gap={48}>
   <Text size={36} weight="bold" align="center">Key Features</Text>

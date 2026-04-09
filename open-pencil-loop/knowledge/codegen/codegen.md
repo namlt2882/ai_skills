@@ -176,8 +176,8 @@ For command-line export, use:
 
 ```bash
 # Export to JSON
-open-pencil export design.fig --format json --out ./export/
+openpencil export design.fig --format json --out ./export/
 
 # Export specific page
-open-pencil export design.fig --page "Page 1" --format json
+openpencil export design.fig --page "Page 1" --format json
 ```

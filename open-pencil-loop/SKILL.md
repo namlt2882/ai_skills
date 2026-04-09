@@ -18,7 +18,7 @@ Claude Code ←MCP→ open-pencil server ←WebSocket RPC→ Desktop App
                                      .fig/.pen files
 ```
 
-**Key v2 Differences:** MCP: `open-pencil` (hyphenated) | Formats: `.fig`, `.pen` | JSX rendering | CLI: `open-pencil`
+**Key v2 Differences:** MCP: `open-pencil` (hyphenated) | Formats: `.fig`, `.pen` | JSX rendering | CLI: `openpencil`
 
 ## When to Use
 
@@ -40,7 +40,7 @@ Claude Code ←MCP→ open-pencil server ←WebSocket RPC→ Desktop App
 ## Pre-Flight Check
 
 ```bash
-open-pencil ping  # Verify desktop app responsive
+openpencil ping  # Verify desktop app responsive
 ```
 If fails: ask user to start OpenPencil → wait → retry.
 
@@ -129,14 +129,30 @@ load_skills=["skill:name"] // explicit repo:skill:name for cross-repo
 
 ### Parallel Task Dispatch
 
-Spawn independent tasks with `run_in_background=true`.
+Sub-skills are **NOT** auto-discovered by ECC (ECC only sees top-level skill repos).
+Use `read()` to lazy-load sub-skill content into your prompt context.
 
+**Pattern:**
 ```typescript
-// OpenCode — independent tasks run in parallel:
-task(category="ultrabrain", load_skills=["design-type"],  run_in_background=true, prompt="Detect design type for: ...")
-task(category="ultrabrain", load_skills=["decomposition"], run_in_background=true, prompt="Decompose: ...")
-task(category="writing",    load_skills=["copywriting"], run_in_background=true, prompt="Enhance: ...")
+// 1. Lazy-load sub-skill content
+const designTypeContent = read({ filePath: "phases/planning/design-type.md" })
+const decoContent = read({ filePath: "phases/planning/decomposition.md" })
+const copyContent = read({ filePath: "knowledge/copywriting.md" })
+
+// 2. Inject into task prompts as context
+task(category="ultrabrain", load_skills=[], run_in_background=true, 
+  prompt=`You are a design type detector.\n\nContext from design-type.md:\n${designTypeContent}\n\nDetect design type for: ...`)
+task(category="ultrabrain", load_skills=[], run_in_background=true, 
+  prompt=`You are a task decomposer.\n\nContext from decomposition.md:\n${decoContent}\n\nDecompose: ...`)
 ```
+
+**Naming convention** (from sub-skill frontmatter `name` field):
+- Planning: `phases/planning/design-type.md`, `phases/planning/decomposition.md`, `phases/planning/xpath-queries.md`
+- Generation: `phases/generation/design-system.md`, `phases/generation/jsx-format.md`, `phases/generation/layout-rules.md`, `phases/generation/text-rules.md`, `phases/generation/boolean-ops.md`
+- Validation: `phases/validation/vision-feedback.md`, `phases/validation/lint-check.md`
+- Maintenance: `phases/maintenance/local-edit.md`, `phases/maintenance/incremental-add.md`
+- Knowledge: `knowledge/role-definitions.md`, `knowledge/icon-catalog.md`, `knowledge/design-principles.md`, `knowledge/examples.md`, `knowledge/copywriting.md`, `knowledge/codegen/`, `knowledge/codegen-react.md`, `knowledge/codegen-html.md`
+- Domains: `domains/landing-page.md`, `domains/dashboard.md`, `domains/mobile-app.md`, `domains/form-ui.md`, `domains/cjk-typography.md`, `domains/figma-import.md`
 
 ## MCP Tool Reference
 
@@ -182,24 +198,24 @@ design_refine: {rootId}
 
 ```bash
 # File operations
-open-pencil tree <file.fig>              # Document structure
-open-pencil find <file.fig> "pattern"    # Find nodes by name
-open-pencil node <file.fig> <id>         # Node details
-open-pencil query <file.fig> "selector"  # XPath query
+openpencil tree <file.fig>              # Document structure
+openpencil find <file.fig> "pattern"    # Find nodes by name
+openpencil node <file.fig> <id>         # Node details
+openpencil query <file.fig> "selector"  # XPath query
 
 # Export
-open-pencil export <file.fig> --format png --output ./exports/
-open-pencil convert <file.fig> --to react --output ./components/
+openpencil export <file.fig> --format png --output ./exports/
+openpencil convert <file.fig> --to react --output ./components/
 
 # Analysis
-open-pencil lint <file.fig>              # Consistency check
-open-pencil analyze <file.fig>            # Full report
+openpencil lint <file.fig>              # Consistency check
+openpencil analyze <file.fig>            # Full report
 
 # Variables
-open-pencil variables <file.fig>
+openpencil variables <file.fig>
 
 # Evaluation (JSX)
-open-pencil eval <file.fig> '<Frame w={100} h={100} bg="#FFF"/>'
+openpencil eval <file.fig> '<Frame w={100} h={100} bg="#FFF"/>'
 ```
 CLI works offline on saved files. MCP requires desktop app.
 
@@ -239,7 +255,7 @@ save_file: {filePath: "/path/to/design.fig"}
 
 ```yaml
 # 1. Pre-flight
-open-pencil ping
+openpencil ping
 
 # 2. Open document
 open_file: {filePath: "/path/to/design.fig"}
@@ -306,7 +322,7 @@ render: {jsx: '<Frame name="Container" w={1200} h="hug" layout="horizontal" gap=
 
 | Issue | Solution |
 |-------|----------|
-| Desktop app not responding | `open-pencil ping` → verify app open → check WebSocket port (8080) → restart app |
+| Desktop app not responding | `openpencil ping` → verify app open → check WebSocket port (8080) → restart app |
 | MCP tool failures | Verify `"open-pencil"` (hyphenated) in config → check app running → retry with delay |
 | Export issues | Use `get_page_tree` to verify IDs → check file permissions → verify shapes are vector-compatible |
 
@@ -314,4 +330,4 @@ render: {jsx: '<Frame name="Container" w={1200} h="hug" layout="horizontal" gap=
 
 - MCP Tool Index: `reference/mcp-tool-index.md`
 - v1 Skill: `~/.config/opencode/skills/openpencil-loop/SKILL.md`
-- CLI Help: `open-pencil --help`
+- CLI Help: `openpencil --help`

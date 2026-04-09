@@ -102,71 +102,99 @@ mcp_call("openpencil", "batch_get", { filePath, parentId, readDepth })
 // Claude Code: mcp__openpencil__batch_get({ filePath, parentId, readDepth })
 // Codex:       await openpencilMcp.batch_get({ filePath, parentId, readDepth })
 
-// Task Dispatch — replace syntax per framework:
-spawn_task(category="...", skills=[...], background=true, prompt="...")
-// OpenCode:    task(category="ultrabrain", load_skills=["openpencil-design"], run_in_background=true, prompt="...")
-// Claude Code: tool_use with subagent_type or background execution
-// Codex:       Agent.run({ model: "o3", prompt: "...", background: true })
+// Task Dispatch — CORRECT pattern (read file + inject content):
+// 1. Read the sub-skill file directly
+// 2. Inject content into prompt with load_skills=[]
+read("openpencil-loop/phases/planning/design-type.md")
+task(category="ultrabrain", load_skills=[], run_in_background=true, prompt="SUB-SKILL:\n${fileContent}\n\nTASK: ...")
+
+// ❌ WRONG — load_skills does not support nested sub-skills:
+// task(category="ultrabrain", load_skills=["design-type"], ...)  // will not load correctly
 ```
 
 ## Task Management
 
 This skill uses **task orchestration** to avoid context dilution. The Build Loop follows 4 phases per loop type, each mapped to a task entry. Spawn subagents for each independent task.
 
-### Sub-Skill Naming Convention
+### Sub-Skill Loading Pattern
 
-Sub-skills are referenced by their `name` field in frontmatter (no prefix needed within the same skill repo):
+**IMPORTANT:** Sub-skill files cannot be loaded via `load_skills=[...]`. The ECC skill loader does not support nested sub-skills. You MUST read the file directly and inject its content into the task prompt.
 
 ```
-load_skills=[...]          // ECC resolves by name within skill repo
-load_skills=["skill:name"] // explicit repo:skill:name for cross-repo
+❌ WRONG (does not work):
+task(category="ultrabrain", load_skills=["design-type"], prompt="...")
+
+✅ CORRECT (read file + inject content):
+read("openpencil-loop/phases/planning/design-type.md")
+// → inject file content into prompt
+task(category="ultrabrain", load_skills=[], prompt="CONTENT:\n${fileContent}\n\nTASK: ...")
 ```
 
-| Category | Sub-Skill Names |
-|----------|----------------|
-| **Planning** | `design-type`, `decomposition` |
-| **Generation** | `design-system`, `schema`, `layout-rules`, `text-rules`, `jsonl-format` |
-| **Validation** | `vision-feedback` |
-| **Maintenance** | `local-edit`, `incremental-add` |
-| **Codegen** | `analyze`, `discover`, `deduplicate`, `generate` |
-| **Knowledge** | `role-definitions`, `icon-catalog`, `design-principles`, `examples`, `copywriting`, `codegen`, `codegen-react`, `codegen-html` |
-| **Domains** | `landing-page`, `dashboard`, `mobile-app`, `form-ui`, `cjk-typography` |
+### Sub-Skill File Reference
+
+| Category | Sub-Skill Files | When to Use |
+|----------|----------------|-------------|
+| **Planning** | `phases/planning/design-type.md`, `decomposition.md` | User gives new design request |
+| **Generation** | `phases/generation/design-system.md`, `schema.md`, `layout-rules.md`, `text-rules.md`, `jsonl-format.md` | Build each section |
+| **Validation** | `phases/validation/vision-feedback.md` | Design is built, validate quality |
+| **Maintenance** | `phases/maintenance/local-edit.md`, `incremental-add.md` | Edit or add to existing design |
+| **CodeGen** | `phases/codegen/analyze.md`, `discover.md`, `deduplicate.md`, `generate.md` | Production code generation |
+| **Knowledge** | `knowledge/role-definitions.md`, `icon-catalog.md`, `design-principles.md`, `examples.md`, `copywriting.md` | Prompt enhancement, semantic roles |
+| **Domains** | `domains/landing-page.md`, `dashboard.md`, `mobile-app.md`, `form-ui.md`, `cjk-typography.md` | Match design type to domain |
+| **Codegen Guides** | `knowledge/codegen/codegen.md`, `codegen-react.md`, `codegen-html.md` | Framework-specific code generation |
 
 ### Phase-Based Tasks
 
-| Task | Category | Skills | When to Use |
-|------|----------|--------|-------------|
-| **Phase 1: PLANNING** | `ultrabrain` | `design-type`, `decomposition` | User gives new design request |
-| **Phase 2: GENERATION** | `ultrabrain` | `design-system`, `schema`, `layout-rules`, `text-rules`, `jsonl-format`, `role-definitions`, `icon-catalog` | Have decomposed plan, build each section |
-| **Phase 3: VALIDATION** | `unspecified-high` | `vision-feedback` | Design is built, validate quality |
-| **Phase 4: MAINTENANCE** | `ultrabrain` | `local-edit`, `incremental-add` | User wants to edit or add to existing design |
-| **CodeGen: ANALYZE** | `unspecified-high` | `analyze` | Project structure check, design validation |
-| **CodeGen: DISCOVER** | `explore` | `discover` | Find existing implementations in src/ |
-| **CodeGen: DEDUPE** | `unspecified-high` | `deduplicate` | Hash-based component deduplication |
-| **CodeGen: GENERATE** | `deep` | `generate`, `codegen`, `codegen-react`, `codegen-html` | Production code generation |
+> **Critical:** Always use `load_skills=[]` and inject sub-skill file content directly into the prompt. See **Sub-Skill Loading Pattern** above.
+
+| Task | Category | Sub-Skill Files | When to Use |
+|------|----------|----------------|-------------|
+| **Phase 1: PLANNING** | `ultrabrain` | `design-type.md`, `decomposition.md` | User gives new design request |
+| **Phase 2: GENERATION** | `ultrabrain` | `design-system.md`, `schema.md`, `layout-rules.md`, `text-rules.md`, `jsonl-format.md` | Have decomposed plan, build each section |
+| **Phase 3: VALIDATION** | `unspecified-high` | `vision-feedback.md` | Design is built, validate quality |
+| **Phase 4: MAINTENANCE** | `ultrabrain` | `local-edit.md`, `incremental-add.md` | User wants to edit or add to existing design |
+| **CodeGen: ANALYZE** | `unspecified-high` | `analyze.md` | Project structure check, design validation |
+| **CodeGen: DISCOVER** | `explore` | `discover.md` | Find existing implementations in src/ |
+| **CodeGen: DEDUPE** | `unspecified-high` | `deduplicate.md` | Hash-based component deduplication |
+| **CodeGen: GENERATE** | `deep` | `generate.md` | Production code generation |
 
 ### Supporting Tasks
 
-| Task | Category | Skills | When to Use |
-|------|----------|--------|-------------|
-| **Prompt Enhancement** | `unspecified-high` | `enhance-prompt`, `role-definitions` | User input is vague or needs structure |
-| **DESIGN.md Creation** | `ultrabrain` | `design-system` | DESIGN.md missing and user confirms |
+| Task | Category | Sub-Skill Files | When to Use |
+|------|----------|----------------|-------------|
+| **Prompt Enhancement** | `unspecified-high` | `role-definitions.md` | User input is vague or needs structure |
+| **DESIGN.md Creation** | `ultrabrain` | `design-system.md` | DESIGN.md missing and user confirms |
 | **DESIGN.md Read** | `explore` | — | Check for existing DESIGN.md |
-| **Domain Selection** | `ultrabrain` | `landing-page`, `dashboard`, `mobile-app`, `form-ui`, `cjk-typography` | Match design type to domain |
-| **Project Documentation** | `writing` | `examples` | Updating PROJECT.md |
+| **Domain Selection** | `ultrabrain` | `landing-page.md`, `dashboard.md`, `mobile-app.md`, `form-ui.md`, `cjk-typography.md` | Match design type to domain |
+| **Project Documentation** | `writing` | `examples.md` | Updating PROJECT.md |
 
 ### Parallel Task Dispatch
 
 Spawn independent tasks with `run_in_background=true`. Use consistent pageId conventions for multi-page work.
 
-```typescript
-// OpenCode — independent tasks run in parallel:
-task(category="ultrabrain", load_skills=["design-type"],    run_in_background=true, prompt="Detect design type for: ...")
-task(category="ultrabrain", load_skills=["decomposition"], run_in_background=true, prompt="Decompose: ...")
-task(category="writing",    load_skills=["copywriting"],   run_in_background=true, prompt="Enhance: ...")
+**Always use `load_skills=[]` and inject sub-skill content directly:**
 
-// Claude Code: tool_use with background=true
-// Codex: Agent.run({ model: "o3-mini", prompt: "...", background: true })
+```typescript
+// CORRECT — read file + inject content:
+const designTypeContent = read("openpencil-loop/phases/planning/design-type.md")
+const decompositionContent = read("openpencil-loop/phases/planning/decomposition.md")
+
+task(
+  category="ultrabrain",
+  load_skills=[],  // ALWAYS empty — sub-skills cannot be loaded
+  run_in_background=true,
+  prompt=`
+SUB-SKILL CONTENT (design-type.md):
+${designTypeContent}
+
+SUB-SKILL CONTENT (decomposition.md):
+${decompositionContent}
+
+TASK: Detect design type and decompose: [user request]
+
+[...remaining prompt details...]
+`
+)
 ```
 
 ## Decision Workflow

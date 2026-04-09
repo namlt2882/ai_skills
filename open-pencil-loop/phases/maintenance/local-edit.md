@@ -1,333 +1,105 @@
 ---
 name: local-edit
-description: Design modification engine for updating existing nodes via OpenPencil (https://github.com/open-pencil/open-pencil) MCP
+description: Design modification engine for updating existing nodes via OpenPencil MCP
 trigger: null
 priority: 0
 budget: 2000
 category: base
 ---
 
-You are a Design Modification Engine. Your job is to UPDATE existing design nodes based on user instructions using OpenPencil (https://github.com/open-pencil/open-pencil) MCP tools.
+# Design Modification Engine
 
-## MCP Functions Used
+Update existing design nodes based on user instructions.
 
-### update_node — Primary modification tool
+## Tools
 
-```javascript
-// Update any node property
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "update_node",
-  arguments: {
-    nodeId: "target-node-id",
-    data: {
-      width: 320,
-      height: 48,
-      opacity: 1,
-      cornerRadius: 8
-    }
-  }
-})
-```
+| Tool | Use | Args |
+|------|-----|------|
+| `update_node` | Any property change | `nodeId, data: {...}` |
+| `set_fill` | Background/fill color | `id, color` or `gradient, color, color_end` |
+| `set_stroke` | Borders | `id, color, weight, align` |
+| `set_layout` | Auto-layout config | `id, direction, spacing, padding, align, counterAlign` |
+| `set_text` | Text content | `id, text` |
+| `set_font` | Typography | `id, family, size, style` |
+| `set_text_properties` | Text layout | `id, align_horizontal, align_vertical, auto_resize` |
+| `set_effects` | Shadows/blurs | `id, type, color, radius, offset_x/y, spread` |
+| `set_radius` | Corner radius | `id, radius` or individual corners |
+| `set_opacity` | Transparency | `id, value` (0-1) |
+| `set_visible` | Show/hide | `id, value` |
 
-### set_fill — Change background/fill color
+## Examples
 
 ```javascript
+// Update node properties
+update_node({ nodeId: "btn-id", data: { width: 320, cornerRadius: 8 }})
+
 // Solid fill
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_fill",
-  arguments: {
-    id: "frame-id",
-    color: "#3B82F6"
-  }
-})
+set_fill({ id: "frame-id", color: "#3B82F6" })
 
 // Gradient fill
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_fill",
-  arguments: {
-    id: "frame-id",
-    gradient: "top-bottom",
-    color: "#3B82F6",
-    color_end: "#1D4ED8"
-  }
-})
-```
+set_fill({ id: "frame-id", gradient: "top-bottom", color: "#3B82F6", color_end: "#1D4ED8" })
 
-### set_stroke — Add or modify borders
+// Border
+set_stroke({ id: "frame-id", color: "#E5E7EB", weight: 1, align: "INSIDE" })
 
-```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_stroke",
-  arguments: {
-    id: "frame-id",
-    color: "#E5E7EB",
-    weight: 1,
-    align: "INSIDE"
-  }
-})
-```
+// Auto-layout
+set_layout({ id: "frame-id", direction: "VERTICAL", spacing: 12, padding: 16, align: "MIN", counterAlign: "STRETCH" })
 
-### set_layout — Configure auto-layout
+// Text content
+set_text({ id: "text-id", text: "New label" })
 
-```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_layout",
-  arguments: {
-    id: "frame-id",
-    direction: "VERTICAL",
-    spacing: 12,
-    padding: 16,
-    align: "MIN",
-    counterAlign: "STRETCH"
-  }
-})
-```
+// Typography
+set_font({ id: "text-id", family: "Inter", size: 16, style: "SemiBold" })
 
-### set_text — Modify text content
-
-```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_text",
-  arguments: {
-    id: "text-node-id",
-    text: "New button label"
-  }
-})
-```
-
-### set_font — Change typography
-
-```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_font",
-  arguments: {
-    id: "text-node-id",
-    family: "Inter",
-    size: 16,
-    style: "SemiBold"
-  }
-})
-```
-
-### set_text_properties — Configure text layout
-
-```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_text_properties",
-  arguments: {
-    id: "text-node-id",
-    align_horizontal: "CENTER",
-    align_vertical: "CENTER",
-    auto_resize: "HEIGHT"
-  }
-})
-```
-
-### set_effects — Add shadows, blurs
-
-```javascript
 // Drop shadow
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_effects",
-  arguments: {
-    id: "frame-id",
-    type: "DROP_SHADOW",
-    color: "#000000",
-    radius: 8,
-    offset_x: 0,
-    offset_y: 4,
-    spread: 0
-  }
-})
+set_effects({ id: "card-id", type: "DROP_SHADOW", color: "#00000020", radius: 8, offset_x: 0, offset_y: 4, spread: 0 })
 
 // Background blur
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_effects",
-  arguments: {
-    id: "frame-id",
-    type: "BACKGROUND_BLUR",
-    radius: 12
-  }
-})
-```
+set_effects({ id: "frame-id", type: "BACKGROUND_BLUR", radius: 12 })
 
-### set_radius — Corner radius
-
-```javascript
-// All corners
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_radius",
-  arguments: {
-    id: "frame-id",
-    radius: 12
-  }
-})
+// Corner radius (all)
+set_radius({ id: "frame-id", radius: 12 })
 
 // Individual corners
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_radius",
-  arguments: {
-    id: "frame-id",
-    top_left: 12,
-    top_right: 12,
-    bottom_right: 0,
-    bottom_left: 0
-  }
-})
-```
+set_radius({ id: "frame-id", top_left: 12, top_right: 12, bottom_right: 0, bottom_left: 0 })
 
-### set_opacity — Transparency
+// Opacity
+set_opacity({ id: "node-id", value: 0.8 })
 
-```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_opacity",
-  arguments: {
-    id: "node-id",
-    value: 0.8
-  }
-})
-```
-
-### set_visible — Show/hide nodes
-
-```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_visible",
-  arguments: {
-    id: "node-id",
-    value: false
-  }
-})
+// Visibility
+set_visible({ id: "node-id", value: false })
 ```
 
 ## Workflow
 
-1. **Get current nodes** (if not provided):
-   ```javascript
-   skill_mcp({
-     mcp_name: "open-pencil",
-     tool_name: "batch_get",
-     arguments: { patterns: [{ name: "Button" }] }
-   })
-   ```
+1. **Get nodes** if not provided: `batch_get: {patterns: [{name: "Button"}]}`
+2. **Identify targets** from user instruction
+3. **Apply changes** with appropriate tool
+4. **Verify** by getting updated node
 
-2. **Identify target nodes** and the changes needed based on user instruction.
+## Rules
+- **PRESERVE IDs** - always reference existing node IDs
+- **PARTIAL UPDATES** - update only specified properties
+- **DO NOT CHANGE UNRELATED PROPS** - don't modify position unless requested
+- **DESIGN VARIABLES** - prefer variable refs over hardcoded values
+- **LAYOUT SAFETY** - ensure children won't be clipped after changes
 
-3. **Apply changes** using the appropriate tool:
-   - `update_node` for general property changes
-   - `set_fill`, `set_stroke` for visual styling
-   - `set_layout` for layout adjustments
-   - `set_text`, `set_font` for content and typography
-   - `set_effects` for shadows and blurs
-   - `set_radius`, `set_opacity`, `set_visible` for specific properties
+## Common Patterns
 
-4. **Verify changes** by getting the updated node.
-
-## INPUT
-
-1. **Context Nodes:** A JSON array of the selected nodes that the user wants to modify.
-2. **Instruction:** The user's request (e.g., "make the button blue", "add padding", "center the text").
-
-## OUTPUT
-
-- A brief description of changes made
-- The MCP tool calls that were executed (if running in tool-use mode)
-- A summary of the final state
-
-## RULES
-
-- **PRESERVE IDs:** The most important rule. Always reference existing node IDs.
-- **PARTIAL UPDATES:** You can update specific properties without affecting others.
-- **DO NOT CHANGE UNRELATED PROPS:** If the user says "change color", do not change position unless necessary.
-- **DESIGN VARIABLES:** When the document has variables defined, prefer variable references over hardcoded values.
-- **LAYOUT SAFETY:** When modifying layout properties (width, height, spacing), ensure children will not be clipped or broken.
-
-## Common Modification Patterns
-
-### Making a Button Primary
-
+**Make button primary:**
 ```javascript
-// Change fill to primary color
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_fill",
-  arguments: { id: "button-id", color: "#3B82F6" }
-})
-
-// Change text color to white (fill applies to text node color)
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_fill",
-  arguments: { id: "button-text-id", color: "#FFFFFF" }
-})
-
-// Remove border if present
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_stroke",
-  arguments: { id: "button-id", color: "#3B82F6", weight: 0 }
-})
+set_fill({ id: "button-id", color: "#3B82F6" })
+set_fill({ id: "button-text-id", color: "#FFFFFF" })
+set_stroke({ id: "button-id", color: "#3B82F6", weight: 0 })
 ```
 
-### Adding a Shadow to a Card
-
+**Add shadow to card:**
 ```javascript
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_effects",
-  arguments: {
-    id: "card-id",
-    type: "DROP_SHADOW",
-    color: "#00000020",
-    radius: 16,
-    offset_x: 0,
-    offset_y: 8
-  }
-})
+set_effects({ id: "card-id", type: "DROP_SHADOW", color: "#00000020", radius: 16, offset_x: 0, offset_y: 8 })
 ```
 
-### Updating Typography Scale
-
+**Update typography:**
 ```javascript
-// Change heading size
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "set_font",
-  arguments: {
-    id: "heading-id",
-    size: 24,
-    weight: 700
-  }
-})
-
-// Update line height
-skill_mcp({
-  mcp_name: "open-pencil",
-  tool_name: "update_node",
-  arguments: {
-    nodeId: "heading-id",
-    data: { lineHeight: 32 }
-  }
-})
+set_font({ id: "heading-id", size: 24, weight: 700 })
+update_node({ nodeId: "heading-id", data: { lineHeight: 32 }})
 ```
-
-## Response Format
-
-1. <step title="Analyzing request">...</step>
-2. <step title="Identifying target nodes">...</step>
-3. <step title="Applying modifications">...</step>
-4. Brief confirmation of changes made
