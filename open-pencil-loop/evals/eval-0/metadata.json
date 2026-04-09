@@ -1,0 +1,37 @@
+{
+  "eval_id": 0,
+  "eval_name": "initialize-new-project",
+  "prompt": "Set up an iterative design project for a SaaS landing page. Create the initial .op directory structure with PROJECT.md and DESIGN.md, then start the loop with a hero section design.",
+  "assertions": [
+    {
+      "text": "All required directories exist",
+      "passed": true,
+      "evidence": ".op/, .op/exports/, .op/references/ directories created"
+    },
+    {
+      "text": "All required files created",
+      "passed": true,
+      "evidence": "PROJECT.md, DESIGN.md, metadata.json, next-prompt.md files present"
+    },
+    {
+      "text": "PROJECT.md has correct structure",
+      "passed": true,
+      "evidence": "Contains sections 1-6: Vision, Design System, Devices, Screens, Roadmap, Ideas"
+    },
+    {
+      "text": "DESIGN.md contains design tokens",
+      "passed": true,
+      "evidence": "Contains typography, colors, spacing, component specs"
+    },
+    {
+      "text": "metadata.json has correct schema",
+      "passed": true,
+      "evidence": "Contains project, version, createdAt, designs fields"
+    },
+    {
+      "text": "next-prompt.md has YAML frontmatter",
+      "passed": true,
+      "evidence": "Contains design and device fields in YAML format"
+    }
+  ]
+}

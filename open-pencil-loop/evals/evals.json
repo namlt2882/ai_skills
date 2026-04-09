@@ -1,0 +1,23 @@
+{
+  "skill_name": "openpencil-loop",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up an iterative design project for a SaaS landing page. Create the initial .op directory structure with PROJECT.md and DESIGN.md, then start the loop with a hero section design.",
+      "expected_output": "Creates .op directory with all required files (PROJECT.md, DESIGN.md, next-prompt.md, metadata.json) and generates the first hero design using OpenPencil",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I have an existing .op project. Continue the loop by reading the next-prompt.md and generate the pricing section design.",
+      "expected_output": "Reads the baton, generates the pricing design using op CLI, exports assets, updates metadata, and prepares the next baton for the following iteration",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Build a multi-page mobile app design using the loop pattern. Start with a login screen, then iterate to create a dashboard screen.",
+      "expected_output": "Sets up mobile dimensions (375x812), generates login screen, properly updates baton for dashboard iteration, demonstrating multi-iteration capability",
+      "files": []
+    }
+  ]
+}

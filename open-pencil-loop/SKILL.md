@@ -108,6 +108,7 @@ load_skills=["skill:name"] // explicit repo:skill:name for cross-repo
 |----------|----------------|
 | **Planning** | `design-type`, `decomposition`, `xpath-queries` |
 | **Generation** | `design-system`, `jsx-format`, `layout-rules`, `text-rules`, `boolean-ops` |
+| **Prompt Enhancement** | `prompt-enhancement`, `role-definitions` |
 | **Validation** | `vision-feedback`, `lint-check` |
 | **Maintenance** | `local-edit`, `incremental-add` |
 | **Knowledge** | `role-definitions`, `icon-catalog`, `design-principles`, `examples`, `copywriting`, `codegen`, `codegen-react`, `codegen-html` |
@@ -123,7 +124,7 @@ load_skills=["skill:name"] // explicit repo:skill:name for cross-repo
 | **Design: MAINTENANCE** | `ultrabrain` | `local-edit`, `incremental-add` | Edit or extend existing design |
 | **Codegen: ANALYZE** | `unspecified-high` | `codegen` | Check project structure |
 | **Codegen: GENERATE** | `deep` | `codegen`, `codegen-react`, `codegen-html` | Export to production code |
-| **Prompt Enhancement** | `unspecified-high` | `enhance-prompt`, `role-definitions` | Vague user input needs structure |
+| **Prompt Enhancement** | `unspecified-high` | `prompt-enhancement`, `role-definitions` | Vague user input needs structure |
 | **Domain Selection** | `unspecified-high` | `landing-page`, `dashboard`, `mobile-app`, `form-ui`, `cjk-typography` | Match design to domain |
 | **DESIGN.md Read** | `explore` | — | Check for existing design system |
 
@@ -149,6 +150,7 @@ task(category="ultrabrain", load_skills=[], run_in_background=true,
 **Naming convention** (from sub-skill frontmatter `name` field):
 - Planning: `phases/planning/design-type.md`, `phases/planning/decomposition.md`, `phases/planning/xpath-queries.md`
 - Generation: `phases/generation/design-system.md`, `phases/generation/jsx-format.md`, `phases/generation/layout-rules.md`, `phases/generation/text-rules.md`, `phases/generation/boolean-ops.md`
+- Prompt Enhancement: `phases/prompt-enhancement/prompt-enhancement.md`
 - Validation: `phases/validation/vision-feedback.md`, `phases/validation/lint-check.md`
 - Maintenance: `phases/maintenance/local-edit.md`, `phases/maintenance/incremental-add.md`
 - Knowledge: `knowledge/role-definitions.md`, `knowledge/icon-catalog.md`, `knowledge/design-principles.md`, `knowledge/examples.md`, `knowledge/copywriting.md`, `knowledge/codegen/`, `knowledge/codegen-react.md`, `knowledge/codegen-html.md`

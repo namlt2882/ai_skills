@@ -16,6 +16,8 @@ openpencil-loop/
 │   ├── planning/
 │   │   ├── design-type.md        ← Design type detection
 │   │   └── decomposition.md      ← Task decomposition
+│   ├── prompt-enhancement/
+│   │   └── prompt-enhancement.md ← Stitch-style prompt enhancement
 │   ├── generation/
 │   │   ├── design-system.md      ← Design token generation
 │   │   ├── jsonl-format.md       ← PenNode JSONL format
@@ -62,7 +64,7 @@ openpencil-loop/
 │   ├── evals.json
 │   └── metadata.json
 └── reference/
-    └── openpencil-ai/            ← For future AI integrations
+    └── mcp-tool-index.md        ← Complete MCP tool reference (90+ tools)
 ```
 
 ## When to Use
@@ -135,6 +137,7 @@ task(category="ultrabrain", load_skills=[], prompt="CONTENT:\n${fileContent}\n\n
 | Category | Sub-Skill Files | When to Use |
 |----------|----------------|-------------|
 | **Planning** | `phases/planning/design-type.md`, `decomposition.md` | User gives new design request |
+| **Prompt Enhancement** | `phases/prompt-enhancement/prompt-enhancement.md`, `knowledge/role-definitions.md` | Transform vague ideas into structured prompts |
 | **Generation** | `phases/generation/design-system.md`, `schema.md`, `layout-rules.md`, `text-rules.md`, `jsonl-format.md` | Build each section |
 | **Validation** | `phases/validation/vision-feedback.md` | Design is built, validate quality |
 | **Maintenance** | `phases/maintenance/local-edit.md`, `incremental-add.md` | Edit or add to existing design |
@@ -162,7 +165,7 @@ task(category="ultrabrain", load_skills=[], prompt="CONTENT:\n${fileContent}\n\n
 
 | Task | Category | Sub-Skill Files | When to Use |
 |------|----------|----------------|-------------|
-| **Prompt Enhancement** | `unspecified-high` | `role-definitions.md` | User input is vague or needs structure |
+| **Prompt Enhancement** | `unspecified-high` | `prompt-enhancement.md`, `role-definitions.md` | User input is vague or needs structure |
 | **DESIGN.md Creation** | `ultrabrain` | `design-system.md` | DESIGN.md missing and user confirms |
 | **DESIGN.md Read** | `explore` | — | Check for existing DESIGN.md |
 | **Domain Selection** | `ultrabrain` | `landing-page.md`, `dashboard.md`, `mobile-app.md`, `form-ui.md`, `cjk-typography.md` | Match design type to domain |
@@ -227,22 +230,16 @@ Each codegen iteration uses `.op/codegen-state.md` to pass state between phases.
 
 ### Baton Format (`.op/next-prompt.md`)
 
-YAML frontmatter with `design` and `device` fields, followed by structured sections carrying design system context and page structure forward.
+Stitch-compatible format: YAML frontmatter with `page` field, followed by a one-line description and structured sections carrying design system context and page structure forward.
 
 ```markdown
 ---
-design: saas-landing-page
-device: desktop
+page: pricing
 ---
+A clean pricing page with three tiers, monthly/annual toggle, and FAQ section.
 
-Build the Pricing section. Three-tier pricing table with Free, Pro (highlighted as recommended), and Enterprise plans.
-
-**DESIGN SYSTEM:**
-- Typography: Space Grotesk (headings), Inter (body)
-- Primary: #6366F1, Background: #FFFFFF, Surface: #F9FAFB
-- Button: cornerRadius 8, padding [12,24], fill #111111
-- Card: cornerRadius 12, padding 24, fill #F9FAFB
-- Spacing: 8px grid, section padding 80px
+**DESIGN SYSTEM (REQUIRED):**
+[Copy from .op/DESIGN.md Section 6]
 
 **Page Structure:**
 1. Section header — "Simple, transparent pricing" + subtitle
@@ -253,9 +250,9 @@ Build the Pricing section. Three-tier pricing table with Free, Pro (highlighted 
 
 **Critical baton rules:**
 - ✅ ALWAYS update the baton after each iteration with the next task
-- ✅ ALWAYS include DESIGN SYSTEM section — copy relevant tokens from `.op/DESIGN.md`
-- ✅ ALWAYS include Page Structure section — enumerate sections to build
-- ✅ Set `device` to match the target viewport (`desktop` or `mobile`)
+- ✅ ALWAYS include `page` frontmatter field — output filename without extension
+- ✅ ALWAYS include `**DESIGN SYSTEM (REQUIRED):**` section — copy from `.op/DESIGN.md`
+- ✅ ALWAYS include `**Page Structure:**` section — numbered list of sections to build
 - ❌ NEVER leave the baton empty or with only frontmatter — next agent has no context
 - ❌ NEVER skip the DESIGN SYSTEM section — generation quality degrades without tokens
 
@@ -269,7 +266,7 @@ Transforms vague input into structured OpenPencil-ready prompts with design syst
 
 **Enhanced:** Design a modern login page with clean visual hierarchy. Include DESIGN SYSTEM section (typography, colors, spacing, component tokens), Page Structure (left panel hero + right panel form with email/password inputs, forgot password link, sign in button, social login row, signup footer link), Layout notes (horizontal split desktop 1200px), and Visual Notes (subtle shadow, rounded inputs).
 
-See `enhance-prompt` skill for the full transformation pipeline.
+See `prompt-enhancement` sub-skill for the full transformation pipeline.
 
 ## Phase Workflow Summary
 
@@ -313,6 +310,8 @@ All MCP calls follow: `mcp_call(server, tool, arguments)`. Below shows OpenCode 
 ```
 
 **MCP Cannot Do:** Screenshot capture (use Playwright), AI code generation (use AI with knowledge files), Trigger sub-skills (use read() or task())
+
+**Full MCP Reference:** `reference/mcp-tool-index.md` (all 90+ tools with arguments)
 
 ## Agent Platform Tools Reference
 

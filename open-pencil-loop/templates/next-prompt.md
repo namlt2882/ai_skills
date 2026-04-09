@@ -1,11 +1,10 @@
 ---
-design: [design-name]
-device: desktop
+page: [filename]
 ---
-[Design prompt describing what to create]
+[One-line description of page purpose and vibe]
 
-**DESIGN SYSTEM:**
-[Copy relevant sections from .fig/DESIGN.md or .pen/DESIGN.md]
+**DESIGN SYSTEM (REQUIRED):**
+[Copy from .fig/DESIGN.md or .pen/DESIGN.md Section 6]
 
 **Page Structure:**
 1. [Section 1]
