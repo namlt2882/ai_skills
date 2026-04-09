@@ -12,7 +12,7 @@ mcp_tools:
 ---
 
 > **MCP Tool Syntax:** Tool calls below use generic names (`export_nodes`, `batch_get`, etc.).
-> Adapt to your agent framework: OpenCode → `skill_mcp()`, Claude Code → `mcp__openpencil__<tool>()`, Codex → `openpencilMcp.<tool>()`.
+> Adapt to your agent framework: OpenCode → `openpencil_<tool>()`, Claude Code → `mcp__openpencil__<tool>()`, Codex → `openpencilMcp.<tool>()`.
 > See SKILL.md → "Multi-Agent Compatibility" for full mapping.
 
 You are a **Production Code Generator**. Your job is to generate code with deduplication, safety checks, and proper project structure.

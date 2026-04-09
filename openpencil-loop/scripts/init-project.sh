@@ -13,6 +13,31 @@ echo "Creating OpenPencil project at: $PROJECT_DIR"
 mkdir -p "$PROJECT_DIR/exports"
 mkdir -p "$PROJECT_DIR/references"
 
+echo "Creating $PROJECT_DIR.op..."
+cat > "$PROJECT_DIR.op" << 'OPFILE'
+{
+  "version": "1.0.0",
+  "children": [
+    {
+      "id": "0:1",
+      "type": "page",
+      "name": "Design 1",
+      "children": [
+        {
+          "type": "frame",
+          "name": "Page 1",
+          "id": "0:2",
+          "width": 1200,
+          "height": 0,
+          "layout": "vertical",
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+OPFILE
+
 # Create PROJECT.md
 echo "Creating PROJECT.md..."
 cat > "$PROJECT_DIR/PROJECT.md" << EOF
@@ -101,28 +126,36 @@ cat > "$PROJECT_DIR/metadata.json" << EOF
 }
 EOF
 
-# Create next-prompt.md
-echo "Creating next-prompt.md..."
+echo "Creating next-prompt.md (baton)..."
 cat > "$PROJECT_DIR/next-prompt.md" << EOF
 ---
-design: $DESIGN_NAME
+page: $DESIGN_NAME
 device: desktop
 ---
-Create a [design description].
+Create a landing hero section for $DESIGN_NAME.
 
-**DESIGN SYSTEM:**
-[Copy relevant sections from .op/DESIGN.md]
+**DESIGN SYSTEM (REQUIRED):**
+- Primary: #6366F1 (Indigo)
+- Background: #FFFFFF
+- Text Primary: #111111
+- Typography: Space Grotesk (headings), Inter (body)
+- Spacing: 8px grid unit
+- Component Tokens: Button (r=8, p=[12,24]), Card (r=12, p=24)
 
 **Page Structure:**
-1. [Section 1]
-2. [Section 2]
-3. [Section 3]
+1. Header — Navigation bar with logo and links
+2. HeroSection — Headline, subtext, and CTA button
+3. FeaturesSection — Card grid showcasing key features
+4. CTASection — Call-to-action banner
+5. Footer — Links and copyright
+
 EOF
 
 echo ""
 echo "✓ Project initialized at: $PROJECT_DIR"
 echo ""
 echo "Files created:"
+echo "  - $PROJECT_DIR/$PROJECT_DIR.op"
 echo "  - $PROJECT_DIR/PROJECT.md"
 echo "  - $PROJECT_DIR/DESIGN.md (template)"
 echo "  - $PROJECT_DIR/metadata.json"

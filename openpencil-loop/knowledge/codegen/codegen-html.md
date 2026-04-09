@@ -18,11 +18,7 @@ mcp_tools:
 
 ```javascript
 // Use pageId for multi-page apps
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "export_nodes",
-  arguments: { filePath: "path/to/design.op", pageId: "target-page-id" }
-})
+openpencil_export_nodes({ filePath: "path/to/design.op", pageId: "target-page-id" })
 ```
 
 ## Output Format

@@ -11,42 +11,92 @@ mcp_tools:
   - snapshot_layout  # Can use for layout context
 ---
 
-> **MCP Tool Syntax:** `skill_mcp()` calls below use OpenCode syntax.
+> **MCP Tool Syntax:** `openpencil_*()` calls below use OpenCode syntax (direct tool calls).
 > Claude Code: `mcp__openpencil__<tool_name>(args)`. Codex: `openpencilMcp.<tool_name>(args)`.
 > See SKILL.md → "Multi-Agent Compatibility".
 
-You are a design QA validator. You receive a screenshot of a UI design AND its node tree structure.
+You are a design QA validator. You receive a screenshot of a UI design AND/OR its node tree structure.
 Cross-reference the visual issues you see in the screenshot with the node IDs in the tree.
 
-## Data Input (from orchestrator)
+## Two Validation Modes
 
-The orchestrator provides:
-- **Screenshot**: Captured via Playwright or provided by user
-- **Node tree**: Passed as context, obtained via:
-  ```
-  skill_mcp({
-    mcp_name: "openpencil",
-    tool_name: "batch_get",
-    arguments: { filePath: "path/to/design.op" }
-  })
-  ```
+### Mode 1: Node Tree Analysis (No Screenshot Required) ✅ WORKS
 
-## Screenshot Capture Methods (use in this order)
+**When to use:** Quick structural validation, CI/CD pipelines, batch validation.
 
-1. **Playwright** — navigate to OpenPencil web app and take screenshot
-   ```
-   playwright_browser_navigate({ url: "http://localhost:3000" })
-   playwright_browser_take_screenshot({ type: "png" })
-   ```
+**Detects:**
+- WIDTH INCONSISTENCY: Siblings with different widths
+- ELEMENT TOO NARROW: Elements narrower than parent
+- TEXT CENTERING: Text not centered in container
+- SPACING: Uneven padding (detectable from JSON)
+- ALIGNMENT: Layout property issues
+- STRUCTURAL INCONSISTENCY: Missing sibling patterns
 
-2. **CLI export** — if available
-   ```
-   bunx @open-pencil/cli export --format png
-   ```
+**Cannot detect:**
+- Color contrast issues
+- Text clipping/overflow (visual rendering)
+- Typography rendering
+- Actual visual output
 
-3. **Manual** — user provides screenshot file
+**Input:** Node tree JSON only
+```
+const nodes = openpencil_batch_get({ readDepth: 3 })
+// Pass nodes to QA validator
+```
 
-**Note:** OpenPencil MCP does NOT have screenshot/export_image capability. MCP only handles PenNode data (JSON).
+### Mode 2: Screenshot + Node Tree (Full Validation) ❌ DOES NOT WORK
+
+**⚠️ WARNING: Screenshot capture is NOT currently functional.**
+
+Screenshot capture methods that do NOT work:
+
+| Method | Tool | Status | Error |
+|--------|------|--------|-------|
+| OpenPencil desktop | `open-pencil_export_image` | ❌ FAIL | Timeout — desktop app not running |
+| Playwright web | `playwright_browser_navigate` | ❌ FAIL | No localhost:3000 running |
+| CLI export | `op export --format png` | ❌ NOT TESTED | CLI package issues |
+
+**Until screenshot capture is fixed, use only Mode 1.**
+
+**If/When Mode 2 works, it would detect everything in Mode 1 PLUS:**
+- COLOR ISSUES: Contrast, wrong colors, inconsistent usage
+- TEXT CLIPPING: Overflow, height calculation issues
+- TYPOGRAPHY: Font rendering, weight issues
+- VISUAL OVERFLOW: Elements beyond container
+- MISSING ICONS: Path nodes rendering as empty
+- MISSING BORDERS: Invisible containers
+- MISSING ELEMENTS: Compare with reference design
+
+## Screenshot Capture Methods (for Mode 2)
+
+### Option 1: Playwright Browser Automation (Recommended)
+
+```javascript
+// Navigate to OpenPencil web app
+playwright_browser_navigate({ url: "http://localhost:3000" })
+
+// Wait for canvas to render
+playwright_browser_wait_for({ time: 2 })
+
+// Take screenshot
+playwright_browser_take_screenshot({ 
+  type: "png",
+  filename: "design-qa-screenshot.png"
+})
+```
+
+### Option 2: OpenPencil CLI Export
+
+```bash
+# Requires: npm install -g @zseven-w/openpencil
+op export --format png --out screenshot.png
+```
+
+### Option 3: Manual Capture
+
+User provides screenshot file directly.
+
+**Note:** OpenPencil MCP does NOT have screenshot capability. MCP only handles PenNode data (JSON).
 
 Check for these issues:
 1. WIDTH INCONSISTENCY: Form inputs, buttons, cards that are siblings but have different widths. They should all use "fill_container" width to match their parent.

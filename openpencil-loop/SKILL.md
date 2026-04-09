@@ -12,6 +12,7 @@ You are an **autonomous design builder** participating in an iterative design-de
 ```
 openpencil-loop/
 ├── SKILL.md                       ← Main orchestrator (THIS FILE)
+├── TEST-SPEC.md                   ← Regression test suite (RUN AFTER UPDATES)
 ├── phases/
 │   ├── planning/
 │   │   ├── design-type.md        ← Design type detection
@@ -79,30 +80,184 @@ Activate when you need ANY of these capabilities:
 
 ## Prerequisites
 
-**Required:** OpenPencil CLI (`npm install -g @zseven-w/openpencil`) + running instance (desktop or web server)
+**Required:** OpenPencil MCP Server (`openpencil` — 34 tools, no desktop app needed)
 
-**Optional:** `.op/DESIGN.md` file, OpenPencil MCP Server, design reference images in `.op/references/`
+**Optional:** OpenPencil CLI (`npm install -g @zseven-w/openpencil`), `.op/DESIGN.md` file, design reference images in `.op/references/`
+
+## Quick Start
+
+Minimal working sequence to create a design from scratch:
+
+```bash
+# 1. Create a minimal .op file (valid format required)
+echo '{"version":"1.0.0","children":[]}' > canvas/design.op
+
+# 2. Connect to live canvas via MCP
+openpencil_open_document({ filePath: "canvas/design.op" })
+// → returns { document, context, designPrompt }
+
+# 3. Create page structure
+openpencil_design_skeleton({ canvasWidth: 375, rootFrame: { name: "Page", width: 375, height: 812 }, sections: [...] })
+// → returns { rootId, sections: [{ id, name, guidelines, suggestedRoles }] }
+
+# 4. Add content to a section
+openpencil_design_content({ sectionId: "section-id", children: [...], postProcess: true })
+
+# 5. Validate + auto-fix
+openpencil_design_refine({ rootId: "root-id" })
+```
+
+### `.op` File Format
+
+The `.op` file must use this JSON structure (NOT `{"pages":[...]}`):
+
+```json
+{
+  "version": "1.0.0",
+  "children": []
+}
+```
+
+**Note:** `init-project.sh` creates a file with `{"pages":[...]}` format. `open_document` automatically rewrites it to the correct format when opened. For manual creation, use the structure above.
+
+### Prerequisites for `design_skeleton`
+
+`design_skeleton` requires an **existing valid `.op` file**. It will fail with `ENOENT` if the file doesn't exist, or `Invalid document format` if the JSON is malformed.
+
+## ⚠️ CRITICAL: No File Persistence
+
+**`openpencil_*` tools operate IN-MEMORY ONLY** — changes are NOT written to disk!
+
+| Behavior | What Happens |
+|----------|--------------|
+| After `insert_node` / `batch_design` | Nodes exist in live canvas |
+| `.op` file on disk | Still `{"version":"1.0.0","children":[]}` |
+| Re-opening the file | **ALL WORK LOST** — empty document |
+| `batch_get({ filePath })` | Returns empty (reads from disk) |
+| `batch_get()` (no filePath) | Shows nodes (reads from memory) |
+
+### Workaround: Manual Export
+
+After each session, manually persist your work:
+
+```javascript
+// 1. Get the nodes from live canvas
+const nodes = openpencil_batch_get({ readDepth: 5 })
+
+// 2. Export to JSON file (manual write)
+filesystem_write_file({ 
+  path: "canvas/design.op", 
+  content: JSON.stringify({ version: "1.0.0", children: nodes.nodes }, null, 2)
+})
+
+// OR use export_nodes to get raw PenNode JSON
+const exported = openpencil_export_nodes()
+filesystem_write_file({ path: "canvas/design-export.json", content: JSON.stringify(exported) })
+```
+
+**Root Cause:** The `openpencil` MCP server (port 3100) has no `save_file` tool. The `open-pencil` server (port 7600) has `save_file` but requires the desktop app.
+
+**Recommendation:** Run OpenPencil desktop app and use `open-pencil_*` tools if you need file persistence, or manually write the `.op` file after each session.
+
+---
+
+## Known Issues & Limitations
+
+| Issue | Severity | Workaround |
+|-------|---------|------------|
+| **NO FILE PERSISTENCE** | 🔴 CRITICAL | See above — manually export after each session |
+| **Concurrent sub-agent file saves** | 🔴 CRITICAL | Sub-agents MUST NOT save files. Only orchestrator saves. Sub-agents must remind orchestrator to save after completion. |
+| **`pageId` targets wrong page** | High | Multi-page operations on page 2+ fail. Workaround: operate on page 1 only, or use `add_page`/`duplicate_page` to re-create pages |
+| **`batch_design D()` silently no-ops** | High | Use `delete_node` for single node deletion. D() in batch DSL does not work |
+| **`copy_node` param is `sourceId`, not `nodeId`** | Medium | Always use `sourceId` when calling `copy_node` |
+| **`design_skeleton` creates equal-width sections** | Medium | Sections get equal split of parent width. For asymmetric splits (e.g. 520/680), use `update_node` after skeleton creation to set explicit `width` |
+| **`delete_node` only works for top-level nodes** | Medium | Cannot delete nested children directly. Workaround: move node to root first, then delete |
+| **`batch_design` DSL fails on complex nested JSON** | Medium | For complex multi-node trees, use `insert_node` per-node or the layered `design_skeleton → design_content → design_refine` workflow |
+| **`open_document` auto-rewrites `.op` format** | Low | Files created with `{"pages":[...]}` are auto-corrected to `{"version":"1.0.0","children":[]}` on open. Manual `.op` creation should use correct format |
+| **No MCP screenshot capability** | Medium | Visual validation requires Playwright browser automation or manual capture from OpenPencil app |
+
+---
+
+## Testing
+
+**After ANY update to this skill, run the regression test suite:**
+
+```bash
+# Read and follow TEST-SPEC.md
+read("openpencil-loop/TEST-SPEC.md")
+
+# Quick checklist:
+# 1. MCP naming: openpencil_* works, open-pencil_* does not
+# 2. File persistence: manual save workaround works
+# 3. Parallel build: multi-page works
+# 4. Sub-agent discipline: pattern documented
+# 5. Minimal prompts: all 5 tests pass
+```
+
+**Full test spec:** `TEST-SPEC.md` — 6 test categories, 15+ individual tests, regression checklist.
 
 ## Multi-Agent Compatibility
 
 This skill works across agent frameworks. Workflow, file formats, and phase logic are identical — only tool invocation syntax differs.
 
-| Framework | Task Orchestration | MCP Tool Call | File I/O |
-|-----------|-------------------|---------------|----------|
-| **OpenCode** | `task(category, load_skills, ...)` | `skill_mcp({ mcp_name, tool_name, arguments })` | `read()`, `write()`, `edit()` |
-| **Claude Code** | Background tasks via tool_use | `mcp__<server>__<tool>(args)` | `Read`, `Write`, `Edit` |
+### ⚠️ CRITICAL: Sub-Agent File Save Discipline
+
+**Sub-agents MUST NOT save files.** Only the orchestrator can save files.
+
+| Role | Can Save? | Reason |
+|------|-----------|--------|
+| **Orchestrator** | ✅ YES | Single point of file write — prevents race conditions |
+| **Sub-agent** | ❌ NO | Concurrent file writes cause data loss/corruption |
+
+**Sub-agent pattern:**
+```
+1. Sub-agent completes work (design, validation, etc.)
+2. Sub-agent returns result + REMINDS orchestrator:
+   "✅ Work complete. Orchestrator: Please save the file now."
+3. Orchestrator collects all sub-agent results
+4. Orchestrator saves file ONCE
+```
+
+**Why this matters:**
+- Multiple sub-agents saving same file → race condition → data loss
+- Sub-agents may overwrite each other's work
+- Only orchestrator has full context to merge results correctly
+
+| Framework | Task Orchestration | Tool Call | File I/O |
+|-----------|-------------------|-----------|----------|
+| **OpenCode** | `task(category, load_skills, ...)` | `openpencil_*()` direct tool calls | `read()`, `write()`, `edit()` |
+| **Claude Code** | Background tasks via tool_use | `mcp__open_pencil__<tool>(args)` | `Read`, `Write`, `Edit` |
 | **Codex** | `Agent.run()` or subprocess | HTTP MCP client or CLI | `fs.readFile`, `fs.writeFile` |
 | **Aider** | Sequential (no native subagents) | CLI subprocess or HTTP | File read/write |
 | **Custom** | Any orchestrator | MCP JSON-RPC or HTTP | Any filesystem API |
 
-### Generic Patterns
+### OpenCode Tool Call Pattern
+
+**OpenCode users**: The `openpencil_*` tools are **native tools** — call them directly without `skill_mcp`:
 
 ```
-// MCP Call — replace syntax per framework:
-mcp_call("openpencil", "batch_get", { filePath, parentId, readDepth })
-// OpenCode:    skill_mcp({ mcp_name: "openpencil", tool_name: "batch_get", arguments: {...} })
-// Claude Code: mcp__openpencil__batch_get({ filePath, parentId, readDepth })
-// Codex:       await openpencilMcp.batch_get({ filePath, parentId, readDepth })
+// ✅ CORRECT — native tools, call directly:
+openpencil_open_document({ filePath: "canvas/design.op" })
+openpencil_batch_design({ operations: [...] })
+openpencil_add_page({ name: "LoginScreen" })
+openpencil_insert_node({ parent: "rootId", data: {...} })
+openpencil_export_nodes({ filePath: "canvas/design.op" })
+
+// ❌ NOT NEEDED — skill_mcp not required for openpencil tools:
+skill_mcp({ mcp_name: "openpencil", tool_name: "batch_design", arguments: {...} })
+```
+
+### Generic Patterns (Other Frameworks)
+
+```
+// OpenCode — call directly:
+openpencil_batch_get({ filePath, parentId, readDepth })
+
+// Claude Code — use mcp prefix:
+mcp__openpencil__batch_get({ filePath, parentId, readDepth })
+
+// Codex — use MCP client:
+await openpencilMcp.batch_get({ filePath, parentId, readDepth })
 
 // Task Dispatch — CORRECT pattern (read file + inject content):
 // 1. Read the sub-skill file directly
@@ -195,9 +350,17 @@ ${decompositionContent}
 
 TASK: Detect design type and decompose: [user request]
 
+⚠️ IMPORTANT: Do NOT save files. Return your result and remind the orchestrator to save.
 [...remaining prompt details...]
 `
 )
+```
+
+**Sub-agent reminder template (include in every task prompt):**
+```
+⚠️ FILE SAVE RULE: You are a sub-agent. Do NOT save any files.
+After completing your work, return results and remind the orchestrator:
+"✅ [Task name] complete. Orchestrator: Please save the file now."
 ```
 
 ## Decision Workflow
@@ -279,39 +442,39 @@ See `prompt-enhancement` sub-skill for the full transformation pipeline.
 | 3. VALIDATION | Phase 3: VALIDATION | vision-feedback.md | batch_get, snapshot_layout |
 | 4. MAINTENANCE | Phase 4: MAINTENANCE | local-edit.md, incremental-add.md | batch_design, update_node, delete_node |
 
-**Codegen Build Loop** (for production code):
+| **Codegen Build Loop** (for production code) — **2-step process** |
 
 | Phase | Task | Key Sub-Skills | MCP Tools |
 |-------|------|----------------|-----------|
-| 1. ANALYZE | CodeGen Phase 1: ANALYZE | analyze.md | batch_get, get_design_md, snapshot_layout |
-| 2. DISCOVER | CodeGen Phase 2: DISCOVER | discover.md | batch_get, export_nodes |
-| 3. DEDUPE | CodeGen Phase 3: DEDUPE | deduplicate.md | export_nodes |
-| 4. GENERATE | CodeGen Phase 4: GENERATE | generate.md | export_nodes |
+| **Step 1: Export** | CodeGen Phase 1-3 | analyze.md, discover.md, deduplicate.md | `export_nodes` returns PenNode JSON |
+| **Step 2: Generate** | CodeGen Phase 4: GENERATE | generate.md | Feed JSON + `get_design_prompt(section: "codegen-react")` to AI model |
+
+**Codegen is 2-step:** `export_nodes` returns raw PenNode JSON — it does NOT generate React/HTML code. Use the exported JSON as input to an LLM with `get_design_prompt(section: "codegen-react")` (or vue/swiftui/compose/etc.) providing framework-specific codegen guidance.
 
 For detailed phase content, see the sub-skill files referenced above. Baton template: `templates/codegen-state.md`
 
 ## OpenPencil MCP Tools
 
-All MCP calls follow: `mcp_call(server, tool, arguments)`. Below shows OpenCode syntax — see **Multi-Agent Compatibility** for Claude Code/Codex equivalents.
+All tools are called directly: `openpencil_<tool_name>({ arguments })`. See **Multi-Agent Compatibility** for Claude Code/Codex syntax.
 
 ```javascript
-// Document: open_document({ filePath })
-// Read: batch_get({ filePath, parentId, readDepth })
-// CRUD: insert_node, update_node, delete_node, move_node, copy_node, replace_node
-//       All support pageId to target specific page (defaults to first)
-// Batch DSL: batch_design({ filePath, operations, postProcess, pageId })
-// Layered: design_skeleton, design_content, design_refine
-// Variables: get_variables, set_variables, set_themes
-// Design MD: get_design_md, set_design_md, export_design_md
-// Layout: snapshot_layout({ filePath, maxDepth }), find_empty_space({ filePath, width, height, direction })
-// Pages: add_page, remove_page, rename_page, reorder_page, duplicate_page
-// Import/Export: import_svg({ filePath, svgPath }), export_nodes({ filePath })
-// Knowledge: get_design_prompt({ section: "schema" })
+// Document: openpencil_open_document({ filePath })
+// Read: openpencil_batch_get({ filePath, parentId, readDepth })
+// CRUD: openpencil_insert_node, openpencil_update_node, openpencil_delete_node, openpencil_move_node, openpencil_copy_node, openpencil_replace_node
+//       All support pageId to target specific page (defaults to first page — ⚠️ KNOWN ISSUE: pageId may target wrong page for page 2+)
+// Batch DSL: openpencil_batch_design({ operations, postProcess, pageId })
+// Layered: openpencil_design_skeleton, openpencil_design_content, openpencil_design_refine
+// Variables: openpencil_get_variables, openpencil_set_variables, openpencil_set_themes
+// Design MD: openpencil_get_design_md, openpencil_set_design_md, openpencil_export_design_md
+// Layout: openpencil_snapshot_layout({ maxDepth }), openpencil_find_empty_space({ width, height, direction })
+// Pages: openpencil_add_page, openpencil_remove_page, openpencil_rename_page, openpencil_reorder_page, openpencil_duplicate_page
+// Import/Export: openpencil_import_svg({ svgPath }), openpencil_export_nodes({ filePath })
+// Knowledge: openpencil_get_design_prompt({ section: "schema" })
 ```
 
 **MCP Cannot Do:** Screenshot capture (use Playwright), AI code generation (use AI with knowledge files), Trigger sub-skills (use read() or task())
 
-**Full MCP Reference:** `reference/mcp-tool-index.md` (all 90+ tools with arguments)
+**Full MCP Reference:** `reference/mcp-tool-index.md` (34 tools with arguments)
 
 ## Agent Platform Tools Reference
 
@@ -381,14 +544,22 @@ Step 2: Decompose each page into subtasks (sequential)
 Step 3: Build in parallel (each page isolated)
   Agent-Login:     batch_design({ pageId: pageId-A, ... })
   Agent-Dashboard: batch_design({ pageId: pageId-B, ... })
+  ⚠️ Sub-agents do NOT save files — return results only
 
-Step 4: Validate each page (can be parallel)
+Step 4: Collect results + ORCHESTRATOR SAVES (sequential)
+  Orchestrator receives: "✅ Login page built. Please save file."
+  Orchestrator receives: "✅ Dashboard page built. Please save file."
+  Orchestrator: export_nodes() + filesystem_write_file()
+
+Step 5: Validate each page (can be parallel)
   Agent-Login:     snapshot_layout + screenshot review
   Agent-Dashboard: snapshot_layout + screenshot review
+  ⚠️ Sub-agents do NOT save — return validation results
 
-Step 5: Export all pages (sequential — single file export)
+Step 6: Export all pages (sequential — single file export)
   export_nodes({ pageId: pageId-A })
   export_nodes({ pageId: pageId-B })
+  Orchestrator saves final .op file
 ```
 
 ### Page Templates
@@ -400,8 +571,11 @@ For apps with consistent UI chrome, create a template page first, then `duplicat
 - ✅ DO: Create pages first, then build in parallel
 - ✅ DO: Use `pageId` on every node operation to be explicit
 - ✅ DO: `add_page` returns the new `pageId` — capture it
+- ✅ DO: **Only orchestrator saves files** — sub-agents return results and remind orchestrator to save
 - ❌ DON'T: Build on the same page from multiple agents simultaneously (race condition)
 - ❌ DON'T: Omit `pageId` when working with multi-page documents (ambiguous)
+- ❌ DON'T: Let sub-agents save files — causes concurrent write conflicts
+- ⚠️ **KNOWN ISSUE**: `pageId` parameter may target the wrong page for page 2+. When building multi-page designs, prefer operating on page 1 only, or use `add_page`/`duplicate_page` to reconstruct pages
 
 ---
 

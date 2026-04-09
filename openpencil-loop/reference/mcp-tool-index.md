@@ -1,10 +1,122 @@
-# OpenPencil (https://github.com/ZSeven-W/openpencil) MCP Tool Index
+# OpenPencil MCP Tool Index
 
-Complete reference for all MCP tools. **MCP Server:** `openpencil` (non-hyphenated)
+**MCP Prefix:** `openpencil_*` (34 tools, NO desktop app needed)
 
-## JSX Render Format
+All tools are called directly: `openpencil_<tool_name>({ arguments })`
 
-OpenPencil uses JSX-style rendering via `batch_design` DSL.
+## ⚠️ CRITICAL: No File Persistence
+
+**All `openpencil_*` tools operate IN-MEMORY ONLY.** Changes are NOT written to disk.
+
+- After `insert_node` / `batch_design`, nodes exist in live canvas
+- The `.op` file on disk remains `{"version":"1.0.0","children":[]}`
+- Re-opening the file **LOSES ALL WORK**
+
+**Workaround:** Manually export after each session:
+```javascript
+const nodes = openpencil_batch_get({ readDepth: 5 })
+filesystem_write_file({ path: "canvas/design.op", content: JSON.stringify({ version: "1.0.0", children: nodes.nodes }) })
+```
+
+---
+
+## Available Tools (34 total)
+
+### Document Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `open_document` | `filePath` | Open/create `.op` file, connect to live canvas (⚠️ in-memory only, no persistence) |
+
+**Note:** `save_file` does NOT exist for `openpencil_*` prefix. Use `filesystem_write_file()` to manually persist.
+
+### Read Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `batch_get` | `patterns?, nodeIds?, pageId?, parentId?, readDepth?, searchDepth?` | Search and read nodes |
+| `get_selection` | `readDepth?` | Get currently selected nodes |
+| `get_variables` | `type?: COLOR\|FLOAT\|STRING\|BOOLEAN` | List design variables |
+| `snapshot_layout` | `filePath?, maxDepth?, pageId?, parentId?` | Get hierarchical bounding box tree |
+| `export_nodes` | `filePath?, nodeIds?, pageId?` | Export raw PenNode JSON |
+| `find_empty_space` | `width, height, direction, nodeId?, padding?` | Find empty canvas space |
+
+### Create Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `insert_node` | `parent, data: {type, name, width, height...}, canvasWidth?, pageId?, postProcess?` | Insert new node |
+| `add_page` | `name?, children?, filePath?` | Add new page |
+
+### Modify Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `update_node` | `nodeId, data, canvasWidth?, pageId?, postProcess?` | Update node properties |
+| `delete_node` | `nodeId, filePath?, pageId?` | Delete node (top-level only) |
+| `move_node` | `nodeId, parent, index?, filePath?, pageId?` | Move node to new parent |
+| `copy_node` | `sourceId, parent, overrides?, filePath?, pageId?` | Deep copy node |
+| `replace_node` | `nodeId, data, canvasWidth?, pageId?, postProcess?` | Replace node entirely |
+
+### Batch Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `batch_design` | `operations, canvasWidth?, filePath?, pageId?, postProcess?` | Execute DSL operations |
+| `design_skeleton` | `rootFrame, sections, canvasWidth?, filePath?, pageId?, styleGuide?` | Create page structure |
+| `design_content` | `sectionId, children, canvasWidth?, pageId?, postProcess?` | Populate section content |
+| `design_refine` | `rootId, canvasWidth?, filePath?, pageId?` | Validate + auto-fix |
+
+### Design MD Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `get_design_md` | `filePath?` | Get design.md specification |
+| `set_design_md` | `markdown?, autoExtract?, filePath?` | Import design.md |
+| `export_design_md` | `filePath?` | Export design.md as markdown |
+
+### Variables & Themes
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `set_variables` | `variables, filePath?, replace?` | Set design variables |
+| `set_themes` | `themes, filePath?, replace?` | Set theme axes |
+
+### Theme Presets
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `save_theme_preset` | `presetPath, filePath?, name?` | Save theme as preset |
+| `load_theme_preset` | `presetPath, filePath?` | Load theme preset |
+| `list_theme_presets` | `directory` | List available presets |
+
+### Page Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `add_page` | `name?, children?, filePath?` | Create new page |
+| `remove_page` | `pageId, filePath?` | Delete page |
+| `rename_page` | `pageId, name, filePath?` | Rename page |
+| `reorder_page` | `pageId, index, filePath?` | Move page position |
+| `duplicate_page` | `pageId, name?, filePath?` | Clone page |
+
+### Knowledge
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `get_design_prompt` | `section?` | Get design knowledge prompt |
+
+**Available sections:** `all`, `schema`, `layout`, `roles`, `text`, `style`, `icons`, `examples`, `guidelines`, `planning`, `codegen-*`
+
+### Import
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `import_svg` | `svgPath, canvasWidth?, filePath?, maxDim?, pageId?, parent?, postProcess?` | Import SVG file |
+
+---
+
+## JSX Render Format (batch_design DSL)
 
 | Shorthand | Full Property | Example |
 |-----------|---------------|---------|
@@ -16,240 +128,40 @@ OpenPencil uses JSX-style rendering via `batch_design` DSL.
 | `gap` | `itemSpacing` | `gap={16}` |
 | `rounded` | `cornerRadius` | `rounded={12}` |
 
-**Example:** `<Frame name="Card" w={320} h={200} flex="col" gap={16} p={24} bg="#FFF" rounded={12}><Text size={18} weight="bold">Title</Text></Frame>`
+**DSL Operations:**
+```
+binding=I(parent, { ...nodeData })  — Insert node
+U(nodeId, { ...updates })           — Update node
+binding=C(sourceId, parent, { overrides }) — Copy node
+binding=R(nodeId, { ...newNodeData }) — Replace node
+M(nodeId, parent, index?)           — Move node
+D(nodeId)                           — Delete (⚠️ known issue: may not work)
+```
 
-## Tool Categories (All use `skill_mcp` + `mcp_name: openpencil`)
-
-### 1. Document Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `open_document` | `filePath` |
-| `save_file` | `filePath` |
-| `new_document` | — |
-
-### 2. Read Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `get_page_tree` | — |
-| `get_node` | `id, depth?` |
-| `find_nodes` | `name?, type?` (FRAME, RECTANGLE, ELLIPSE, TEXT...) |
-| `query_nodes` | `selector: "//FRAME[@width < 300]"`, `limit?` |
-| `get_selection` | `readDepth?` |
-| `get_components` | `name?, limit?` |
-| `list_pages` | — |
-| `list_variables` | `type?: COLOR|FLOAT|STRING|BOOLEAN` |
-| `get_current_page` | — |
-| `batch_get` | `patterns, readDepth?, searchDepth?` |
-
-**XPath Examples:** `//FRAME` · `//FRAME[@width < 300]` · `//TEXT[contains(@text, 'Hello')]` · `//SECTION//TEXT` · `//*[@cornerRadius > 0]`
-
-### 3. Create Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `create_shape` | `type, x, y, width, height, name` |
-| `insert_node` | `parent, data: {type, name, width, height...}, postProcess?` |
-| `create_component` | `id` |
-| `create_instance` | `component_id, x?, y?` |
-
-**Shape types:** `FRAME`, `RECTANGLE`, `ELLIPSE`, `TEXT`, `LINE`, `STAR`, `POLYGON`, `SECTION`
-
-### 4. Modify Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `update_node` | `nodeId, data` |
-| `set_fill` | `id, color, gradient?, color_end?` |
-| `set_stroke` | `id, color, weight, align?` |
-| `set_layout` | `id, direction?, spacing?, padding?, align?, counter_align?` |
-| `set_text` | `id, text` |
-| `set_font` | `id, family, size, style?` |
-| `set_effects` | `id, type, color, offset_x?, offset_y?, radius?, spread?` |
-| `set_opacity` | `id, value: 0-1` |
-| `set_visible` | `id, value: bool` |
-| `set_locked` | `id, value: bool` |
-| `set_rotation` | `id, angle` |
-| `set_constraints` | `id, horizontal?, vertical?` |
-| `set_minmax` | `id, min_width?, max_width?, min_height?, max_height?` |
-| `set_text_resize` | `id, mode: NONE|WIDTH_AND_HEIGHT|HEIGHT|TRUNCATE` |
-| `set_text_properties` | `id, align_horizontal?, align_vertical?, text_decoration?` |
-| `set_blend` | `id, mode: NORMAL|DARKEN|MULTIPLY...` |
-| `set_stroke_align` | `id, align: INSIDE|CENTER|OUTSIDE` |
-| `set_radius` | `id, radius?, top_left?, top_right?, bottom_left?, bottom_right?` |
-| `set_image_fill` | `id, image_data, scale_mode: FILL|FIT|CROP|TILE` |
-
-**Effect types:** `DROP_SHADOW`, `INNER_SHADOW`, `FOREGROUND_BLUR`, `BACKGROUND_BLUR`
-
-### 5. Structure Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `delete_node` | `nodeId` |
-| `clone_node` | `id` |
-| `copy_node` | `sourceId, parent, overrides?` |
-| `reparent_node` | `id, parent_id` |
-| `move_node` | `nodeId, parent?, index?` |
-| `group_nodes` | `ids` |
-| `ungroup_node` | `id` |
-| `node_move` | `id, x, y` |
-| `node_resize` | `id, width, height` |
-| `rename_node` | `id, name` |
-| `flatten_nodes` | `ids` |
-| `node_to_component` | `ids` |
-
-### 6. Boolean Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `boolean_union` | `ids` |
-| `boolean_subtract` | `ids` |
-| `boolean_intersect` | `ids` |
-| `boolean_exclude` | `ids` |
-
-### 7. Export Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `export_image` | `ids?, format: PNG|JPG|WEBP, scale?` |
-| `export_svg` | `ids?` |
-| `export_nodes` | `nodeIds?` |
-
-### 8. Variables & Themes
-
-| Tool | Arguments |
-|------|-----------|
-| `create_variable` | `collection_id, name, type, value` |
-| `set_variable` | `id, mode, value` |
-| `bind_variable` | `node_id, variable_id, field` |
-| `get_variable` | `id` |
-| `find_variables` | `query, type?` |
-| `delete_variable` | `id` |
-| `create_collection` | `name` |
-| `get_collection` | `id` |
-| `list_collections` | — |
-| `delete_collection` | `id` |
-| `set_themes` | `themes: {Color: [Light, Dark]...}, replace?` |
-| `get_variables` | — |
-| `set_variables` | `variables, replace?` |
-
-**Variable types:** `COLOR`, `FLOAT`, `STRING`, `BOOLEAN`
-
-### 9. Analysis Tools
-
-| Tool | Arguments | Returns |
-|------|-----------|---------|
-| `analyze_colors` | `limit?, show_similar?, threshold?` | Palette with frequencies |
-| `analyze_typography` | `limit?, group_by?` | Font families, sizes, weights |
-| `analyze_spacing` | `grid?` | Gap/padding with grid compliance |
-| `analyze_clusters` | `limit?, min_count?, min_size?` | Repeated patterns |
-
-### 10. Page Operations
-
-| Tool | Arguments |
-|------|-----------|
-| `add_page` | `name, children?` |
-| `remove_page` | `pageId` |
-| `rename_page` | `pageId, name` |
-| `duplicate_page` | `pageId, name?` |
-| `reorder_page` | `pageId, index` |
-| `switch_page` | `page` |
-
-### 11. Design MD
-
-| Tool | Arguments |
-|------|-----------|
-| `get_design_md` | — |
-| `set_design_md` | `markdown, autoExtract?` |
-| `export_design_md` | — |
-
-### 12. Layout Analysis
-
-| Tool | Arguments |
-|------|-----------|
-| `snapshot_layout` | `maxDepth?, parentId?` |
-| `find_empty_space` | `direction, width, height, padding?, nodeId?` |
-| `page_bounds` | — |
-
-### 13. Theme Presets
-
-| Tool | Arguments |
-|------|-----------|
-| `save_theme_preset` | `presetPath, name?` |
-| `load_theme_preset` | `presetPath` |
-| `list_theme_presets` | `directory` |
-
-### 14. File Management
-
-| Tool | Arguments |
-|------|-----------|
-| `import_svg` | `svgPath, maxDim?, parent?, postProcess?` |
-
-### 15. Codegen & Design Knowledge
-
-| Tool | Arguments | Returns |
-|------|-----------|---------|
-| `get_codegen_prompt` | — | Code generation guidelines |
-| `get_design_prompt` | `section?` | Design knowledge |
-| `design_to_tokens` | `format: css|tailwind|json, collection?, type?` | Token definitions |
-| `design_to_component_map` | `page?` | Component decomposition |
-| `design_skeleton` | `rootFrame, sections, styleGuide?` | Create section structure |
-| `design_content` | `sectionId, children, postProcess?` | Populate section content |
-| `design_refine` | `rootId` | Validate + auto-fix |
-
-**Design prompt sections:** `all`, `schema`, `layout`, `roles`, `text`, `style`, `icons`, `examples`, `guidelines`, `planning`
-**Token formats:** `css`, `tailwind`, `json`
-
-### 16. Utilities
-
-| Tool | Arguments |
-|------|-----------|
-| `node_bounds` | `id` |
-| `node_tree` | `id, depth?` |
-| `node_ancestors` | `id, depth?` |
-| `node_children` | `id` |
-| `node_bindings` | `id` |
-| `viewport_get` | — |
-| `viewport_set` | `x, y, zoom` |
-| `viewport_zoom_to_fit` | `ids` |
-| `list_fonts` | `family?` |
-| `select_nodes` | `ids` |
-| `diff_jsx` | `from, to` |
-| `diff_create` | `from, to, depth?` |
-| `diff_show` | `id, props` |
-| `describe` | `id, depth?, grid?` |
-| `arrange` | `mode: grid|row|column, cols?, gap?, ids?` |
-| `calc` | `expr` |
-
-## Quick Reference Patterns
-
-**Create card via batch_design:**
+**Example:**
 ```javascript
-batch_design({
+openpencil_batch_design({
   operations: [
-    "I(root, {type:'Frame',name:'Card',w:320,h:'hug',flex:'col',gap:16,p:24,bg:'#FFF',rounded:12})",
-    "I(card, {type:'Text',name:'Title',size:18,weight:'bold',content:'Title'})",
-    "I(card, {type:'Text',name:'Body',size:14,fill:'#666',content:'Description'})"
-  ]
+    "card=I(null, {type:'frame',name:'Card',w:320,h:'hug',layout:'vertical',gap:16,padding:24,fill:'#FFF',cornerRadius:12})",
+    "I(card, {type:'text',name:'Title',fontSize:18,fontWeight:'bold',content:'Title'})",
+    "I(card, {type:'text',name:'Body',fontSize:14,fill:'#666',content:'Description'})"
+  ],
+  postProcess: true
 })
-```
-
-**Find buttons:**
-```javascript
-query_nodes({ selector: "//FRAME[@name='Button']" })
-```
-
-**Export:**
-```javascript
-export_image({ format: "PNG", scale: 2 })
-```
-
-**Set spacing:**
-```javascript
-set_layout({ id, spacing: 16, padding: 24 })
 ```
 
 ---
 
-*Generated for OpenPencil (https://github.com/ZSeven-W/openpencil) - MCP Server: `openpencil`*
+## Known Issues
+
+| Issue | Workaround |
+|-------|------------|
+| `D()` in batch_design silently no-ops | Use `delete_node` directly |
+| `delete_node` only works for top-level nodes | Move nested nodes to root first, then delete |
+| `pageId` may target wrong page for page 2+ | Operate on page 1 only, or recreate pages |
+| `copy_node` requires `sourceId` not `nodeId` | Use `sourceId` parameter |
+| `design_skeleton` creates equal-width sections | Use `update_node` to set explicit widths after |
+
+---
+
+*OpenPencil MCP Server: `openpencil` (https://github.com/ZSeven-W/openpencil)*

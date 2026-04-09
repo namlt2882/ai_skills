@@ -19,18 +19,10 @@ mcp_tools:
 
 ```javascript
 // Get full node tree (per page — use pageId for multi-page)
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "export_nodes",
-  arguments: { filePath: "path/to/design.op", pageId: "target-page-id" }
-})
+openpencil_export_nodes({ filePath: "path/to/design.op", pageId: "target-page-id" })
 
 // Or get specific nodes
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "batch_get",
-  arguments: { filePath: "path/to/design.op", nodeIds: ["id1", "id2"], pageId: "target-page-id" }
-})
+openpencil_batch_get({ filePath: "path/to/design.op", nodeIds: ["id1", "id2"], pageId: "target-page-id" })
 ```
 
 ## Output Format

@@ -14,7 +14,7 @@ mcp_tools:
   - batch_get
 ---
 
-> **MCP Tool Syntax:** `skill_mcp()` calls below use OpenCode syntax.
+> **MCP Tool Syntax:** `openpencil_*()` calls below use OpenCode syntax (direct tool calls).
 > Claude Code: `mcp__openpencil__<tool_name>(args)`. Codex: `openpencilMcp.<tool_name>(args)`.
 > See SKILL.md → "Multi-Agent Compatibility".
 
@@ -22,37 +22,26 @@ mcp_tools:
 
 ```javascript
 // Add new nodes using batch_design DSL (preferred for multiple nodes)
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "batch_design",
-  arguments: {
-    filePath: "path/to/design.op",
-    operations: "parentId=I(null, { type: 'frame', name: 'NewSection', width: 'fill_container' })",
-    postProcess: true
-  }
+openpencil_batch_design({
+  filePath: "path/to/design.op",
+  operations: "parentId=I(null, { type: 'frame', name: 'NewSection', width: 'fill_container' })",
+  postProcess: true
 })
 
 // Insert a single node
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "insert_node",
-  arguments: {
-    filePath: "path/to/design.op",
-    parent: "parent-node-id",
-    data: { type: "frame", name: "NewCard", width: "fill_container" }
-  }
+openpencil_insert_node({
+  filePath: "path/to/design.op",
+  parent: "parent-node-id",
+  data: { type: "frame", name: "NewCard", width: "fill_container" }
 })
 
 // Copy existing node as template
-skill_mcp({
-  mcp_name: "openpencil",
-  tool_name: "copy_node",
-  arguments: {
-    filePath: "path/to/design.op",
-    sourceId: "template-node-id",
-    parent: "parent-node-id",
-    overrides: { name: "new-node-name", x: 0, y: 0 }
-  }
+// NOTE: param is `sourceId` (NOT `nodeId`)
+openpencil_copy_node({
+  filePath: "path/to/design.op",
+  sourceId: "template-node-id",  // ← correct param name
+  parent: "parent-node-id",
+  overrides: { name: "new-node-name", x: 0, y: 0 }
 })
 ```
 
@@ -60,11 +49,7 @@ skill_mcp({
 
 1. **Get current structure** (if needed):
    ```
-   skill_mcp({
-     mcp_name: "openpencil",
-     tool_name: "batch_get",
-     arguments: { filePath: "path/to/design.op", parentId: "target-parent" }
-   })
+   openpencil_batch_get({ filePath: "path/to/design.op", parentId: "target-parent" })
    ```
 
 2. **Generate new nodes** following the rules below.
