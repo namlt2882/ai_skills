@@ -1,6 +1,6 @@
 ---
 name: boolean-ops
-description: Boolean vector operations for OpenPencil v2
+description: Boolean vector operations for OpenPencil (https://github.com/open-pencil/open-pencil)
 phase: [generation]
 trigger: null
 priority: 5
@@ -8,7 +8,7 @@ budget: 1000
 category: base
 ---
 
-# Boolean Vector Operations for OpenPencil v2
+# Boolean Vector Operations for OpenPencil (https://github.com/open-pencil/open-pencil)
 
 Boolean operations combine multiple vector shapes (rectangles, ellipses, paths) into new shapes using set operations.
 

@@ -1,15 +1,15 @@
 ---
 name: jsx-format
-description: JSX rendering format for OpenPencil v2
+description: JSX rendering format for OpenPencil (https://github.com/open-pencil/open-pencil)
 trigger: null
 priority: 10
 budget: 1500
 category: base
 ---
 
-# JSX Format for OpenPencil v2
+# JSX Format for OpenPencil (https://github.com/open-pencil/open-pencil)
 
-OpenPencil v2 uses JSX syntax for declarative design generation. This format is parsed and converted to PenNode structures internally.
+OpenPencil (https://github.com/open-pencil/open-pencil) uses JSX syntax for declarative design generation. This format is parsed and converted to PenNode structures internally.
 
 ## Prop Mapping Reference
 

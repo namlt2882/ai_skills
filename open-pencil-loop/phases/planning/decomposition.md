@@ -1,6 +1,6 @@
 ---
 name: decomposition
-description: Orchestrator task decomposition — splits UI requests into subtasks for OpenPencil v2
+description: Orchestrator task decomposition — splits UI requests into subtasks for OpenPencil (https://github.com/open-pencil/open-pencil)
 phase: [planning]
 trigger: null
 priority: 0
@@ -10,7 +10,7 @@ category: base
 
 # Task Decomposition (v2)
 
-OpenPencil v2 uses JSX format with open-pencil MCP. Tasks are decomposed into subtasks that map to JSX component hierarchies.
+OpenPencil (https://github.com/open-pencil/open-pencil) uses JSX format with open-pencil MCP. Tasks are decomposed into subtasks that map to JSX component hierarchies.
 
 ## Output Format (JSX-based)
 ```json

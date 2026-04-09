@@ -10,7 +10,7 @@ category: base
 
 # Design System Token Generation
 
-Generate a cohesive design token system for OpenPencil v2:
+Generate a cohesive design token system for OpenPencil (https://github.com/open-pencil/open-pencil):
 
 ```json
 {

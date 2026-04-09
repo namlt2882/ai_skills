@@ -1,459 +1,136 @@
 # Variables and Themes Management
 
-OpenPencil v2 supports powerful variable systems with multi-mode values (light/dark themes) and theme presets. This guide covers creating, managing, and binding variables to build flexible design systems.
+OpenPencil (https://github.com/open-pencil/open-pencil) supports typed variables with multi-mode values (light/dark themes) and theme presets (.optheme files).
 
-## Overview
+## Variable Types
 
-Variables in OpenPencil are typed values that can be bound to node properties. They support multiple modes (like light/dark themes) and can be organized into collections. Theme presets (.optheme files) allow sharing variables across documents.
+`COLOR` · `FLOAT` · `STRING` · `BOOLEAN`
 
-## Inspecting Existing Variables
+## Inspection Tools
 
-### List All Collections
+| Tool | Arguments |
+|------|-----------|
+| `list_collections` | — |
+| `list_variables` | `type?: COLOR|FLOAT|STRING|BOOLEAN` |
+| `get_variable` | `id` |
+| `find_variables` | `query, type?` |
+| `get_collection` | `id` |
 
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "list_collections"
-}
-```
+## Creating
 
-Returns all variable collections in the document.
+| Tool | Arguments |
+|------|-----------|
+| `create_collection` | `name` → returns collection ID |
+| `create_variable` | `collection_id, name, type, value` |
 
-### List All Variables
+**Example:** `create_variable: {collection_id: "col-001", name: "primary", type: "COLOR", value: "#3B82F6"}`
 
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "list_variables",
-  "arguments": {
-    "type": "COLOR"
-  }
-}
-```
+## Mode-Specific Values
 
-**Parameters:**
-- `type`: Filter by "COLOR", "FLOAT", "STRING", or "BOOLEAN" (optional)
+Variables support different values per mode (light/dark, compact/comfortable, brand variants).
 
-### Get Variable Details
+| Tool | Arguments |
+|------|-----------|
+| `set_variable` | `id, mode, value` |
 
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "get_variable",
-  "arguments": {
-    "id": "var-001"
-  }
-}
-```
+**Modes:** `mode-light`, `mode-dark`, `mode-compact`, `mode-comfortable`, `mode-brand-a`...
 
-### Find Variables by Name
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "find_variables",
-  "arguments": {
-    "query": "primary",
-    "type": "COLOR"
-  }
-}
-```
-
-## Creating Variable Collections
-
-Collections organize related variables (e.g., "Colors", "Spacing", "Typography").
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "create_collection",
-  "arguments": {
-    "name": "Semantic Colors"
-  }
-}
-```
-
-**Returns:** Collection ID for use when creating variables.
-
-## Creating Variables
-
-### Color Variables
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "create_variable",
-  "arguments": {
-    "collection_id": "col-001",
-    "name": "primary",
-    "type": "COLOR",
-    "value": "#3B82F6"
-  }
-}
-```
-
-### Float Variables (Spacing, Sizes)
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "create_variable",
-  "arguments": {
-    "collection_id": "col-002",
-    "name": "spacing-md",
-    "type": "FLOAT",
-    "value": "16"
-  }
-}
-```
-
-### String Variables
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "create_variable",
-  "arguments": {
-    "collection_id": "col-003",
-    "name": "font-heading",
-    "type": "STRING",
-    "value": "Inter"
-  }
-}
-```
-
-### Boolean Variables
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "create_variable",
-  "arguments": {
-    "collection_id": "col-004",
-    "name": "use-animations",
-    "type": "BOOLEAN",
-    "value": "true"
-  }
-}
-```
-
-## Setting Mode-Specific Values
-
-Variables can have different values per mode (e.g., light vs dark theme).
-
-### Get Available Modes
-
-First, get the collection to see its modes:
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "get_collection",
-  "arguments": {
-    "id": "col-001"
-  }
-}
-```
-
-### Set Value for Specific Mode
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "set_variable",
-  "arguments": {
-    "id": "var-001",
-    "mode": "mode-light",
-    "value": "#FFFFFF"
-  }
-}
-```
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "set_variable",
-  "arguments": {
-    "id": "var-001",
-    "mode": "mode-dark",
-    "value": "#1A1A1A"
-  }
-}
-```
-
-**Common mode patterns:**
-- Light/Dark: `mode-light`, `mode-dark`
-- Density: `mode-compact`, `mode-comfortable`
-- Brand: `mode-brand-a`, `mode-brand-b`
+**Example:** `set_variable: {id: "var-bg", mode: "mode-dark", value: "#1A1A1A"}`
 
 ## Binding Variables to Nodes
 
 Bind variables to node properties so changes propagate automatically.
 
-### Bind to Fill
+| Tool | Arguments |
+|------|-----------|
+| `bind_variable` | `node_id, variable_id, field` |
 
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "bind_variable",
-  "arguments": {
-    "node_id": "node-123",
-    "variable_id": "var-001",
-    "field": "fills"
-  }
-}
-```
+**Fields:** `fills`, `strokes`, `opacity`, `width`, `height`, `cornerRadius`, `strokeWeight`
 
-### Bind to Stroke
+**Example:** `bind_variable: {node_id: "node-123", variable_id: "var-bg", field: "fills"}`
 
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "bind_variable",
-  "arguments": {
-    "node_id": "node-123",
-    "variable_id": "var-002",
-    "field": "strokes"
-  }
-}
-```
-
-### Bind to Size
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "bind_variable",
-  "arguments": {
-    "node_id": "node-123",
-    "variable_id": "var-spacing-md",
-    "field": "width"
-  }
-}
-```
-
-### Bind to Opacity
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "bind_variable",
-  "arguments": {
-    "node_id": "node-123",
-    "variable_id": "var-opacity",
-    "field": "opacity"
-  }
-}
-```
-
-**Bindable fields:** `fills`, `strokes`, `opacity`, `width`, `height`, `cornerRadius`, `strokeWeight`
-
-## Managing Themes
+## Themes
 
 ### Set Theme Axes
 
-Define theme axes with their variants (creates the mode structure):
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "set_themes",
-  "arguments": {
-    "themes": {
-      "Color Scheme": ["Light", "Dark"],
-      "Density": ["Compact", "Comfortable"],
-      "Brand": ["Default", "Alternative"]
-    },
-    "replace": false
-  }
-}
+```yaml
+set_themes: {themes: {Color Scheme: [Light, Dark], Density: [Compact, Comfortable], Brand: [Default, Alternative]}, replace?: false}
 ```
 
-**Parameters:**
-- `themes`: Object mapping axis names to variant arrays
-- `replace`: If true, replaces all existing themes (default: false, merges)
+Creates mode combinations: Light+Compact+Default, Light+Compact+Alternative, Dark+Comfortable+Default, etc.
 
-This creates mode combinations like:
-- Light + Compact + Default
-- Light + Compact + Alternative
-- Dark + Comfortable + Default
-- etc.
+### Design MD
 
-### Get Current Design.md
+| Tool | Arguments |
+|------|-----------|
+| `get_design_md` | — |
+| `export_design_md` | — |
 
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "get_design_md"
-}
+## Theme Presets (.optheme files)
+
+| Tool | Arguments |
+|------|-----------|
+| `save_theme_preset` | `presetPath, name?` |
+| `load_theme_preset` | `presetPath` |
+| `list_theme_presets` | `directory` |
+
+## Workflow
+
+**1. Create collections:**
+```
+create_collection: {name: "Primitive Colors"}
+create_collection: {name: "Semantic Colors"}
+create_collection: {name: "Spacing"}
+set_themes: {themes: {Color Scheme: [Light, Dark]}}
 ```
 
-Returns the current design system spec including themes and variables.
-
-### Export Design.md
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "export_design_md"
-}
+**2. Create variables:**
+```
+create_variable: {collection_id: col-prim, name: "blue-500", type: COLOR, value: "#3B82F6"}
+create_variable: {collection_id: col-sem, name: "background", type: COLOR, value: "#FFFFFF"}
+set_variable: {id: var-bg, mode: mode-dark, value: "#1A1A1A"}
 ```
 
-Exports themes and variables as markdown for documentation.
-
-## Theme Presets
-
-Theme presets (.optheme files) are reusable packages of variables and themes.
-
-### Save Theme Preset
-
-Export current document's themes and variables to a .optheme file:
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "save_theme_preset",
-  "arguments": {
-    "presetPath": "/path/to/my-theme.optheme",
-    "name": "My Brand Theme"
-  }
-}
+**3. Bind to elements:**
+```
+bind_variable: {node_id: frame-001, variable_id: var-bg, field: fills}
+bind_variable: {node_id: heading-001, variable_id: var-text, field: fills}
 ```
 
-### Load Theme Preset
-
-Import a .optheme file into the current document:
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "load_theme_preset",
-  "arguments": {
-    "presetPath": "/path/to/my-theme.optheme"
-  }
-}
+**4. Export:**
 ```
-
-### List Available Presets
-
-```json
-{
-  "mcp_name": "open-pencil",
-  "tool_name": "list_theme_presets",
-  "arguments": {
-    "directory": "/path/to/presets/"
-  }
-}
-```
-
-## Complete Workflow Example
-
-### 1. Create a Design System from Scratch
-
-```bash
-# Create collections
-mcp open-pencil create_collection --name "Primitive Colors"
-mcp open-pencil create_collection --name "Semantic Colors"
-mcp open-pencil create_collection --name "Spacing"
-
-# Set up theme axes
-mcp open-pencil set_themes --themes '{"Color Scheme": ["Light", "Dark"]}'
-```
-
-### 2. Create Variables with Mode Support
-
-```bash
-# Primitive colors (single value)
-mcp open-pencil create_variable --collection_id col-prim --name "blue-500" --type COLOR --value "#3B82F6"
-mcp open-pencil create_variable --collection_id col-prim --name "gray-900" --type COLOR --value "#1A1A1A"
-
-# Semantic colors (light/dark modes)
-mcp open-pencil create_variable --collection_id col-sem --name "background" --type COLOR --value "#FFFFFF"
-mcp open-pencil set_variable --id var-bg --mode mode-dark --value "#1A1A1A"
-
-mcp open-pencil create_variable --collection_id col-sem --name "text-primary" --type COLOR --value "#1A1A1A"
-mcp open-pencil set_variable --id var-text --mode mode-dark --value "#FFFFFF"
-```
-
-### 3. Bind Variables to Design Elements
-
-```bash
-# Bind background color to frame
-mcp open-pencil bind_variable --node_id frame-001 --variable_id var-bg --field fills
-
-# Bind text color to heading
-mcp open-pencil bind_variable --node_id heading-001 --variable_id var-text --field fills
-```
-
-### 4. Export and Share
-
-```bash
-# Save as preset
-mcp open-pencil save_theme_preset --presetPath ./brand-theme.optheme --name "Brand Theme v1"
-
-# Export as CSS
-mcp open-pencil design_to_tokens --format css
-
-# Export as Tailwind config
-mcp open-pencil design_to_tokens --format tailwind
+save_theme_preset: {presetPath: ./brand-theme.optheme, name: "Brand Theme v1"}
+design_to_tokens: {format: css}  # or tailwind, json
 ```
 
 ## Best Practices
 
-1. **Organize into collections** — Separate primitives (blue-500, gray-900) from semantic tokens (background, text-primary)
-
-2. **Name consistently** — Use kebab-case: `color-primary`, `spacing-lg`, `font-heading`
-
-3. **Limit theme axes** — 2-3 axes is manageable; more creates exponential mode combinations
-
-4. **Bind at component level** — Bind variables to component instances, not every leaf node
-
-5. **Export presets for sharing** — Use .optheme files to share themes across team members
-
-6. **Document with design.md** — Use `export_design_md` to generate documentation
+1. **Organize into collections** — primitives (blue-500) vs semantic (background, text-primary)
+2. **Name consistently** — kebab-case: `color-primary`, `spacing-lg`, `font-heading`
+3. **Limit theme axes** — 2-3 axes max; more creates exponential mode combinations
+4. **Bind at component level** — bind to instances, not every leaf node
+5. **Export presets for sharing** — .optheme files for team sharing
+6. **Document with design.md** — use `export_design_md`
 
 ## Common Patterns
 
-### Light/Dark Toggle
-
-```json
-{
-  "set_themes": {
-    "themes": { "Color Scheme": ["Light", "Dark"] }
-  }
-}
+**Light/Dark Toggle:**
+```yaml
+set_themes: {themes: {Color Scheme: [Light, Dark]}}
+# Then set mode-specific values for surface, text, border colors
 ```
 
-Then set mode-specific values for surface, text, and border colors.
-
-### Density Modes
-
-```json
-{
-  "set_themes": {
-    "themes": {
-      "Color Scheme": ["Light", "Dark"],
-      "Density": ["Compact", "Comfortable"]
-    }
-  }
-}
+**Density Modes:**
+```yaml
+set_themes: {themes: {Color Scheme: [Light, Dark], Density: [Compact, Comfortable]}}
+# Use density to control padding and gap values
 ```
 
-Use density to control padding and gap values.
-
-### Brand Variants
-
-```json
-{
-  "set_themes": {
-    "themes": {
-      "Brand": ["Default", "Corporate", "Playful"]
-    }
-  }
-}
+**Brand Variants:**
+```yaml
+set_themes: {themes: {Brand: [Default, Corporate, Playful]}}
+# Swap primary colors and font families per brand
 ```
-
-Swap primary colors and font families per brand.
 
 ## Variable Lifecycle
 

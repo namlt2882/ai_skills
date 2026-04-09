@@ -8,7 +8,7 @@ budget: 1000
 category: base
 ---
 
-# Layout Rules for OpenPencil v2
+# Layout Rules for OpenPencil (https://github.com/open-pencil/open-pencil)
 
 ## Layout Types (flex prop)
 

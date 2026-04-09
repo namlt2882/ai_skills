@@ -1,6 +1,6 @@
 ---
 name: design-type
-description: Design type detection and classification for OpenPencil v2
+description: Design type detection and classification for OpenPencil (https://github.com/open-pencil/open-pencil)
 phase: [planning]
 trigger: null
 priority: 5
@@ -10,7 +10,7 @@ category: base
 
 # Design Type Detection (v2)
 
-OpenPencil v2 uses JSX format and supports `.fig` and `.pen` files. Design type determines canvas dimensions and structure.
+OpenPencil (https://github.com/open-pencil/open-pencil) uses JSX format and supports `.fig` and `.pen` files. Design type determines canvas dimensions and structure.
 
 ## Type 1: Multi-section page
 - Marketing, landing, informational pages

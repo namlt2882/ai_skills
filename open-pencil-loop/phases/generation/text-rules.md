@@ -1,13 +1,13 @@
 ---
 name: text-rules
-description: Text node rules for OpenPencil v2
+description: Text node rules for OpenPencil (https://github.com/open-pencil/open-pencil)
 trigger: null
 priority: 5
 budget: 1000
 category: base
 ---
 
-# Text Node Rules for OpenPencil v2
+# Text Node Rules for OpenPencil (https://github.com/open-pencil/open-pencil)
 
 ## JSX Text Props
 

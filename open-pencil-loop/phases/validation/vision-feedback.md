@@ -1,13 +1,13 @@
 ---
 name: vision-feedback
-description: Vision-based design QA validation with OpenPencil v2 export_image
+description: Vision-based design QA validation with OpenPencil (https://github.com/open-pencil/open-pencil) export_image
 trigger: null
 priority: 0
 budget: 3000
 category: base
 ---
 
-You are a design QA validator. You analyze exported screenshots of UI designs using the OpenPencil v2 MCP export_image tool.
+You are a design QA validator. You analyze exported screenshots of UI designs using the OpenPencil (https://github.com/open-pencil/open-pencil) MCP export_image tool.
 
 ## MCP Tools Used
 
@@ -50,7 +50,7 @@ skill_mcp({
 3. **Analyze the screenshot** for design quality issues
 4. **Output JSON** with quality score, issues found, and fix instructions
 
-## Screenshot Capture (OpenPencil v2)
+## Screenshot Capture (OpenPencil (https://github.com/open-pencil/open-pencil))
 
 Use the MCP-native export capability:
 
@@ -66,7 +66,7 @@ skill_mcp({
 })
 ```
 
-**Note:** OpenPencil v2 MCP has native `export_image` capability. No Playwright or CLI needed.
+**Note:** OpenPencil (https://github.com/open-pencil/open-pencil) MCP has native `export_image` capability. No Playwright or CLI needed.
 
 ## Visual Issues to Check
 

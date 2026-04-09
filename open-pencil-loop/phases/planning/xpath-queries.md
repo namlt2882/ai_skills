@@ -1,6 +1,6 @@
 ---
 name: xpath-queries
-description: XPath query patterns for targeting nodes in OpenPencil v2
+description: XPath query patterns for targeting nodes in OpenPencil (https://github.com/open-pencil/open-pencil)
 docs: https://github.com/nanodocumet/open-pencil
 trigger: null
 phase: [planning]
@@ -11,7 +11,7 @@ category: base
 
 # XPath Queries (v2)
 
-OpenPencil v2 supports XPath selectors for querying and targeting nodes. Use with `query_nodes` MCP tool.
+OpenPencil (https://github.com/open-pencil/open-pencil) supports XPath selectors for querying and targeting nodes. Use with `query_nodes` MCP tool.
 
 ## Available Node Types
 

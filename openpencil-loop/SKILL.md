@@ -113,34 +113,58 @@ spawn_task(category="...", skills=[...], background=true, prompt="...")
 
 This skill uses **task orchestration** to avoid context dilution. The Build Loop follows 4 phases per loop type, each mapped to a task entry. Spawn subagents for each independent task.
 
+### Sub-Skill Naming Convention
+
+Sub-skills are referenced by their `name` field in frontmatter (no prefix needed within the same skill repo):
+
+```
+load_skills=[...]          // ECC resolves by name within skill repo
+load_skills=["skill:name"] // explicit repo:skill:name for cross-repo
+```
+
+| Category | Sub-Skill Names |
+|----------|----------------|
+| **Planning** | `design-type`, `decomposition` |
+| **Generation** | `design-system`, `schema`, `layout-rules`, `text-rules`, `jsonl-format` |
+| **Validation** | `vision-feedback` |
+| **Maintenance** | `local-edit`, `incremental-add` |
+| **Codegen** | `analyze`, `discover`, `deduplicate`, `generate` |
+| **Knowledge** | `role-definitions`, `icon-catalog`, `design-principles`, `examples`, `copywriting`, `codegen`, `codegen-react`, `codegen-html` |
+| **Domains** | `landing-page`, `dashboard`, `mobile-app`, `form-ui`, `cjk-typography` |
+
 ### Phase-Based Tasks
 
-| Task | Category | Skills | MCP Tools | Sub-Skills | When to Use |
-|------|----------|--------|-----------|------------|-------------|
-| **Phase 1: PLANNING** | `ultrabrain` | `openpencil-design` | design_skeleton | design-type.md, decomposition.md | User gives new design request |
-| **Phase 2: GENERATION** | `ultrabrain` | `openpencil-design` | batch_design, insert_node | generation/*.md, role-definitions.md, icon-catalog.md | Have decomposed plan, build each section |
-| **Phase 3: VALIDATION** | `ultrabrain` | `openpencil-design` | batch_get, snapshot_layout | vision-feedback.md | Design is built, validate quality |
-| **Phase 4: MAINTENANCE** | `ultrabrain` | `openpencil-design` | batch_design, update_node, delete_node, insert_node | maintenance/*.md | User wants to edit or add to existing design |
+| Task | Category | Skills | When to Use |
+|------|----------|--------|-------------|
+| **Phase 1: PLANNING** | `ultrabrain` | `design-type`, `decomposition` | User gives new design request |
+| **Phase 2: GENERATION** | `ultrabrain` | `design-system`, `schema`, `layout-rules`, `text-rules`, `jsonl-format`, `role-definitions`, `icon-catalog` | Have decomposed plan, build each section |
+| **Phase 3: VALIDATION** | `unspecified-high` | `vision-feedback` | Design is built, validate quality |
+| **Phase 4: MAINTENANCE** | `ultrabrain` | `local-edit`, `incremental-add` | User wants to edit or add to existing design |
+| **CodeGen: ANALYZE** | `unspecified-high` | `analyze` | Project structure check, design validation |
+| **CodeGen: DISCOVER** | `explore` | `discover` | Find existing implementations in src/ |
+| **CodeGen: DEDUPE** | `unspecified-high` | `deduplicate` | Hash-based component deduplication |
+| **CodeGen: GENERATE** | `deep` | `generate`, `codegen`, `codegen-react`, `codegen-html` | Production code generation |
 
 ### Supporting Tasks
 
-| Task | Category | Skills | MCP Tools | When to Use |
-|------|----------|--------|-----------|-------------|
-| **Prompt Enhancement** | `writing` | `enhance-prompt` | None (reads codegen guidelines) | User input is vague or needs structure |
-| **DESIGN.md Creation** | `ultrabrain` | `taste-design` | None | DESIGN.md missing and user confirms |
-| **DESIGN.md Read** | `explore` | none | None | Check for existing DESIGN.md |
-| **CodeGen Phase 1: ANALYZE** | `ultrabrain` | `openpencil-design` | batch_get, get_design_md, snapshot_layout | Project structure check, design validation |
-| **CodeGen Phase 2: DISCOVER** | `ultrabrain` | `openpencil-design` | batch_get, export_nodes | Find existing implementations in src/ |
-| **CodeGen Phase 3: DEDUPE** | `ultrabrain` | `openpencil-design` | export_nodes | Hash-based component deduplication |
-| **CodeGen Phase 4: GENERATE** | `ultrabrain` | `openpencil-design` | export_nodes | Production code generation with safety |
-| **Project Documentation** | `ultrabrain` | none | None | Updating PROJECT.md |
+| Task | Category | Skills | When to Use |
+|------|----------|--------|-------------|
+| **Prompt Enhancement** | `unspecified-high` | `enhance-prompt`, `role-definitions` | User input is vague or needs structure |
+| **DESIGN.md Creation** | `ultrabrain` | `design-system` | DESIGN.md missing and user confirms |
+| **DESIGN.md Read** | `explore` | — | Check for existing DESIGN.md |
+| **Domain Selection** | `ultrabrain` | `landing-page`, `dashboard`, `mobile-app`, `form-ui`, `cjk-typography` | Match design type to domain |
+| **Project Documentation** | `writing` | `examples` | Updating PROJECT.md |
 
-All tasks use `run_in_background=true` for parallel execution. Example:
+### Parallel Task Dispatch
+
+Spawn independent tasks with `run_in_background=true`. Use consistent pageId conventions for multi-page work.
 
 ```typescript
-// OpenCode:
-task(category="explore", load_skills=[], run_in_background=true, prompt="Check if .op/DESIGN.md exists...")
-task(category="writing", load_skills=["enhance-prompt"], run_in_background=true, prompt="Enhance this design prompt...")
+// OpenCode — independent tasks run in parallel:
+task(category="ultrabrain", load_skills=["design-type"],    run_in_background=true, prompt="Detect design type for: ...")
+task(category="ultrabrain", load_skills=["decomposition"], run_in_background=true, prompt="Decompose: ...")
+task(category="writing",    load_skills=["copywriting"],   run_in_background=true, prompt="Enhance: ...")
+
 // Claude Code: tool_use with background=true
 // Codex: Agent.run({ model: "o3-mini", prompt: "...", background: true })
 ```

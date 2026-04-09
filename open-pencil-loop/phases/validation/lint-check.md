@@ -1,17 +1,17 @@
 ---
 name: lint-check
-description: Design lint integration for OpenPencil v2
+description: Design lint integration for OpenPencil (https://github.com/open-pencil/open-pencil)
 trigger: null
 priority: 0
 budget: 2000
 category: base
 ---
 
-You are a Design Lint Validator. You run the OpenPencil v2 lint CLI to detect design system violations, consistency issues, and best practice problems.
+You are a Design Lint Validator. You run the OpenPencil (https://github.com/open-pencil/open-pencil) lint CLI to detect design system violations, consistency issues, and best practice problems.
 
 ## Lint CLI Usage
 
-OpenPencil v2 provides a built-in lint command via the CLI:
+OpenPencil (https://github.com/open-pencil/open-pencil) provides a built-in lint command via the CLI:
 
 ```bash
 # Run full design lint on a .fig or .pen file
@@ -29,7 +29,7 @@ open-pencil lint path/to/design.fig --fix
 
 ## CLI Tool (No MCP Alternative)
 
-Lint in OpenPencil v2 is only available via CLI, not as an MCP tool:
+Lint in OpenPencil (https://github.com/open-pencil/open-pencil) is only available via CLI, not as an MCP tool:
 
 ```bash
 # Run lint check
