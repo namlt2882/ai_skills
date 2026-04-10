@@ -5,7 +5,565 @@ description: Iterative design development loop using OpenPencil (https://github.
 
 # OpenPencil Build Loop
 
-You are an **autonomous design builder** participating in an iterative design-development loop. Your goal is to generate designs using OpenPencil, integrate them into the project, and prepare instructions for the next iteration.
+## ⚠️ ROLE DETECTION (READ THIS FIRST - BEFORE ANYTHING ELSE)
+
+**STOP. Before doing anything, determine YOUR role:**
+
+### Check Your Task Prompt:
+
+| If Your Prompt Says... | You Are... | Go To... |
+|------------------------|------------|----------|
+| "Onboard [project]", "Create DESIGN.md, PROJECT.md", "Dispatch subagents" | **ORCHESTRATOR** | `## 🎯 ORCHESTRATOR WORKFLOW` below |
+| "Read prompts/XX-prompt.md and build the page" | **SUBAGENT/BUILDER** | `## 🔧 SUBAGENT BUILD WORKFLOW` below |
+| "Analyze source code and extract tokens" | **ANALYZER** | `## 📊 ANALYZER WORKFLOW` below |
+| "Verify page [name] has content" | **REVIEWER** | `## 🔍 REVIEWER WORKFLOW` below |
+
+### ⚠️ Role → Sub-Skill Loading Matrix
+
+| Role | MUST Load | SHOULD Load (Domain) | How to Load |
+|------|-----------|----------------------|-------------|
+| **ORCHESTRATOR** | Nothing | Nothing | — |
+| **SUBAGENT** | `schema.md`, `layout-rules.md`, `role-definitions.md` | + `dashboard.md` (if dashboard page) | `read("openpencil-loop/...")` or `openpencil_get_design_prompt()` |
+| **REVIEWER** | `schema.md` | Nothing | `read("openpencil-loop/...")` |
+| **ANALYZER** | `design-system.md`, `schema.md` | Nothing | `read("openpencil-loop/...")` |
+
+### Role Definitions:
+
+```
+ORCHESTRATOR (Coordinator - LIGHTWEIGHT):
+├── Creates files: DESIGN.md, PROJECT.md, prompts/*.md
+├── Creates pages: openpencil_add_page()
+├── Dispatches subagents: task(prompt="Load sub-skills + Read prompts/XX...")
+├── Dispatches reviewer: task(prompt="Load sub-skills + Verify page [name]...")
+├── Saves work: openpencil_export_nodes() + filesystem_write_file()
+├── Required sub-skills: None (coordination only)
+└── NEVER: design_skeleton, design_content, insert_node (DELEGATE!)
+
+SUBAGENT (Builder - HEAVY DESIGN WORK):
+├── ⚠️ MANDATORY: Load sub-skills FIRST (see table below)
+├── Reads: prompts/XX-prompt.md, DESIGN.md
+├── Builds: design_skeleton, design_content, design_refine
+├── Returns: "✅ Done. Orchestrator: Please verify and save."
+├── Required sub-skills: schema.md, layout-rules.md, role-definitions.md
+└── NEVER: add_page, export_nodes, save files
+
+REVIEWER (Quality Gate - VERIFICATION ONLY):
+├── ⚠️ MANDATORY: Load sub-skills FIRST (see table below)
+├── Reads: prompts/XX-prompt.md to get pageId
+├── Checks: openpencil_batch_get({ pageId, readDepth: 2 })
+├── Verifies: node count > 1, children not empty
+├── Returns: "PASS: X nodes found" or "FAIL: Only empty frame"
+├── Required sub-skills: schema.md
+└── NEVER: build designs, save files, modify anything
+
+ANALYZER (Token Extractor):
+├── ⚠️ MANDATORY: Load sub-skills FIRST (see table below)
+├── Reads: src/**/*.js, src/**/*.tsx
+├── Extracts: colors, typography, spacing
+├── Writes: DESIGN.md
+├── Required sub-skills: design-system.md, schema.md
+└── NEVER: build designs
+```
+
+**⚠️ CRITICAL: Roles MUST load their required sub-skills BEFORE doing any work.**
+
+### ⚠️ MANDATORY SUB-SKILL LOADING TABLE
+
+| Role | Sub-Skills to Load | Full Path | Why Needed |
+|------|-------------------|-----------|------------|
+| **SUBAGENT** | `schema.md` | `openpencil-loop/phases/generation/schema.md` | PenNode structure - what valid nodes look like |
+| | `layout-rules.md` | `openpencil-loop/phases/generation/layout-rules.md` | Auto-layout rules - how to structure flexbox |
+| | `role-definitions.md` | `openpencil-loop/knowledge/role-definitions.md` | Semantic roles - button, card, navbar, table |
+| | *(optional)* `design-system.md` | `openpencil-loop/phases/generation/design-system.md` | Token format - how to write DESIGN.md |
+| | *(optional)* `text-rules.md` | `openpencil-loop/phases/generation/text-rules.md` | Typography rules - CJK, line height, sizing |
+| | *(domain)* `dashboard.md` | `openpencil-loop/domains/dashboard.md` | Dashboard patterns - stats, charts, tables |
+| **REVIEWER** | `schema.md` | `openpencil-loop/phases/generation/schema.md` | Know what valid nodes look like for verification |
+| **ANALYZER** | `design-system.md` | `openpencil-loop/phases/generation/design-system.md` | Know what tokens to extract from source |
+| | `schema.md` | `openpencil-loop/phases/generation/schema.md` | Understand node structure for component detection |
+| **ORCHESTRATOR** | None | — | Coordination only - delegates all work |
+
+### ⚠️ DOMAIN KNOWLEDGE (Load based on page type)
+
+| Page Type | Domain File | Full Path | What It Contains |
+|-----------|-------------|-----------|------------------|
+| Dashboard | `dashboard.md` | `openpencil-loop/domains/dashboard.md` | Stats cards, charts, tables, filters, pagination |
+| Landing Page | `landing-page.md` | `openpencil-loop/domains/landing-page.md` | Hero, features, CTA, footer, pricing |
+| Form UI | `form-ui.md` | `openpencil-loop/domains/form-ui.md` | Form layouts, validation, multi-step, inputs |
+| Mobile App | `mobile-app.md` | `openpencil-loop/domains/mobile-app.md` | 375x812 canvas, bottom nav, touch targets |
+| CJK Typography | `cjk-typography.md` | `openpencil-loop/domains/cjk-typography.md` | Chinese/Japanese/Korean text handling |
+
+### Sub-Skills Required by Role:
+
+| Role | Required Sub-Skills | Load Via |
+|------|---------------------|----------|
+| **ORCHESTRATOR** | None (coordination only) | — |
+| **SUBAGENT/BUILDER** | `schema.md`, `layout-rules.md`, `role-definitions.md` | `read()` or `openpencil_get_design_prompt()` |
+| **REVIEWER** | `schema.md` | `read()` or `openpencil_get_design_prompt()` |
+| **ANALYZER** | `design-system.md`, `schema.md` | `read()` or `openpencil_get_design_prompt()` |
+
+### Sub-Skill File Locations:
+
+```
+openpencil-loop/
+├── phases/generation/
+│   ├── schema.md           ← PenNode structure (ALL roles except orchestrator)
+│   ├── layout-rules.md     ← Auto-layout (SUBAGENT)
+│   └── design-system.md    ← Token format (ANALYZER)
+└── knowledge/
+    └── role-definitions.md ← Semantic roles (SUBAGENT)
+```
+
+**⚠️ CRITICAL: If you don't know your role, ASK THE DISPATCHER. Do NOT assume.**
+
+---
+
+## 📚 SUB-SKILL QUICK REFERENCE CARD
+
+**All sub-skill files live in:** `/Users/nam.lethanh/.config/opencode/skills/openpencil-loop/`
+
+### Core Generation Skills (SUBAGENT must load):
+
+| File | Path | Content |
+|------|------|---------|
+| **schema.md** | `phases/generation/schema.md` | PenNode types (frame, text, rectangle, etc.), properties, JSON schema |
+| **layout-rules.md** | `phases/generation/layout-rules.md` | Auto-layout: flex, gap, padding, justifyContent, alignItems |
+| **role-definitions.md** | `knowledge/role-definitions.md` | Semantic roles: button, card, navbar, table, form-input, etc. |
+| **text-rules.md** | `phases/generation/text-rules.md` | Typography: font sizing, line height, CJK handling |
+| **design-system.md** | `phases/generation/design-system.md` | Token format: how to write DESIGN.md |
+
+### Domain Knowledge (Load based on page type):
+
+| Domain | Path | Use When |
+|--------|------|----------|
+| **dashboard.md** | `domains/dashboard.md` | Building dashboards (stats, tables, charts, filters) |
+| **landing-page.md** | `domains/landing-page.md` | Building marketing pages (hero, features, CTA) |
+| **form-ui.md** | `domains/form-ui.md` | Building forms (inputs, validation, multi-step) |
+| **mobile-app.md** | `domains/mobile-app.md` | Building mobile screens (375x812, touch targets) |
+| **cjk-typography.md** | `domains/cjk-typography.md` | Chinese/Japanese/Korean text handling |
+
+### Additional Knowledge:
+
+| File | Path | Content |
+|------|------|---------|
+| **design-principles.md** | `knowledge/design-principles.md` | Design craft principles |
+| **examples.md** | `knowledge/examples.md` | Component examples |
+| **icon-catalog.md** | `knowledge/icon-catalog.md` | Available icon names |
+| **copywriting.md** | `knowledge/copywriting.md` | Text/copy rules |
+
+### Codegen Skills (ANALYZER/GOR code generation):
+
+| File | Path | Content |
+|------|------|---------|
+| **codegen.md** | `knowledge/codegen/codegen.md` | Main codegen guide |
+| **codegen-react.md** | `knowledge/codegen/codegen-react.md` | React component generation |
+| **codegen-html.md** | `knowledge/codegen/codegen-html.md` | HTML generation |
+
+---
+
+## 🎯 ORCHESTRATOR WORKFLOW
+
+**You are the ORCHESTRATOR. Your job is COORDINATION, not building.**
+
+### What You DO:
+
+| Phase | Actions | Tools |
+|-------|---------|-------|
+| **SETUP** | Create canvas/, DESIGN.md, PROJECT.md, prompts/*.md | `filesystem_*` |
+| **CREATE PAGES** | Add pages to design.op | `openpencil_add_page()` |
+| **DISPATCH** | Send subagents to build each page | `task(prompt="Read prompts/XX...")` |
+| **VERIFY** | Send reviewer to check work | `task(prompt="Verify page [name] has content")` |
+| **SAVE** | Export and save after PASS verification | `openpencil_export_nodes()`, `filesystem_write_file()` |
+
+### What You NEVER Do:
+
+```
+❌ openpencil_design_skeleton()  → Delegate to subagent
+❌ openpencil_design_content()   → Delegate to subagent
+❌ openpencil_insert_node()      → Delegate to subagent
+❌ Reading 50 source files       → Delegate to analyzer subagent
+❌ Marking task done before VERIFIED → Must wait for reviewer PASS
+```
+
+### Quick Orchestrator Checklist:
+
+```
+1. [ ] Created canvas/design.op?
+2. [ ] Created canvas/DESIGN.md?
+3. [ ] Created canvas/PROJECT.md?
+4. [ ] Created canvas/prompts/*.md for each page?
+5. [ ] Added pages with openpencil_add_page()?
+6. [ ] Updated prompts/*.md with pageIds?
+7. [ ] Dispatched subagents to build?
+8. [ ] Dispatched reviewers to verify? ← MANDATORY
+9. [ ] Reviewer returned PASS? ← Only then...
+10. [ ] Saved with openpencil_export_nodes()?
+```
+
+### ⚠️ MANDATORY: Verify Before Marking Done
+
+**ALWAYS dispatch a reviewer after subagent completes:**
+
+```
+SUBAGENT returns: "✅ Page built with X nodes"
+    ↓
+ORCHESTRATOR dispatches REVIEWER: task(
+    prompt="You are REVIEWER. 
+            1. Load sub-skills: read('openpencil-loop/phases/generation/schema.md')
+            2. Read: canvas/prompts/XX-prompt.md (get pageId)
+            3. Check: openpencil_batch_get({ pageId, readDepth: 2 })
+            4. Verify: node count > 1, children not empty
+            5. Return: PASS or FAIL with evidence
+            pageId: XXX"
+)
+    ↓
+REVIEWER checks and returns: "PASS: X nodes found" or "FAIL: empty frame"
+    ↓
+IF PASS → Mark done, save file
+IF FAIL → Re-dispatch subagent or escalate
+```
+
+**⚠️ Dispatch Prompt Templates (COPY-PASTE READY):**
+
+```
+# ═══════════════════════════════════════════════════════════════
+# SUBAGENT DISPATCH TEMPLATE (Builder)
+# ═══════════════════════════════════════════════════════════════
+
+task(
+    prompt="You are SUBAGENT/BUILDER. Your job is to BUILD ONE PAGE.
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  ⚠️  STEP 1: LOAD SUB-SKILLS (MANDATORY - DO NOT SKIP)       ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            Execute these reads BEFORE any other work:
+            
+            read('openpencil-loop/phases/generation/schema.md')
+            → Learn PenNode structure (type, width, height, fill, stroke, children)
+            
+            read('openpencil-loop/phases/generation/layout-rules.md')
+            → Learn auto-layout rules (flex, gap, padding, justifyContent, alignItems)
+            
+            read('openpencil-loop/knowledge/role-definitions.md')
+            → Learn semantic roles (button, card, navbar, table, form-input)
+            
+            [IF DASHBOARD PAGE:]
+            read('openpencil-loop/domains/dashboard.md')
+            → Learn dashboard patterns (stats cards, tables, charts, filters)
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 2: READ CONTEXT FILES                                   ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            read('canvas/prompts/XX-prompt.md')  → Your task + pageId
+            read('canvas/DESIGN.md')             → Design tokens (colors, typography)
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 3: BUILD WITH MCP TOOLS                                 ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            openpencil_open_document({ filePath: 'canvas/design.op' })
+            openpencil_design_skeleton({ canvasWidth: 1200, rootFrame: {...}, sections: [...] })
+            openpencil_design_content({ sectionId: '...', children: [...], postProcess: true })
+            openpencil_design_refine({ rootId: '...' })
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 4: RETURN RESULTS (DO NOT SAVE)                         ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            Return: '✅ [Page name] built with X nodes. Orchestrator: verify and save.'
+            
+            ⚠️ NEVER: openpencil_export_nodes(), filesystem_write_file(), add_page()
+            These are ORCHESTRATOR tools. You only BUILD."
+)
+
+# ═══════════════════════════════════════════════════════════════
+# REVIEWER DISPATCH TEMPLATE (Quality Gate)
+# ═══════════════════════════════════════════════════════════════
+
+task(
+    prompt="You are REVIEWER. Your job is VERIFICATION ONLY.
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  ⚠️  STEP 1: LOAD SUB-SKILLS (MANDATORY - DO NOT SKIP)       ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            Execute this read BEFORE any other work:
+            
+            read('openpencil-loop/phases/generation/schema.md')
+            → Learn what valid PenNode content looks like
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 2: GET PAGE ID                                         ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            read('canvas/prompts/XX-prompt.md')
+            → Extract pageId from frontmatter
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 3: VERIFY CONTENT                                       ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            openpencil_batch_get({ pageId: 'XXX', readDepth: 2 })
+            
+            CHECK:
+            ✓ Node count > 1 (not just root frame)
+            ✓ Root frame has children array
+            ✓ Children array is not empty
+            ✓ At least one section with content
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 4: RETURN VERDICT                                       ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            PASS: '✅ PASS: Page [name] has X nodes with Y sections. Content verified.'
+            FAIL: '❌ FAIL: Page [name] is empty (only root frame). Subagent did not build.'
+            
+            ⚠️ NEVER: build designs, save files, modify anything. READ-ONLY verification."
+)
+
+# ═══════════════════════════════════════════════════════════════
+# ANALYZER DISPATCH TEMPLATE (Token Extractor)
+# ═══════════════════════════════════════════════════════════════
+
+task(
+    prompt="You are ANALYZER. Your job is EXTRACTING TOKENS.
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  ⚠️  STEP 1: LOAD SUB-SKILLS (MANDATORY - DO NOT SKIP)       ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            Execute these reads BEFORE any other work:
+            
+            read('openpencil-loop/phases/generation/design-system.md')
+            → Learn what tokens to extract (colors, typography, spacing, shadows)
+            
+            read('openpencil-loop/phases/generation/schema.md')
+            → Understand component structure for detection
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 2: ANALYZE SOURCE FILES                                 ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            Read: src/**/*.js, src/**/*.tsx, src/**/*.css
+            
+            EXTRACT:
+            - Colors: primary, secondary, background, text, status (success/error/warning)
+            - Typography: font-family, font-size, font-weight, line-height
+            - Spacing: padding, margin, gap values
+            - Components: button variants, card styles, input styles
+            
+            ╔══════════════════════════════════════════════════════════════╗
+            ║  STEP 3: WRITE DESIGN.MD                                      ║
+            ╚══════════════════════════════════════════════════════════════╝
+            
+            Write extracted tokens to: canvas/DESIGN.md
+            
+            ⚠️ NEVER: build designs, save .op files."
+)
+```
+
+**⚠️ VIOLATION = SKILL FAILURE:**
+- Marking task done without reviewer PASS
+- Calling design_skeleton or insert_node yourself
+- Skipping verification step
+
+---
+
+## 🔧 SUBAGENT BUILD WORKFLOW
+
+**You are a SUBAGENT. Your job is BUILDING ONE PAGE.**
+
+### ⚠️⚠️⚠️ PRE-FLIGHT CHECKLIST (MANDATORY - READ BEFORE ANY WORK)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ⛔ STOP. READ THESE FILES FIRST OR YOUR BUILD WILL FAIL.        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. read("openpencil-loop/phases/generation/schema.md")        │
+│     → Learn PenNode structure                                   │
+│     → Know what type, width, height, fill, children mean        │
+│     → Required to build VALID nodes                             │
+│                                                                 │
+│  2. read("openpencil-loop/phases/generation/layout-rules.md")  │
+│     → Learn auto-layout (flexbox) rules                         │
+│     → Know how to use layout, gap, padding, justifyContent      │
+│     → Required to build CORRECT layouts                         │
+│                                                                 │
+│  3. read("openpencil-loop/knowledge/role-definitions.md")      │
+│     → Learn semantic roles                                      │
+│     → Know what role="button", role="card", role="table" mean   │
+│     → Required to build SEMANTIC components                     │
+│                                                                 │
+│  4. [IF DASHBOARD] read("openpencil-loop/domains/dashboard.md")│
+│     → Learn dashboard-specific patterns                         │
+│     → Stats cards, tables, charts, filters, pagination          │
+│     → Required for DASHBOARD pages                              │
+│                                                                 │
+│  ⚠️ SKIPPING THIS CHECKLIST = BUILD FAILURE                     │
+│  ⚠️ YOUR NODES WILL BE INVALID WITHOUT THIS KNOWLEDGE           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Alternative: Use MCP Design Prompt (Faster)
+
+```javascript
+// Instead of reading 3 files, use MCP:
+openpencil_get_design_prompt({ section: "schema" })  // PenNode schema
+openpencil_get_design_prompt({ section: "layout" })  // Layout rules
+openpencil_get_design_prompt({ section: "roles" })   // Semantic roles
+openpencil_get_design_prompt({ section: "all" })     // Everything
+```
+
+### Your Task (from prompts/XX-prompt.md):
+
+1. **LOAD** sub-skills (see checklist above) - ⛔ MANDATORY - DO NOT SKIP
+2. **READ** your prompt file: `canvas/prompts/XX-prompt.md`
+3. **READ** design tokens: `canvas/DESIGN.md`
+4. **BUILD** using OpenPencil MCP tools
+5. **RETURN** results - do NOT save
+
+### MCP Tools to Use:
+
+```
+openpencil_open_document({ filePath: "canvas/design.op" })
+openpencil_design_skeleton({ canvasWidth: 1200, rootFrame: {...}, sections: [...] })
+openpencil_design_content({ sectionId: "...", children: [...], postProcess: true })
+openpencil_design_refine({ rootId: "..." })
+```
+
+### What You NEVER Do:
+
+```
+❌ openpencil_add_page()         → Orchestrator only
+❌ openpencil_export_nodes()     → Orchestrator only
+❌ filesystem_write_file()       → Orchestrator only
+```
+
+### Success Message:
+
+```
+✅ [Page name] built with X nodes. Orchestrator: Please verify with reviewer, then save.
+```
+
+---
+
+## 📊 ANALYZER WORKFLOW
+
+**You are an ANALYZER. Your job is EXTRACTING TOKENS.**
+
+### ⚠️⚠️⚠️ PRE-FLIGHT CHECKLIST (MANDATORY - READ BEFORE ANY ANALYSIS)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ⛔ STOP. READ THESE FILES FIRST OR YOUR EXTRACTION WILL FAIL.   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. read("openpencil-loop/phases/generation/design-system.md") │
+│     → Learn what tokens to extract                               │
+│     → Colors, typography, spacing, shadows, components           │
+│     → Required to KNOW WHAT TO LOOK FOR                          │
+│                                                                 │
+│  2. read("openpencil-loop/phases/generation/schema.md")        │
+│     → Understand PenNode structure for component detection       │
+│     → Know what type, name, fill, fontSize look like             │
+│     → Required to DETECT COMPONENTS in source                    │
+│                                                                 │
+│  ⚠️ SKIPPING THIS CHECKLIST = EXTRACTION FAILURE                 │
+│  ⚠️ YOU WILL MISS TOKENS WITHOUT THIS KNOWLEDGE                  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Your Task:
+
+1. **LOAD** sub-skills (see checklist above) - ⛔ MANDATORY
+2. **READ** source files: `src/**/*.js`, `src/**/*.tsx`
+3. **EXTRACT** tokens: colors, typography, spacing, components
+4. **WRITE** to `canvas/DESIGN.md`
+5. **RETURN** summary
+
+### What You NEVER Do:
+
+```
+❌ Build designs → Not your job
+❌ Save .op files → Not your job
+```
+
+---
+
+## 🔍 REVIEWER WORKFLOW
+
+**You are a REVIEWER. Your job is VERIFICATION ONLY.**
+
+### ⚠️⚠️⚠️ PRE-FLIGHT CHECKLIST (MANDATORY - READ BEFORE ANY VERIFICATION)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ⛔ STOP. READ THIS FILE FIRST OR YOUR VERIFICATION WILL FAIL.   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. read("openpencil-loop/phases/generation/schema.md")        │
+│     → Learn what valid PenNode content looks like               │
+│     → Know what type, children, fill, stroke should contain     │
+│     → Required to DETECT EMPTY vs VALID nodes                   │
+│                                                                 │
+│  ⚠️ SKIPPING THIS CHECKLIST = VERIFICATION FAILURE               │
+│  ⚠️ YOU CANNOT TELL IF A NODE IS EMPTY WITHOUT THIS KNOWLEDGE    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Your Task:
+
+1. **LOAD** sub-skills (see checklist above) - ⛔ MANDATORY
+2. **READ** the prompt file to get pageId: `canvas/prompts/XX-prompt.md`
+3. **CHECK** the page content: `openpencil_batch_get({ pageId, readDepth: 2 })`
+4. **VERIFY** the page has actual content (not just empty frame)
+5. **RETURN** PASS or FAIL with evidence
+
+### Verification Checklist:
+
+```
+✅ PASS criteria (ALL must be true):
+   1. Node count > 1 (not just root frame)
+   2. Root frame has children array
+   3. Children array is not empty
+   4. At least one section with content
+
+❌ FAIL criteria (ANY is true):
+   1. Only 1 node (empty frame)
+   2. Children array is []
+   3. Root frame name is just "Frame" (default, not named)
+```
+
+### MCP Tools to Use:
+
+```
+openpencil_open_document({ filePath: "canvas/design.op" })
+openpencil_batch_get({ pageId: "FROM_PROMPT_FILE", readDepth: 2 })
+```
+
+### What You NEVER Do:
+
+```
+❌ Build designs      → Not your job
+❌ Save files         → Not your job
+❌ Modify anything    → Read-only verification
+❌ Assume pageId      → Must read from prompt file
+```
+
+### Success Messages:
+
+```
+PASS: Page [name] has X nodes with Y sections. Content verified.
+FAIL: Page [name] is empty (only root frame). Subagent did not build anything.
+FAIL: Page [name] has only 1 node with empty children. Build failed.
+```
+
+---
 
 ## Architecture: Sub-Skills Reference
 
@@ -54,7 +612,8 @@ openpencil-loop/
 ├── templates/
 │   ├── DESIGN.md                 ← Design spec template
 │   ├── PROJECT.md                ← Project template
-│   ├── next-prompt.md            ← Baton-passing template
+│   ├── prompts-template.md         ← Multi-agent task prompt template
+│   ├── prompts-template.md         ← Multi-agent task prompt template
 │   └── codegen-state.md          ← Codegen state baton template
 ├── scripts/
 │   ├── run-tests.sh              ← Test runner
@@ -72,11 +631,116 @@ openpencil-loop/
 
 Activate when you need ANY of these capabilities:
 - **Design a new page** — Transform vague ideas into structured OpenPencil prompts with design system context
-- **Continue existing project** — Pick up from `.op/next-prompt.md` baton file
+- **Continue existing project** — Pick up from `prompts/*.md` files and PROJECT.md
 - **Create design system** — Generate `.op/DESIGN.md` with user confirmation for colors, typography, components
 - **Enhance prompts** — Add design system tokens, structure, and visual descriptions to vague user requests
 - **Codify user decisions** — Store user preferences in DESIGN.md for consistency across iterations
 - **Export code** — Generate React/Vue/SwiftUI components from OpenPencil designs
+
+---
+
+## Design Files: Orchestrator-Owned Source of Truth
+
+**⚠️ CRITICAL: These files are the ONLY reliable source of truth. The live canvas is volatile and can be lost.**
+
+The orchestrator MUST create, maintain, and protect these files. Subagents read from them — they do NOT create or modify them.
+
+### The 3 Design File Types
+
+| File | Purpose | Owner | Persists? |
+|------|---------|--------|-----------|
+| **`canvas/*.op`** | Visual canvas — actual design nodes | Orchestrator | ✅ Yes (via export) |
+| **`canvas/DESIGN.md`** | Design tokens — colors, typography, spacing, components | Orchestrator | ✅ Yes (file) |
+| **`canvas/PROJECT.md`** | Roadmap — completed pages, next tasks, decisions | Orchestrator | ✅ Yes (file) |
+
+### Why These Files Matter
+
+```
+SUBAGENT STARTS WORK
+    ↓
+Reads DESIGN.md → understands tokens, colors, typography
+Reads PROJECT.md → knows what's done, what's next
+Reads *.op file → sees existing designs
+    ↓
+Subagent works on assigned pageId only
+    ↓
+Returns results to orchestrator
+    ↓
+ORCHESTRATOR updates DESIGN.md/PROJECT.md/*.op
+    ↓
+Next subagent reads updated files → fresh context
+```
+
+**Without these files:** Each subagent must re-analyze source code from scratch → wasted time, inconsistent interpretation.
+
+**With these files:** Subagent reads, understands, and continues in minutes.
+
+### Orchestrator File Management Responsibilities
+
+| Task | How | When |
+|------|-----|-------|
+| **Create DESIGN.md** | Copy from `templates/DESIGN.md`, fill with project tokens | Once at project start |
+| **Create PROJECT.md** | Copy from `templates/PROJECT.md`, fill with sitemap | Once at project start |
+| **Update DESIGN.md** | Add new tokens, component specs as discovered | After each page analyzed |
+| **Update PROJECT.md** | Mark pages complete, add next tasks | After each page done |
+| **Export canvas to .op** | `openpencil_export_nodes()` + `filesystem_write_file()` | After each session + before session end |
+| **Read .op before work** | `openpencil_batch_get()` + `read(".op")` to compare | Every session start |
+
+### ⚠️ CRITICAL: .op File Is The Canvas Snapshot
+
+The `.op` file is NOT the source of truth during work — it's a **snapshot** saved by the orchestrator.
+
+```
+Session Start:
+  1. Read .op file → know what's already designed
+  2. Read DESIGN.md → know the design system
+  3. Read PROJECT.md → know roadmap
+  4. openpencil_open_document() → sync live canvas
+
+During Session:
+  - Work on live canvas (in-memory)
+  - Subagents build pages on assigned pageIds
+
+Session End (ORCHESTRATOR MUST):
+  1. openpencil_export_nodes() → get all nodes
+  2. filesystem_write_file() → persist to .op
+  3. Update PROJECT.md → mark completed
+  4. Update DESIGN.md → document any new tokens
+```
+
+### File Structure Convention
+
+```
+canvas/
+├── design.op        ← OpenPencil canvas (orchestrator-exported)
+├── DESIGN.md        ← Design tokens (orchestrator-maintained)
+├── PROJECT.md       ← Roadmap + status (orchestrator-maintained)
+└── prompts/         ← Task prompts for subagents (orchestrator-created)
+    ├── 01-login-prompt.md
+    ├── 02-dashboard-prompt.md
+    └── 03-settings-prompt.md
+```
+
+### Prompt Files vs Baton File
+
+**`prompts/*.md` (Multi-agent, RECOMMENDED):**
+- One file per task/page
+- Explicit session tracking
+- Orchestrator updates status
+- Subagent reads and executes
+
+**Legacy baton format removed.** Use `prompts/*.md` for all multi-agent work.
+
+**Orchestrator MUST:**
+- Create these files at project start
+- Update them after each significant milestone
+- Read them BEFORE dispatching subagents
+- Export/save .op file BEFORE session end
+
+**Subagents MUST:**
+- Read DESIGN.md and PROJECT.md at start
+- Never create or modify these files
+- Return results + remind orchestrator to update
 
 ## Prerequisites
 
@@ -86,25 +750,43 @@ Activate when you need ANY of these capabilities:
 
 ## Quick Start
 
-Minimal working sequence to create a design from scratch:
+**⚠️ Step 0: Create and populate design files FIRST (orchestrator only)**
 
 ```bash
-# 1. Create a minimal .op file (valid format required)
+# 1. Create canvas directory
+mkdir -p canvas
+
+# 2. Create .op file (empty canvas)
 echo '{"version":"1.0.0","children":[]}' > canvas/design.op
 
-# 2. Connect to live canvas via MCP
+# 3. Copy templates (ORCHESTRATOR creates these)
+cp openpencil-loop/templates/DESIGN.md canvas/DESIGN.md
+cp openpencil-loop/templates/PROJECT.md canvas/PROJECT.md
+
+# 4. Populate DESIGN.md from source code analysis
+# (This is the orchestrator's job — see DESIGN.md file for template)
+```
+
+**Minimal working sequence to create a design from scratch:**
+
+```bash
+# 1. Open canvas via MCP (connects to .op file)
 openpencil_open_document({ filePath: "canvas/design.op" })
 // → returns { document, context, designPrompt }
 
-# 3. Create page structure
+# 2. Create page structure
 openpencil_design_skeleton({ canvasWidth: 375, rootFrame: { name: "Page", width: 375, height: 812 }, sections: [...] })
 // → returns { rootId, sections: [{ id, name, guidelines, suggestedRoles }] }
 
-# 4. Add content to a section
+# 3. Add content to a section
 openpencil_design_content({ sectionId: "section-id", children: [...], postProcess: true })
 
-# 5. Validate + auto-fix
+# 4. Validate + auto-fix
 openpencil_design_refine({ rootId: "root-id" })
+
+# 5. BEFORE SESSION END: Export canvas to .op file
+openpencil_export_nodes()
+// → save result to filesystem_write_file()
 ```
 
 ### `.op` File Format
@@ -124,9 +806,52 @@ The `.op` file must use this JSON structure (NOT `{"pages":[...]}`):
 
 `design_skeleton` requires an **existing valid `.op` file**. It will fail with `ENOENT` if the file doesn't exist, or `Invalid document format` if the JSON is malformed.
 
-## ⚠️ CRITICAL: No File Persistence
+## ⚠️ CRITICAL: No File Persistence + Session State Sync Issues
 
 **`openpencil_*` tools operate IN-MEMORY ONLY** — changes are NOT written to disk!
+
+### Session State Verification (MANDATORY BEFORE ANY WORK)
+
+**⚠️ IMPORTANT:** Always check BOTH sources before starting work. MCP session state is NOT synchronized with:
+1. The `.op` file on disk
+2. The OpenPencil desktop app's live canvas
+
+| Check | Tool | Expected |
+|-------|------|----------|
+| File on disk | `read("canvas/design.op")` | Actual node data or `{"version":"1.0.0","children":[]}` if empty |
+| Live canvas | `openpencil_batch_get()` (no filePath) | Actual node data or `[]` if empty |
+
+**DISCREPANCY SCENARIOS:**
+
+| File Content | Live Canvas | Meaning |
+|--------------|-------------|---------|
+| Has nodes | Has nodes | Both in sync ✅ |
+| Has nodes | Empty `[]` | Session reset — file has work, canvas lost |
+| Empty `[]` | Has nodes | Desktop app has unsaved work, session doesn't see it |
+| Empty `[]` | Empty `[]` | All lost — start fresh |
+
+**⚠️ CRITICAL BUG:** After session reset/compaction, `openpencil_batch_get()` returns empty even if desktop app still shows designs. The MCP session disconnects from desktop app state.
+
+### Recommended Pre-flight Workflow
+
+```
+1. openpencil_open_document({ filePath: "canvas/design.op" })
+   → Check document.childCount / document.pageCount metadata
+
+2. openpencil_export_nodes()
+   → Check if nodes array is non-empty
+
+3. read("canvas/design.op")
+   → Compare with export_nodes() result
+
+4. If discrepancy found:
+   - File has work, canvas empty → Use file data, rebuild canvas
+   - Canvas has work, file empty → Export canvas, write to file
+   - Both empty → Start fresh
+
+5. Document findings in baton file:
+   "State: [file: X nodes | canvas: Y nodes | action: ...]"
+```
 
 | Behavior | What Happens |
 |----------|--------------|
@@ -164,9 +889,13 @@ filesystem_write_file({ path: "canvas/design-export.json", content: JSON.stringi
 ## Known Issues & Limitations
 
 | Issue | Severity | Workaround |
-|-------|---------|------------|
+|-------|---------|-----------|
 | **NO FILE PERSISTENCE** | 🔴 CRITICAL | See above — manually export after each session |
+| **SESSION STATE NOT SYNCED** | 🔴 CRITICAL | After reset/compaction, canvas appears empty. ALWAYS check both file + canvas before work (see State Verification above) |
 | **Concurrent sub-agent file saves** | 🔴 CRITICAL | Sub-agents MUST NOT save files. Only orchestrator saves. Sub-agents must remind orchestrator to save after completion. |
+| **Subagents working on wrong page** | 🔴 CRITICAL | Orchestrator MUST pass explicit `pageId` to each subagent. Subagents must NEVER omit pageId. |
+| **Subagent returns done but built nothing** | 🔴 CRITICAL | **MANDATORY: Dispatch reviewer after every subagent completion.** Reviewer verifies nodes exist before marking done. |
+| **Background subagents may lack MCP access** | 🔴 CRITICAL | If subagent can't access MCP tools, use `run_in_background=false` for synchronous execution with tool access. |
 | **`pageId` targets wrong page** | High | Multi-page operations on page 2+ fail. Workaround: operate on page 1 only, or use `add_page`/`duplicate_page` to re-create pages |
 | **`batch_design D()` silently no-ops** | High | Use `delete_node` for single node deletion. D() in batch DSL does not work |
 | **`copy_node` param is `sourceId`, not `nodeId`** | Medium | Always use `sourceId` when calling `copy_node` |
@@ -391,36 +1120,6 @@ The Build Loop pattern enables continuous, autonomous design development through
 
 Each codegen iteration uses `.op/codegen-state.md` to pass state between phases.
 
-### Baton Format (`.op/next-prompt.md`)
-
-Stitch-compatible format: YAML frontmatter with `page` field, followed by a one-line description and structured sections carrying design system context and page structure forward.
-
-```markdown
----
-page: pricing
----
-A clean pricing page with three tiers, monthly/annual toggle, and FAQ section.
-
-**DESIGN SYSTEM (REQUIRED):**
-[Copy from .op/DESIGN.md Section 6]
-
-**Page Structure:**
-1. Section header — "Simple, transparent pricing" + subtitle
-2. Toggle — Monthly/Annual billing switch
-3. Pricing cards row — Free, Pro (highlighted), Enterprise
-4. FAQ accordion — 4-6 common questions
-```
-
-**Critical baton rules:**
-- ✅ ALWAYS update the baton after each iteration with the next task
-- ✅ ALWAYS include `page` frontmatter field — output filename without extension
-- ✅ ALWAYS include `**DESIGN SYSTEM (REQUIRED):**` section — copy from `.op/DESIGN.md`
-- ✅ ALWAYS include `**Page Structure:**` section — numbered list of sections to build
-- ❌ NEVER leave the baton empty or with only frontmatter — next agent has no context
-- ❌ NEVER skip the DESIGN SYSTEM section — generation quality degrades without tokens
-
-Full template: `templates/next-prompt.md`
-
 ### Enhance Prompt Example
 
 Transforms vague input into structured OpenPencil-ready prompts with design system context. Triggered automatically when user input lacks structure.
@@ -522,60 +1221,245 @@ PHASE 4: MAINTENANCE
 
 ---
 
-## Multi-Page Parallel Build
+## Multi-Page Orchestration (ORCHESTRATOR COORDINATES, SUBAGENTS BUILD)
 
-Build multiple pages in the same `.op` file simultaneously using page-scoped agents. Each page is a fully independent design canvas (own width/height/viewport) — content does NOT affect other pages. Single `.op` file = one source of truth.
+Build multiple pages in the same `.op` file. **Critical: ORCHESTRATOR coordinates files and dispatches subagents — subagents do ALL design work.**
 
-### Page Data Model
-
-`.op` files store pages at top level. All node operations accept `pageId` to target a specific page. Omit → defaults to first page.
-
-### Parallel Build Workflow
+### Architecture
 
 ```
-Step 1: Create pages (sequential — needed to get pageIds)
-  add_page(name="LoginScreen")     → pageId-A
-  add_page(name="DashboardScreen") → pageId-B
-
-Step 2: Decompose each page into subtasks (sequential)
-  openpencil-loop → page-A subtasks: header, form, social-login
-  openpencil-loop → page-B subtasks: sidebar, metrics-row, chart-area
-
-Step 3: Build in parallel (each page isolated)
-  Agent-Login:     batch_design({ pageId: pageId-A, ... })
-  Agent-Dashboard: batch_design({ pageId: pageId-B, ... })
-  ⚠️ Sub-agents do NOT save files — return results only
-
-Step 4: Collect results + ORCHESTRATOR SAVES (sequential)
-  Orchestrator receives: "✅ Login page built. Please save file."
-  Orchestrator receives: "✅ Dashboard page built. Please save file."
-  Orchestrator: export_nodes() + filesystem_write_file()
-
-Step 5: Validate each page (can be parallel)
-  Agent-Login:     snapshot_layout + screenshot review
-  Agent-Dashboard: snapshot_layout + screenshot review
-  ⚠️ Sub-agents do NOT save — return validation results
-
-Step 6: Export all pages (sequential — single file export)
-  export_nodes({ pageId: pageId-A })
-  export_nodes({ pageId: pageId-B })
-  Orchestrator saves final .op file
+ORCHESTRATOR (LIGHTWEIGHT)              SUBAGENTS (HEAVY DESIGN WORK)
+─────────────────────────────────    ──────────────────────────────────────
+1. Create canvas/ directory            (idle)
+2. Create DESIGN.md template           (idle)
+3. Create PROJECT.md template          (idle)
+4. Create prompts/*.md files           (idle)
+5. Dispatch ANALYZER subagent      ──► Analyzer: reads src/, extracts tokens
+6. Wait + read DESIGN.md               Analyzer: writes to DESIGN.md
+7. openpencil_add_page("Dashboard")    (idle)
+8. Update prompt with pageId           (idle)
+9. Dispatch BUILDER subagent       ──► Builder: reads prompt, builds page
+10. Wait for completion                 Builder: returns "Done. Save."
+11. openpencil_export_nodes()          (idle)
+12. filesystem_write_file()            (idle)
+13. Update prompt file status          (idle)
+14. Repeat for each page               (parallel subagents possible)
 ```
+
+### Orchestrator Workflow (MANDATORY)
+
+```
+PHASE 1: SETUP (orchestrator does)
+  mkdir -p canvas/prompts
+  echo '{"version":"1.0.0","children":[]}' > canvas/design.op
+  cp templates/DESIGN.md canvas/DESIGN.md
+  cp templates/PROJECT.md canvas/PROJECT.md
+  
+  # Create prompt files
+  write canvas/prompts/01-dashboard-prompt.md (status: pending)
+  write canvas/prompts/02-config-prompt.md (status: pending)
+  ...
+
+PHASE 2: ANALYZE (delegate to subagent)
+  task(
+    category="unspecified-high",
+    prompt="Analyze GoldTracer portal src/ for design tokens.
+            Read: src/App.js, src/pages/, src/components/
+            Extract: colors (dark bg, surface, status colors), typography, spacing
+            Write tokens to: canvas/DESIGN.md
+            ⚠️ Do NOT build designs. Only analyze and write DESIGN.md."
+  )
+  # Wait for completion, then verify DESIGN.md
+
+PHASE 3: BUILD PAGES (orchestrator creates pages, subagents build content)
+  # For each page:
+  openpencil_add_page({ name: "Dashboard" }) → pageId
+  edit canvas/prompts/01-dashboard-prompt.md → add pageId, set status: in_progress
+  
+  task(
+    category="visual-engineering",
+    load_skills=["openpencil-loop"],
+    prompt="Read canvas/prompts/01-dashboard-prompt.md and build the page.
+            Use openpencil_design_skeleton, openpencil_design_content, openpencil_design_refine.
+            ⚠️ Do NOT save files. Return results and remind orchestrator to save."
+  )
+  
+  # Wait for completion
+  openpencil_export_nodes() → get JSON
+  filesystem_write_file() → save to design.op
+  edit canvas/prompts/01-dashboard-prompt.md → status: completed
+
+PHASE 4: ITERATE
+  Repeat Phase 3 for each remaining page
+  Can dispatch multiple subagents in parallel for independent pages
+```
+
+### Prompt File Format
+
+Each `prompts/<number>-<name>-prompt.md` file:
+
+```markdown
+---
+page: [name]
+pageId: [orchestrator-assigned-id]
+status: pending | in_progress | completed
+session_id: null | ses_xxx
+assigned_to: null | [subagent-session-id]
+created_at: [timestamp]
+updated_at: [timestamp]
+---
+
+**PAGE:** [Page name]
+
+**DESIGN SYSTEM (from DESIGN.md):**
+[Extract relevant tokens: colors, typography, spacing]
+
+**PAGE STRUCTURE:**
+1. [Section 1 description]
+2. [Section 2 description]
+
+**TASK:**
+[Explicit task description with exact MCP calls to make]
+
+**ORCHESTRATOR NOTES:**
+[Any special instructions or context]
+```
+
+### Orchestrator Updates Prompt File After Subagent Completes
+
+```markdown
+---
+...
+status: completed
+session_id: ses_abc123
+updated_at: 2026-04-10T12:00:00Z
+---
+```
+
+**⚠️ NEVER do this:**
+```
+❌ Dispatch subagent WITHOUT prompt file → no tracking, no accountability
+❌ Subagent updates prompt files → orchestrator only
+❌ Subagent creates its own page → concurrent page creation causes chaos
+❌ Subagent saves file → concurrent write corruption
+❌ Skip DESIGN.md/PROJECT.md → subagents have no context
+```
+```
+
+### Subagent Behavior
+
+**FIRST: Read your assigned prompt file:**
+
+```
+1. read("canvas/prompts/01-login-prompt.md")   → YOUR task, pageId, design system
+2. read("canvas/DESIGN.md")                    → understand tokens (if not in prompt)
+3. read("canvas/PROJECT.md")                   → understand project status
+```
+
+Then work on your assigned page using the pageId from the prompt file.
+
+**AFTER COMPLETING:** Return results and remind orchestrator:
+"✅ [Page name] done. Please update prompt file and save canvas."
+
+### Subagent Build Workflow (MANDATORY FOR ALL BUILDERS)
+
+**⚠️ IMPORTANT: `load_skills=["openpencil-loop"]` only loads this SKILL.md file.**
+
+Subagents MUST read sub-skill files for detailed instructions:
+
+```
+# REQUIRED READING for design builders:
+read("openpencil-loop/phases/generation/design-system.md")  # Design token format
+read("openpencil-loop/phases/generation/schema.md")        # PenNode schema
+read("openpencil-loop/phases/generation/layout-rules.md")  # Auto-layout rules
+read("openpencil-loop/knowledge/role-definitions.md")      # Semantic roles (button, card, navbar)
+
+# OR read the design prompt section:
+openpencil_get_design_prompt({ section: "schema" })    # PenNode schema
+openpencil_get_design_prompt({ section: "layout" })    # Layout rules
+openpencil_get_design_prompt({ section: "roles" })    # Semantic roles
+```
+
+**MCP TOOLS TO USE:**
+
+| Phase | Tools | Purpose |
+|-------|-------|---------|
+| **Setup** | `openpencil_open_document({ filePath })` | Connect to canvas |
+| **Skeleton** | `openpencil_design_skeleton({ canvasWidth, rootFrame, sections })` | Create page structure |
+| **Content** | `openpencil_design_content({ sectionId, children, postProcess: true })` | Add content to sections |
+| **Refine** | `openpencil_design_refine({ rootId })` | Validate + auto-fix |
+| **Check** | `openpencil_batch_get({ readDepth: 2 })` | Verify nodes created |
+| **NEVER** | `openpencil_export_nodes`, `filesystem_write_file` | Orchestrator only! |
+
+**COMPLETE BUILD WORKFLOW:**
+
+```
+1. openpencil_open_document({ filePath: "canvas/design.op" })
+   → Connect to the design file
+
+2. openpencil_design_skeleton({
+     canvasWidth: 1200,
+     rootFrame: { name: "Dashboard", width: 1200, height: 0, layout: "vertical", fill: [...] },
+     sections: [
+       { name: "TopBar", height: 56, layout: "horizontal", role: "navbar" },
+       { name: "Content", height: 0, layout: "vertical", role: "section" }
+     ]
+   })
+   → Returns { rootId, sections: [{ id, name, guidelines }] }
+
+3. For each section:
+   openpencil_design_content({
+     sectionId: "section-id-from-step-2",
+     children: [
+       { type: "frame", name: "Card", role: "card", width: 200, height: 100, ... }
+     ],
+     postProcess: true
+   })
+
+4. openpencil_design_refine({ rootId: "root-id-from-step-2" })
+   → Validates layout, resolves icons, applies role defaults
+
+5. openpencil_batch_get({ readDepth: 2 })
+   → Verify nodes were created
+
+6. Return: "✅ Page built with X nodes. Orchestrator: Please save."
+```
+
+**SUBAGENT MUST NOT:**
+- Save files (`openpencil_export_nodes`, `filesystem_write_file`)
+- Create pages (`openpencil_add_page`)
+- Modify DESIGN.md, PROJECT.md, or prompt files
+
+| Can Do | Cannot Do |
+|--------|-----------|
+| Read DESIGN.md, PROJECT.md, .op, prompts/*.md | Create or modify any prompt files |
+| `batch_design({ pageId: 'FROM_PROMPT_FILE' })` | Create pages (`add_page`) |
+| `insert_node({ pageId: 'FROM_PROMPT_FILE', ... })` | Save files |
+| `update_node({ pageId: 'FROM_PROMPT_FILE', ... })` | Omit `pageId` |
+| `snapshot_layout({ pageId: 'FROM_PROMPT_FILE' })` | Assume which page to work on |
 
 ### Page Templates
 
 For apps with consistent UI chrome, create a template page first, then `duplicate_page()` for each actual screen and fill in page-specific content.
 
-### Rules
+### Orchestrator Rules
 
-- ✅ DO: Create pages first, then build in parallel
-- ✅ DO: Use `pageId` on every node operation to be explicit
-- ✅ DO: `add_page` returns the new `pageId` — capture it
-- ✅ DO: **Only orchestrator saves files** — sub-agents return results and remind orchestrator to save
-- ❌ DON'T: Build on the same page from multiple agents simultaneously (race condition)
-- ❌ DON'T: Omit `pageId` when working with multi-page documents (ambiguous)
-- ❌ DON'T: Let sub-agents save files — causes concurrent write conflicts
-- ⚠️ **KNOWN ISSUE**: `pageId` parameter may target the wrong page for page 2+. When building multi-page designs, prefer operating on page 1 only, or use `add_page`/`duplicate_page` to reconstruct pages
+| Rule | Why |
+|------|-----|
+| **Create prompt files first** | Subagents need task definition + pageId |
+| **Create ALL pages first** | Need pageIds before dispatching subagents |
+| **Pass prompt file path to EVERY subagent** | No ambiguity, subagent knows exact task |
+| **Collect results → update prompt + save** | Track status, persist work |
+| **Subagents return results only** | No file I/O from subagents |
+
+### Subagent Rules
+
+| Rule | Why |
+|------|-----|
+| **Use the pageId given by orchestrator** | Only that page, not "first page" |
+| **Return results + remind orchestrator** | "✅ Done. Orchestrator: save file." |
+| **No page creation** | Orchestrator owns pages |
+| **No file saves** | Orchestrator only |
 
 ---
 
