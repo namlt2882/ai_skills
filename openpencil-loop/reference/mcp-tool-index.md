@@ -104,7 +104,13 @@ filesystem_write_file({ path: "canvas/design.op", content: JSON.stringify({ vers
 
 | Tool | Arguments | Description |
 |------|-----------|-------------|
-| `get_design_prompt` | `section?` | Get design knowledge prompt |
+| ~~`get_design_prompt`~~ | — | **🚫 FORBIDDEN** — raw output corrupts agent flow. Use curated skill files instead. |
+
+**Curated alternatives** (use these instead):
+- Schema: `phases/generation/schema.md`
+- Layout: `phases/generation/layout-rules.md`
+- Roles: `knowledge/role-definitions.md`
+- Design system: `phases/generation/design-system.md`
 
 **Available sections:** `all`, `schema`, `layout`, `roles`, `text`, `style`, `icons`, `examples`, `guidelines`, `planning`, `codegen-*`
 

@@ -1,14 +1,16 @@
 #!/bin/bash
 # Test runner for openpencil-loop skill
-# Usage: ./run-tests.sh
+# This script runs the basic integration tests from TEST-SPEC.md
 
 set -e
 
 WORKSPACE="/Users/nam.lethanh/Documents/code/wave/ai_skills/openpencil-loop-workspace"
 SKILL_PATH="/Users/nam.lethanh/Documents/code/wave/ai_skills/openpencil-loop"
 
-echo "Running openpencil-loop test suite..."
-echo "Workspace: $WORKSPACE"
+echo "=========================================="
+echo "OpenPencil Loop - Basic Integration Tests"
+echo "=========================================="
+echo ""
 
 # Clean workspace
 rm -rf "$WORKSPACE"
