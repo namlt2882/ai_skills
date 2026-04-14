@@ -1,0 +1,58 @@
+{
+  "name": "open-pencil-loop-workflow-tests",
+  "version": "1.0.0",
+  "description": "Workflow tests for open-pencil-loop skill - verifies role dispatch, parallel design awareness, and desktop app requirements",
+  "tests": [
+    {
+      "id": "role-dispatch-detection",
+      "name": "Role Dispatch Detection",
+      "prompt": "I need to build a multi-page design system for a SaaS dashboard. The project has 5 pages: Landing, Dashboard, Settings, Profile, and Billing. Please coordinate the build.",
+      "expected_output": "Should detect ORCHESTRATOR role and dispatch subagents for each page. Should use add_page to create pages, dispatch SUBAGENTs for page building, dispatch REVIEWERs for verification, and use design_skeleton→design_content→design_refine for each page. Should NOT directly use design_skeleton/design_content itself.",
+      "files": [
+        "SKILL.md",
+        "phases/planning/role-dispatch.md"
+      ],
+      "assertions": [
+        "Identifies self as ORCHESTRATOR",
+        "Creates pages via add_page",
+        "Dispatches SUBAGENT for page building",
+        "Dispatches REVIEWER for page verification",
+        "Does NOT directly call design_skeleton or design_content"
+      ]
+    },
+    {
+      "id": "parallel-design-awareness",
+      "name": "Parallel Design Capability Awareness",
+      "prompt": "I need to build 10 landing pages in parallel for A/B testing. Each page has slight variations. Can I use open-pencil-loop for this?",
+      "expected_output": "Should explain that open-pencil-loop (official) operates SEQUENTIALLY and requires switch_page between edits. Should recommend openpencil-loop (fork) for parallel multi-page design since it supports pageId direct targeting. Should NOT claim official can parallel design.",
+      "files": [
+        "SKILL.md",
+        "knowledge/parallel-design.md"
+      ],
+      "assertions": [
+        "Correctly states official operates SEQUENTIALLY",
+        "Recommends fork (openpencil-loop) for parallel design",
+        "Does NOT claim official can parallel design",
+        "Explains pageId vs switch_page difference",
+        "Mentions desktop app requirement for official"
+      ]
+    },
+    {
+      "id": "desktop-app-requirement",
+      "name": "Desktop App Requirement Handling",
+      "prompt": "I want to use the open-pencil-loop skill to create a dashboard design. My desktop app is not running.",
+      "expected_output": "Should warn that desktop app is REQUIRED for open-pencil-loop. Should provide setup steps (download from GitHub, launch, configure MCP, verify with ping). Should mention WebSocket connection ws://127.0.0.1:7601. Should contrast with fork's offline capability. Should NOT proceed without desktop app.",
+      "files": [
+        "SKILL.md",
+        "knowledge/offline-guidance.md"
+      ],
+      "assertions": [
+        "Warns desktop app is REQUIRED",
+        "Provides setup steps",
+        "Mentions WebSocket ws://127.0.0.1:7601",
+        "Contrasts with fork's offline capability",
+        "Does NOT proceed without desktop app verification"
+      ]
+    }
+  ]
+}

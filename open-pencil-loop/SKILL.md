@@ -10,6 +10,21 @@ description: |
 version: "2.0.0"
 ---
 
+> ⚠️ **Desktop App REQUIRED** — This skill requires the Open-Pencil desktop app running.
+>
+> **Connection:** WebSocket `ws://127.0.0.1:7601`
+>
+> **Setup:**
+> 1. Download and install Open-Pencil from https://github.com/open-pencil/open-pencil
+> 2. Launch the desktop app
+> 3. Configure MCP with: `npx -y @opencode/open-pencil-mcp@latest`
+>
+> **Why Required:** The official MCP server communicates with the desktop app via WebSocket RPC to read/write .fig/.pen files. Without the app running, all MCP operations will fail.
+>
+> **Contrast with Fork:** The openpencil-loop fork operates in-memory without requiring the desktop app, but uses a different MCP namespace (`openpencil` vs `open-pencil`).
+
+---
+
 # OpenPencil (https://github.com/open-pencil/open-pencil) Skill Orchestrator
 
 ```
@@ -196,6 +211,69 @@ design_content: {sectionId, children: [{type, role?, content}], postProcess?}
 design_refine: {rootId}
 ```
 
+## Role-Based Dispatch Workflow
+
+> **⚠️ ROLE DETECTION (READ THIS FIRST)**
+
+**STOP. Determine your role from your prompt:**
+
+### Role Lookup Table
+
+| Prompt Contains... | You Are... | Workflow |
+|---------------------|------------|----------|
+| "Onboard [project]", "Create DESIGN.md, PROJECT.md", "Dispatch subagents" | **ORCHESTRATOR** | Multi-page planning, page creation, subagent dispatch |
+| "Read prompts/XX-prompt.md and build the page" | **SUBAGENT** | Single-page execution using layered workflow |
+| "Analyze source code and extract tokens" | **ANALYZER** | Design token extraction |
+| "Verify page [name] has content" | **REVIEWER** | Quality gate — PASS/FAIL verification |
+
+### Role Responsibilities
+
+| Role | Primary Tools | Never Does |
+|------|--------------|------------|
+| **ORCHESTRATOR** | `add_page`, `export_nodes`, `list_pages`, `save_file`, dispatch | `design_skeleton`, `design_content`, `design_refine` |
+| **SUBAGENT** | `design_skeleton`, `design_content`, `design_refine`, `render`, `batch_design` | `add_page`, `export_nodes`, `save_file` |
+| **REVIEWER** | `batch_get`, `analyze_colors`, `analyze_typography`, `analyze_spacing` | Build, save, or modify nodes |
+| **ANALYZER** | `filesystem_read_file`, `analyze_colors`, `analyze_typography`, `list_variables` | Build, save, or modify nodes |
+
+### Role Dispatch Patterns
+
+**ORCHESTRATOR dispatches SUBAGENT:**
+```
+1. ORCHESTRATOR creates pages via add_page
+2. ORCHESTRATOR reads prompts/XX-prompt.md for each page
+3. ORCHESTRATOR dispatches SUBAGENT with: "Read prompts/XX-prompt.md and build page [name]"
+4. SUBAGENT executes: design_skeleton → design_content → design_refine
+5. SUBAGENT returns result summary only
+```
+
+**ORCHESTRATOR dispatches REVIEWER:**
+```
+1. ORCHESTRATOR sends: "Verify page [name] has content"
+2. REVIEWER runs: batch_get({pageId, readDepth: 2})
+3. REVIEWER checks: node count > 1, has visible children
+4. REVIEWER returns: PASS or FAIL with details
+```
+
+**ORCHESTRATOR dispatches ANALYZER:**
+```
+1. ORCHESTRATOR sends: "Analyze source code and extract tokens"
+2. ANALYZER reads source files
+3. ANALYZER extracts colors, typography, spacing as design tokens
+4. ANALYZER returns token JSON for set_variables
+```
+
+### Tool Decision Tree
+
+For detailed tool selection guidance per operation, see: `reference/mcp-tool-index.md`
+
+Quick reference:
+- **Insert single node** → `insert_node` or `render`
+- **Insert page of content** → `design_content` (with `postProcess: true`)
+- **Atomic multi-operation** → `batch_design` DSL: `I()`, `U()`, `C()`, `R()`
+- **Update single property** → `update_node`
+- **Full node replacement** → `replace_node`
+- **Delete** → ALWAYS `delete_node` (batch_design `D()` silently no-ops!)
+
 ## CLI Reference
 
 ```bash
@@ -292,6 +370,50 @@ export_image: {format: "PNG", scale: 2}
 save_file: {filePath: "/path/to/design.fig"}
 ```
 
+## Parallel Design Capability
+
+### Fork vs Official Comparison
+
+| Feature | openpencil-loop (Fork) | open-pencil-loop (Official) |
+|---------|-------------------------|------------------------------|
+| **Desktop App** | NOT required (in-memory) | REQUIRED (WebSocket) |
+| **Page Targeting** | `pageId` on all tools | `switch_page` before edit |
+| **Parallel Design** | ✅ TRUE (can design multiple pages simultaneously) | ❌ SEQUENTIAL (must switch page before edit) |
+| **MCP Namespace** | `openpencil` | `open-pencil` |
+| **File Persistence** | Manual export required | Desktop app saves |
+
+### Action Flow Differences
+
+**Official (open-pencil-loop) — SEQUENTIAL:**
+```
+1. switch_page({ page })   → Must switch to page first
+2. design_skeleton(...)    → Build skeleton
+3. design_content(...)     → Populate content
+4. design_refine(...)      → Validate and fix
+5. switch_page({ page2 })  → Switch to next page
+6. ... repeat
+```
+
+**Fork (openpencil-loop) — PARALLEL capable:**
+```
+1. batch_design({ pageId: "page1", operations: [...] })  → Direct targeting
+2. batch_design({ pageId: "page2", operations: [...] })  → No switch needed
+3. Can dispatch multiple subagents to different pages simultaneously
+```
+
+### When to Use Which
+
+| Use Case | Recommended Skill |
+|----------|-------------------|
+| Single-page interactive design | open-pencil-loop (Official) |
+| Multi-page sequential design | open-pencil-loop (Official) |
+| Parallel multi-page design | openpencil-loop (Fork) |
+| CI/CD batch operations | openpencil-loop (Fork) |
+| Design token extraction | openpencil-loop (Fork) |
+| Interactive design with desktop app | open-pencil-loop (Official) |
+
+> ⚠️ **Important:** The official skill (open-pencil-loop) requires the desktop app and operates SEQUENTIALLY. For true parallel multi-page design, use the fork (openpencil-loop) which supports `pageId` direct targeting without requiring page switches.
+
 ## Limitations & Workarounds
 
 | Limitation | Workaround |
@@ -324,7 +446,7 @@ render: {jsx: '<Frame name="Container" w={1200} h="hug" layout="horizontal" gap=
 
 | Issue | Solution |
 |-------|----------|
-| Desktop app not responding | `openpencil ping` → verify app open → check WebSocket port (8080) → restart app |
+| Desktop app not responding | `openpencil ping` → verify app open → check WebSocket port (7601) → restart app |
 | MCP tool failures | Verify `"open-pencil"` (hyphenated) in config → check app running → retry with delay |
 | Export issues | Use `get_page_tree` to verify IDs → check file permissions → verify shapes are vector-compatible |
 
