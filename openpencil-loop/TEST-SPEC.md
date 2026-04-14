@@ -516,8 +516,8 @@ After completing your work, return results and remind the orchestrator:
 ```typescript
 // Orchestrator flow:
 // 1. Dispatch sub-agents (background)
-const task1 = task(category="ultrabrain", run_in_background=true, prompt="...")
-const task2 = task(category="ultrabrain", run_in_background=true, prompt="...")
+const task1 = task(category="quick", run_in_background=true, prompt="...")
+const task2 = task(category="quick", run_in_background=true, prompt="...")
 
 // 2. Wait for completion notifications
 // 3. Collect results

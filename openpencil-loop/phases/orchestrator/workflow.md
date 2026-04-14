@@ -8,8 +8,8 @@
 |-------|---------|-------|
 | **SETUP** | Create canvas/, DESIGN.md, PROJECT.md, prompts/*.md | `filesystem_*` |
 | **CREATE PAGES** | Add pages to design.op | `openpencil_add_page()` |
-| **DISPATCH** | Send subagents to build each page | `task(prompt="Read prompts/XX...")` |
-| **VERIFY** | Send reviewer to check work | `task(prompt="Verify page [name] has content")` |
+| **DISPATCH** | Send subagents to build each page | `task(category="quick", prompt="Read prompts/XX...")` |
+| **VERIFY** | Send reviewer to check work | `task(category="deep", prompt="Verify page [name] has content")` |
 | **SAVE** | Export and save after PASS verification | `openpencil_export_nodes()`, `filesystem_write_file()` |
 
 ## What You NEVER Do
@@ -45,6 +45,7 @@
 SUBAGENT returns: "✅ Page built with X nodes"
     ↓
 ORCHESTRATOR dispatches REVIEWER: task(
+    category="deep",
     prompt="You are REVIEWER. 
             1. Load sub-skills: read('openpencil-loop/phases/generation/schema.md')
             2. Read: canvas/prompts/XX-prompt.md (get pageId)
@@ -66,6 +67,7 @@ IF FAIL → Re-dispatch subagent or escalate
 
 ```
 task(
+    category="quick",
     prompt="You are SUBAGENT/BUILDER. Your job is to BUILD ONE PAGE.
             
             ╔══════════════════════════════════════════════════════════════╗
@@ -118,6 +120,7 @@ task(
 
 ```
 task(
+    category="deep",
     prompt="You are REVIEWER. Your job is VERIFICATION ONLY.
             
             ╔══════════════════════════════════════════════════════════════╗
@@ -163,6 +166,7 @@ task(
 
 ```
 task(
+    category="deep",
     prompt="You are ANALYZER. Your job is EXTRACTING TOKENS.
             
             ╔══════════════════════════════════════════════════════════════╗
@@ -221,7 +225,7 @@ PHASE 1: SETUP (orchestrator does)
 
 PHASE 2: ANALYZE (delegate to subagent)
   task(
-    category="unspecified-high",
+    category="deep",
     prompt="Analyze GoldTracer portal src/ for design tokens.
             Read: src/App.js, src/pages/, src/components/
             Extract: colors (dark bg, surface, status colors), typography, spacing
@@ -236,19 +240,21 @@ PHASE 3: BUILD PAGES (orchestrator creates pages, subagents build content)
   edit canvas/prompts/01-dashboard-prompt.md → add pageId, set status: in_progress
   
   task(
-    category="visual-engineering",
+    category="quick",
     load_skills=["openpencil-loop"],
     prompt="Read canvas/prompts/01-dashboard-prompt.md and build the page.
             Use openpencil_design_skeleton, openpencil_design_content, openpencil_design_refine.
             ⚠️ Do NOT save files. Return results and remind orchestrator to save."
   )
+  edit canvas/prompts/01-dashboard-prompt.md → set session_id: <session_id>
   
   # Wait for completion
-  openpencil_export_nodes() → get JSON
-  filesystem_write_file() → save to design.op
   edit canvas/prompts/01-dashboard-prompt.md → status: completed
 
-PHASE 4: ITERATE
+PHASE 4: SAVE AND ITERATE
+  openpencil_export_nodes() → get JSON
+  filesystem_write_file() → save to design.op
+
   Repeat Phase 3 for each remaining page
   Can dispatch multiple subagents in parallel for independent pages
 ```
