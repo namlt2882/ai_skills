@@ -467,10 +467,50 @@ Usage % = (70,400 / 200,000) × 100 = 35.2%
 
 ---
 
+---
+
+## Model Comparison Findings
+
+### Finding: Low Reasoning > High Reasoning (Counter-Intuitive)
+
+**Date:** 2026-04-14
+**Observation:** Low reasoning model produces better results than high reasoning model on this skill.
+
+#### Hypotheses
+
+| # | Hypothesis | Mechanism |
+|---|-----------|-----------|
+| 1 | **Overthinking** | High reasoning second-guesses or over-analyzes workflow steps instead of executing directly |
+| 2 | **Token pressure** | High reasoning burns tokens on internal deliberation, leaving less context for tool calls |
+| 3 | **Prompt sensitivity** | Skill's tight few-shot examples work better with direct execution than deliberation |
+
+#### Recommended Diagnostic Steps
+
+1. Compare token counts between low vs high reasoning runs
+2. Audit high reasoning output for ignored/reinterpreted workflow steps
+3. Test with explicit "don't overthink" constraint on high reasoning
+
+#### Mitigation Options
+
+| Option | Approach | Tradeoff |
+|--------|----------|----------|
+| A | Use low reasoning for this skill | May miss complex edge cases |
+| B | Add "direct execution" constraint to high reasoning prompt | Extra prompt complexity |
+| C | Optimize skill for high reasoning (add more examples) | Skill maintenance burden |
+
+#### Action Items
+
+- [ ] Run comparative token analysis (low vs high reasoning)
+- [ ] Test with direct-execution constraint on high reasoning
+- [ ] Document final decision in skill README
+
+---
+
 ## Revision History
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-04-14 | 1.1 | Add model comparison finding (low > high reasoning) | Sisyphus-Junior |
 | 2026-04-10 | 1.0 | Initial baseline document | Sisyphus-Junior |
 
 ---
