@@ -7,6 +7,8 @@ description: Iterative design development loop using OpenPencil (https://github.
 
 > **⚠️ LAZY LOADING:** This file contains only role detection + dispatch. Each role's full workflow is in `phases/{role}/workflow.md`. Read that file when you know your role.
 
+> **⚠️ CRITICAL - FILE PERSISTENCE:** OpenPencil MCP tools operate **IN-MEMORY ONLY**. Changes are NOT written to disk. The `.op` file remains `{"version":"1.0.0","children":[]}` on disk even after `insert_node`/`batch_design`. Re-opening the file LOSES ALL WORK. After each session, manually persist using `filesystem_write_file()` with `openpencil_batch_get()` output. See `reference/mcp-tool-index.md` for the workaround.
+
 ---
 ## ⚠️ ROLE DETECTION (READ THIS FIRST)
 

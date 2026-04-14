@@ -8,9 +8,7 @@ This validation hook ensures required sub-skill files are loaded before workflow
 
 | Role | Required Files | Full Path | Purpose |
 |------|----------------|-----------|---------|
-| **ORCHESTRATOR** | `orchestrator.ts` template | `openpencil-loop/workflows/orchestrator/dispatch.ts` | Dispatch automation templates |
-| | `assignment-policy.md` | `openpencil-loop/knowledge/assignment-policy.md` | Agent assignment rules |
-| | `workflow-gates.md` | `openpencil-loop/workflows/gates/workflow-gates.md` | Pre-flight check definitions |
+| **ORCHESTRATOR** | `workflow.md` | `openpencil-loop/phases/orchestrator/workflow.md` | Orchestrator workflow (dispatch, baton-passing) |
 | **SUBAGENT** | `schema.md` | `openpencil-loop/phases/generation/schema.md` | PenNode structure definition |
 | | `layout-rules.md` | `openpencil-loop/phases/generation/layout-rules.md` | Auto-layout flexbox rules |
 | | `role-definitions.md` | `openpencil-loop/knowledge/role-definitions.md` | Semantic roles (button, card, navbar, table) |
@@ -245,9 +243,7 @@ if (loaded.includes(false)) {
 {
   role: 'ORCHESTRATOR',
   requiredFiles: [
-    'openpencil-loop/workflows/orchestrator/dispatch.ts',
-    'openpencil-loop/knowledge/assignment-policy.md',
-    'openpencil-loop/workflows/gates/workflow-gates.md'
+    'openpencil-loop/phases/orchestrator/workflow.md'
   ]
 }
 ```
@@ -269,7 +265,7 @@ echo "=== ANALYZER Validation ==="
 npx validate-subskills --role ANALYZER --files design-system.md schema.md
 
 echo "=== ORCHESTRATOR Validation ==="
-npx validate-subskills --role ORCHESTRATOR --files dispatch.ts assignment-policy.md workflow-gates.md
+npx validate-subskills --role ORCHESTRATOR --files workflow.md
 ```
 
 ## KNOWN ISSUES

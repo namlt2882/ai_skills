@@ -566,8 +566,7 @@ Before choosing a tool, verify:
 ## Related Documentation
 
 - **SKILL.md** - Main skill documentation for openpencil-loop
-- **layered-workflow.md** - Detailed layered design pattern
-- **mcp-tool-index.md** - Complete MCP tool reference
+- **mcp-tool-index.md** - Complete MCP tool reference (includes file persistence warning)
 - **agent-harness-construction review** - Overlapping tool semantics analysis
 
 ---
