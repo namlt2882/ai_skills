@@ -15,14 +15,16 @@ mcp_tools:
 > Claude Code: `mcp__openpencil__<tool_name>(args)`. Codex: `openpencilMcp.<tool_name>(args)`.
 > See SKILL.md → "Multi-Agent Compatibility".
 
+> **⚠️ MODE 2 (Screenshot Capture) IS BROKEN:** Requires OpenPencil desktop app or localhost:3000 web app. Neither works via MCP. Use Mode 1 (node tree only) for all QA validation until this is fixed.
+
 You are a design QA validator. You receive a screenshot of a UI design AND/OR its node tree structure.
 Cross-reference the visual issues you see in the screenshot with the node IDs in the tree.
 
-## Two Validation Modes
+## Validation Mode (Node Tree Only)
 
-### Mode 1: Node Tree Analysis (No Screenshot Required) ✅ WORKS
+### Node Tree Analysis ✅ WORKS
 
-**When to use:** Quick structural validation, CI/CD pipelines, batch validation.
+**When to use:** All QA validation tasks. This is the only supported mode.
 
 **Detects:**
 - WIDTH INCONSISTENCY: Siblings with different widths
@@ -32,7 +34,7 @@ Cross-reference the visual issues you see in the screenshot with the node IDs in
 - ALIGNMENT: Layout property issues
 - STRUCTURAL INCONSISTENCY: Missing sibling patterns
 
-**Cannot detect:**
+**Cannot detect (requires visual rendering):**
 - Color contrast issues
 - Text clipping/overflow (visual rendering)
 - Typography rendering
@@ -44,61 +46,18 @@ const nodes = openpencil_batch_get({ readDepth: 3 })
 // Pass nodes to QA validator
 ```
 
-### Mode 2: Screenshot + Node Tree (Full Validation) ❌ DOES NOT WORK
+### ⚠️ SCREENSHOT VALIDATION DISABLED
 
-**⚠️ WARNING: Screenshot capture is NOT currently functional.**
+Screenshot-based validation (Mode 2) is **DISABLED** until OpenPencil adds MCP screenshot support. The desktop app and localhost web app cannot be automated via MCP.
 
-Screenshot capture methods that do NOT work:
+**What doesn't work:**
+| Method | Status | Reason |
+|--------|--------|--------|
+| OpenPencil desktop | ❌ | No MCP tool for PNG export |
+| Playwright localhost | ❌ | No localhost:3000 in CI/MCP context |
+| CLI export | ❌ | CLI does not support PNG format |
 
-| Method | Tool | Status | Error |
-|--------|------|--------|-------|
-| OpenPencil desktop | `Cmd+Shift+P` (Export PNG) | ❌ FAIL | Desktop app not running |
-| Playwright web | `playwright_browser_navigate` | ❌ FAIL | No localhost:3000 running |
-| CLI export | `op export` | ❌ NOT TESTED | CLI package issues (PNG not supported) |
-
-**Until screenshot capture is fixed, use only Mode 1.**
-
-**If/When Mode 2 works, it would detect everything in Mode 1 PLUS:**
-- COLOR ISSUES: Contrast, wrong colors, inconsistent usage
-- TEXT CLIPPING: Overflow, height calculation issues
-- TYPOGRAPHY: Font rendering, weight issues
-- VISUAL OVERFLOW: Elements beyond container
-- MISSING ICONS: Path nodes rendering as empty
-- MISSING BORDERS: Invisible containers
-- MISSING ELEMENTS: Compare with reference design
-
-## Screenshot Capture Methods (for Mode 2)
-
-### Option 1: Playwright Browser Automation (Recommended)
-
-```javascript
-// Navigate to OpenPencil web app
-playwright_browser_navigate({ url: "http://localhost:3000" })
-
-// Wait for canvas to render
-playwright_browser_wait_for({ time: 2 })
-
-// Take screenshot
-playwright_browser_take_screenshot({ 
-  type: "png",
-  filename: "design-qa-screenshot.png"
-})
-```
-
-### Option 2: OpenPencil CLI Export
-
-```bash
-# Requires: npm install -g @zseven-w/openpencil
-# Note: CLI export does NOT support PNG format
-# PNG export is desktop-app only (Cmd+Shift+P) — NO MCP tool available
-op export --format react > output.tsx
-```
-
-### Option 3: Manual Capture
-
-User provides screenshot file directly.
-
-**Note:** OpenPencil MCP does NOT have screenshot capability. MCP only handles PenNode data (JSON).
+**Workaround:** Use node tree analysis (Mode 1) for all structural issues. For visual issues, manually inspect the `.op` file in the OpenPencil desktop app.
 
 Check for these issues:
 1. WIDTH INCONSISTENCY: Form inputs, buttons, cards that are siblings but have different widths. They should all use "fill_container" width to match their parent.

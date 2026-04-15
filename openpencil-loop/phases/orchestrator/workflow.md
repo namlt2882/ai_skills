@@ -61,6 +61,45 @@ IF PASS → Mark done, save file
 IF FAIL → Re-dispatch subagent or escalate
 ```
 
+## Subagent Failure Escalation
+
+**If a subagent fails or returns an error:**
+
+| Failure Type | Action |
+|-------------|--------|
+| Subagent crashed mid-build | Check canvas state with `openpencil_batch_get()`. If partial work exists, review and continue. If empty, re-dispatch. |
+| Subagent returned error | Read error, fix the issue in the prompt file, re-dispatch with same pageId |
+| Reviewer returned FAIL | Analyze which nodes are missing. Dispatch subagent again with specific fix instructions |
+| Reviewer returned PASS but content looks wrong | Do NOT mark done. Re-run reviewer with higher readDepth or escalate to human |
+
+**Escalation to human:**
+```
+❌ After 3 failed subagent attempts on the same page
+❌ If the design.op file becomes corrupted
+❌ If you cannot determine why reviewer keeps failing
+
+→ Document the issue in PROJECT.md
+→ Mark page as "blocked" 
+→ Move to next page if possible
+→ Report to human: "[Page] blocked after 3 attempts: [reason]"
+```
+
+**Recovery workflow:**
+```
+1. Subagent returns error
+   ↓
+2. Check: openpencil_batch_get({ pageId, readDepth: 2 })
+   ↓
+3. If nodes exist but incomplete:
+   → Dispatch subagent with fix instructions
+   → Increment attempt counter
+4. If nodes empty or crashed:
+   → Re-dispatch same subagent (may have been timing issue)
+   → Increment attempt counter
+5. If attempt > 3:
+   → Escalate to human
+```
+
 ## Dispatch Prompt Templates
 
 ### SUBAGENT DISPATCH TEMPLATE
@@ -314,6 +353,24 @@ updated_at: 2026-04-10T12:00:00Z
 ❌ Subagent saves file → concurrent write corruption
 ❌ Skip DESIGN.md/PROJECT.md → subagents have no context
 ```
+
+### Why Concurrent Page Creation Causes Chaos
+
+**The Problem:** OpenPencil MCP tools modify the canvas IN-MEMORY. If two subagents run `openpencil_add_page()` simultaneously, they both read the same initial state, then write separate additions. The second write OVERWRITES the first — one page is silently lost.
+
+**Example of the race condition:**
+```
+Time    Subagent A              Subagent B
+─────────────────────────────────────────────────
+T1      batch_get() → 3 pages  batch_get() → 3 pages
+T2      add_page("Login")       add_page("Dashboard")
+T3      Canvas has 4 pages      Canvas has 4 pages
+T4      (T3 overwrote T2's view of canvas)
+```
+
+**The result:** One page addition is LOST because both subagents had the same canvas state when they started.
+
+**Prevention:** The orchestrator MUST create ALL pages upfront in Phase 1 (SETUP), before dispatching any subagents. Subagents only build content on EXISTING pages — they never call `openpencil_add_page()`.
 
 ## Orchestrator Rules
 

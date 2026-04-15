@@ -1,7 +1,11 @@
 ---
 name: openpencil-loop
-description: Iterative design development loop using OpenPencil (https://github.com/ZSeven-W/openpencil) CLI and MCP tools. Combines prompt enhancement, design system synthesis, and baton-passing orchestration. Use when building multi-page designs, iteratively refining UI components, creating design systems, or when you want to progressively develop a design with structured user feedback. Triggers on requests like "build a design system", "create multiple pages with OpenPencil", "iteratively design", "loop design", "design a login page", or when you want to enhance prompts for OpenPencil with design system context.
+description: Use when the user wants to build, iterate, or refine designs with OpenPencil — creating multi-page layouts, design systems, UI components, pages, or any iterative design workflow. Triggers on: "build pages with OpenPencil", "create a design loop", "iterate on design", "design login page", "build dashboard", "add new page to design", "OpenPencil workflow", "batch design", "design skeleton", or any request mentioning openpencil_batch_design, openpencil_design_skeleton, openpencil_design_content, openpencil_get_design_prompt, openpencil_add_page, openpencil_batch_get, openpencil_insert_node, openpencil_design_refine, or openpencil_save.
 ---
+
+## Overview
+
+The OpenPencil Loop is a multi-role orchestration system to work with OpenPencil (https://github.com/ZSeven-W/openpencil) where agents cycle through design phases—ORCHESTRATOR, SUBAGENT/BUILDER, REVIEWER, and ANALYZER—using lazy-loading for each role's workflow. Each phase loads its detailed workflow on-demand from `phases/{role}/workflow.md`, keeping the main SKILL.md lightweight while enabling complex iterative design. The loop continues until the design meets quality criteria.
 
 # OpenPencil Build Loop
 
@@ -9,7 +13,7 @@ description: Iterative design development loop using OpenPencil (https://github.
 
 > **⚠️ CRITICAL - FILE PERSISTENCE:** OpenPencil MCP tools operate **IN-MEMORY ONLY**. Changes are NOT written to disk. The `.op` file remains `{"version":"1.0.0","children":[]}` on disk even after `insert_node`/`batch_design`. Re-opening the file LOSES ALL WORK.
 >
-> **CLI `op save` is the simplest persistence method.** After each session, run: `op save <file.op>`. See `reference/cli-commands.md` line 45.
+> **CLI `op save` is the simplest persistence method.** After each session, run: `op save canvas/design.op` (include the path). See `reference/cli-commands.md` line 45.
 >
 > **Fallback:** If CLI is unavailable, use `filesystem_write_file()` with `openpencil_batch_get()` output. See `reference/mcp-tool-index.md` lines 173-194.
 
@@ -27,25 +31,53 @@ description: Iterative design development loop using OpenPencil (https://github.
 | "Analyze source code and extract tokens" | **ANALYZER** | `phases/analyzer/workflow.md` |
 | "Verify page [name] has content" | **REVIEWER** | `phases/reviewer/workflow.md` |
 
+### Fallback Role
+
+If your prompt doesn't match any pattern above, **default to ORCHESTRATOR** and read `phases/orchestrator/workflow.md`. The orchestrator role is the safest fallback because it coordinates rather than builds.
+
+**Fallback rule:** Unclear role → ORCHESTRATOR. Never attempt to build without orchestrator coordination.
+
 ---
 ## KEY REFERENCES
 
+**Path Convention:** All paths are relative to the workspace root (where you invoked the skill). The skill directory is `{workspace}/openpencil-loop/`. When reading workflow files, use absolute paths like `read("/Users/nam.lethanh/Documents/code/wave/ai_skills/openpencil-loop/knowledge/role-definitions.md")` to avoid ambiguity.
+
 **Sub-Skill Loading:** Read files directly based on your role:
-- SUBAGENT: `openpencil_get_design_prompt({ section: "schema" })`, `openpencil_get_design_prompt({ section: "layout" })`, `read("openpencil-loop/knowledge/role-definitions.md")`
+- SUBAGENT: `openpencil_get_design_prompt({ section: "schema" })`, `openpencil_get_design_prompt({ section: "layout" })`, `read("{skill_path}/knowledge/role-definitions.md")`
 - REVIEWER: `openpencil_get_design_prompt({ section: "schema" })`
-- ANALYZER: `read("openpencil-loop/phases/generation/design-system.md")`, `openpencil_get_design_prompt({ section: "schema" })`
+- ANALYZER: `read("{skill_path}/phases/generation/design-system.md")`, `openpencil_get_design_prompt({ section: "schema" })`
+
+> **Tip:** Replace `{skill_path}` with the absolute path to this skill directory.
 
 **File Structure:**
+
 ```
-openpencil-loop/
+openpencil-loop/                     ← Skill directory (read-only)
+├── SKILL.md
 ├── phases/
-│   ├── orchestrator/workflow.md
-│   ├── subagent/workflow.md
-│   ├── reviewer/workflow.md
-│   ├── analyzer/workflow.md
+│   ├── orchestrator/workflow.md     ← ORCHESTRATOR role
+│   ├── subagent/workflow.md        ← SUBAGENT/BUILDER role
+│   ├── reviewer/workflow.md        ← REVIEWER role
+│   ├── analyzer/workflow.md         ← ANALYZER role
 │   └── generation/
 │       └── design-system.md
-└── knowledge/role-definitions.md
+├── knowledge/
+│   └── role-definitions.md
+├── domains/
+│   └── dashboard.md
+├── reference/
+│   ├── cli-commands.md
+│   ├── mcp-tool-index.md
+│   └── tool-decision-tree.md
+└── TEST-SPEC.md
+
+{workspace}/canvas/                 ← Project files (orchestrator creates)
+├── design.op                        ← OpenPencil canvas
+├── DESIGN.md                        ← Design tokens
+├── PROJECT.md                       ← Roadmap
+└── prompts/                        ← Per-page task prompts
+    ├── 01-dashboard-prompt.md
+    └── 02-login-prompt.md
 ```
 
 ---
