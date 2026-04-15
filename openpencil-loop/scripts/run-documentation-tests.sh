@@ -175,8 +175,8 @@ run_test "Validation function signature exists" \
 run_test "SUBAGENT required files listed" \
     "grep -q 'openpencil-loop/phases' \"$SKILL_PATH/phases/validation/sub-skill-loader.md\""
 
-run_test "Reviewer required files listed" \
-    "grep -q 'schema.md' \"$SKILL_PATH/phases/validation/sub-skill-loader.md\""
+run_test "Reviewer required files listed (MCP schema)" \
+    "grep -q 'openpencil_get_design_prompt.*section.*schema' \"$SKILL_PATH/phases/validation/sub-skill-loader.md\""
 
 run_test "Analyzer required files listed" \
     "grep -q 'design-system.md' \"$SKILL_PATH/phases/validation/sub-skill-loader.md\""

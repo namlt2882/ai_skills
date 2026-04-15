@@ -33,7 +33,7 @@ updated_at: [timestamp]
 Before building, read these files:
 ```
 read("canvas/DESIGN.md")  # Design tokens
-read("openpencil-loop/phases/generation/schema.md")  # PenNode format
+skill_mcp({ mcp_name: "openpencil", tool_name: "get_design_prompt", arguments: { section: "schema" } })  // PenNode format via MCP (preferred)
 ```
 
 Build workflow:

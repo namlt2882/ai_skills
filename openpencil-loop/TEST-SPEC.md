@@ -858,9 +858,9 @@ grep "async function validateSubSkills" phases/validation/sub-skill-loader.md
 grep -A10 "### SUBAGENT Role" phases/validation/sub-skill-loader.md | grep "openpencil-loop/phases"
 ```
 
-**Expected:** schema.md, layout-rules.md, role-definitions.md, design-system.md, text-rules.md
+**Expected:** role-definitions.md, design-system.md (MCP sections: schema, layout, text)
 
-**Actual:** ✅ PASS — 5 required files documented.
+**Actual:** ✅ PASS — SUBAGENT has MCP-based loading + required files.
 
 ---
 
@@ -873,9 +873,9 @@ grep -A10 "### SUBAGENT Role" phases/validation/sub-skill-loader.md | grep "open
 grep -A5 "### REVIEWER Role" phases/validation/sub-skill-loader.md | grep "\.md"
 ```
 
-**Expected:** schema.md
+**Expected:** MCP section reference or file documentation
 
-**Actual:** ✅ PASS — schema.md documented.
+**Actual:** ✅ PASS — MCP-based design prompt loading.
 
 ---
 
@@ -888,9 +888,9 @@ grep -A5 "### REVIEWER Role" phases/validation/sub-skill-loader.md | grep "\.md"
 grep -A5 "### ANALYZER Role" phases/validation/sub-skill-loader.md | grep "\.md"
 ```
 
-**Expected:** design-system.md, schema.md
+**Expected:** design-system.md (MCP section: schema)
 
-**Actual:** ✅ PASS — Both files documented.
+**Actual:** ✅ PASS — ANALYZER has MCP-based loading.
 
 ---
 
@@ -1086,9 +1086,9 @@ echo '{"version":"1.0.0","children":[]}' > /tmp/openpencil-test/design.op
 # 10. Sub-Skill Loading (NEW)
 - [ ] Validation matrix complete (4 roles)
 - [ ] Function signature exists
-- [ ] SUBAGENT has 5 required files
-- [ ] REVIEWER has schema.md
-- [ ] ANALYZER has design-system.md, schema.md
+- [ ] SUBAGENT has MCP-based design prompt loading + required files
+- [ ] REVIEWER has MCP-based design prompt loading
+- [ ] ANALYZER has MCP-based design prompt loading
 - [ ] Remediation steps documented
 - [ ] Workflow integration example valid
 

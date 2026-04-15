@@ -34,7 +34,7 @@
 32: |----------|-------|
 33: | **Cause** | Malformed JSON, missing required fields, invalid type/value combinations |
 34: | **Typical Tools** | `insert_node`, `update_node`, `batch_design`, `design_content` |
-35: | **Diagnostics** | Validate against `openpencil-loop/phases/generation/schema.md` |
+35: | **Diagnostics** | Validate PenNode structure against MCP `get_design_prompt({ section: "schema" })` |
 36: | **Recovery Priority** | Critical (corrupts design state) |
 37: 
 38: ### SessionDisconnect (MCP Session Lost)
@@ -202,7 +202,6 @@
 67: 
 67: - **Agent Harness Construction** skill Error Recovery Contract
 67: - `openpencil-loop/SKILL.md` Known Issues section
-67: - `openpencil-loop/phases/generation/schema.md` PenNode schema
 67: - draft `openpencil-loop-harness-review.md` lines 728-739
 67: |
 67: |
@@ -574,7 +573,6 @@
 67: |
 67: - **Agent Harness Construction** skill Error Recovery Contract
 67: - `openpencil-loop/SKILL.md` Known Issues section
-67: - `openpencil-loop/phases/generation/schema.md` PenNode schema
 67: - draft `openpencil-loop-harness-review.md` lines 728-739
 67: |
 67: |

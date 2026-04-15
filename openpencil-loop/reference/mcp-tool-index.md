@@ -104,7 +104,7 @@ filesystem_write_file({ path: "canvas/design.op", content: JSON.stringify({ vers
 
 | Tool | Arguments | Description |
 |------|-----------|-------------|
-| `get_design_prompt` | `section?: all\|schema\|layout\|roles\|text\|style\|icons\|examples\|guidelines\|planning` | Get design knowledge prompt. Use "section" to retrieve a focused subset. Default: all. **TIP: For production, prefer curated skill files** (`phases/generation/schema.md`, `phases/generation/layout-rules.md`, `knowledge/role-definitions.md`, `phases/generation/design-system.md`) which are pre-processed and validated.
+| `get_design_prompt` | `section?: all\|schema\|layout\|roles\|text\|style\|icons\|examples\|guidelines\|planning` | Get design knowledge prompt. Use "section" to retrieve a focused subset. Default: all. **PRIMARY: Use `openpencil_get_design_prompt(section: "schema")` via MCP for dynamic, up-to-date schema.** **NOTE: MCP required. If MCP unavailable, skill cannot function (no local fallback).**
 
 ### Import
 

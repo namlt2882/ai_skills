@@ -10,23 +10,23 @@ category: base
 
 # Design System Token Generation
 
-Generate a cohesive design token system:
+Generate a cohesive design token system. For defaults, see `get_design_prompt("style")`. Use these values only when user refreshes or explicitly modifies:
 
 ```json
 {
   "palette": {
-    "background": "#hex",
-    "surface": "#hex",
-    "text": "#hex",
-    "textSecondary": "#hex",
-    "primary": "#hex",
-    "primaryLight": "#hex",
-    "accent": "#hex",
-    "border": "#hex"
+    "background": "#F8FAFC",
+    "surface": "#FFFFFF",
+    "text": "#0F172A",
+    "textSecondary": "#475569",
+    "primary": "#2563EB",
+    "primaryLight": "#60A5FA",
+    "accent": "#0EA5E9",
+    "border": "#E2E8F0"
   },
   "typography": {
-    "headingFont": "font name",
-    "bodyFont": "font name",
+    "headingFont": "Space Grotesk",
+    "bodyFont": "Inter",
     "scale": [14, 16, 20, 28, 40, 56]
   },
   "spacing": { "unit": 8, "scale": [4, 8, 12, 16, 24, 32, 48, 64, 80, 96] },

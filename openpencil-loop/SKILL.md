@@ -31,9 +31,9 @@ description: Iterative design development loop using OpenPencil (https://github.
 ## KEY REFERENCES
 
 **Sub-Skill Loading:** Read files directly based on your role:
-- SUBAGENT: `read("openpencil-loop/phases/generation/schema.md")`, `read("openpencil-loop/phases/generation/layout-rules.md")`, `read("openpencil-loop/knowledge/role-definitions.md")`
-- REVIEWER: `read("openpencil-loop/phases/generation/schema.md")`
-- ANALYZER: `read("openpencil-loop/phases/generation/design-system.md")`, `read("openpencil-loop/phases/generation/schema.md")`
+- SUBAGENT: `openpencil_get_design_prompt({ section: "schema" })`, `openpencil_get_design_prompt({ section: "layout" })`, `read("openpencil-loop/knowledge/role-definitions.md")`
+- REVIEWER: `openpencil_get_design_prompt({ section: "schema" })`
+- ANALYZER: `read("openpencil-loop/phases/generation/design-system.md")`, `openpencil_get_design_prompt({ section: "schema" })`
 
 **File Structure:**
 ```
@@ -44,8 +44,6 @@ openpencil-loop/
 │   ├── reviewer/workflow.md
 │   ├── analyzer/workflow.md
 │   └── generation/
-│       ├── schema.md
-│       ├── layout-rules.md
 │       └── design-system.md
 └── knowledge/role-definitions.md
 ```
@@ -95,8 +93,6 @@ Managed shells may need expanded PATH:
 | `phases/subagent/workflow.md` | Subagent workflow |
 | `phases/reviewer/workflow.md` | Reviewer workflow |
 | `phases/analyzer/workflow.md` | Analyzer workflow |
-| `phases/generation/schema.md` | PenNode schema |
-| `phases/generation/layout-rules.md` | Layout rules |
 | `phases/generation/design-system.md` | Token format |
 | `knowledge/role-definitions.md` | Component semantic roles |
 | `reference/tool-decision-tree.md` | Tool selection guide |

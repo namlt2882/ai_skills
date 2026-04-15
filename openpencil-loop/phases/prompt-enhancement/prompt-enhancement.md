@@ -283,5 +283,5 @@ This is a targeted edit. Preserve all existing Header children.
 ## See Also
 
 - `design-system.md` — Generate design tokens
-- `layout-rules.md` — Auto-layout configuration
+
 - `role-definitions.md` — Semantic role assignments

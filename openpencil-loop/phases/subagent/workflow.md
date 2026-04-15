@@ -9,12 +9,12 @@
 │  ⛔ STOP. READ THESE FILES FIRST OR YOUR BUILD WILL FAIL.        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  1. read("openpencil-loop/phases/generation/schema.md")        │
+│  1. openpencil_get_design_prompt({ section: "schema" })        │
 │     → Learn PenNode structure                                   │
 │     → Know what type, width, height, fill, children mean      │
 │     → Required to build VALID nodes                            │
 │                                                                 │
-│  2. read("openpencil-loop/phases/generation/layout-rules.md")  │
+│  2. openpencil_get_design_prompt({ section: "layout" })        │
 │     → Learn auto-layout (flexbox) rules                         │
 │     → Know how to use layout, gap, padding, justifyContent      │
 │     → Required to build CORRECT layouts                         │

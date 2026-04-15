@@ -14,7 +14,7 @@
 │     → Colors, typography, spacing, shadows, components        │
 │     → Required to KNOW WHAT TO LOOK FOR                         │
 │                                                                 │
-│  2. read("openpencil-loop/phases/generation/schema.md")        │
+│  2. openpencil_get_design_prompt({ section: "schema" })        │
 │     → Understand PenNode structure for component detection      │
 │     → Know what type, name, fill, fontSize look like           │
 │     → Required to DETECT COMPONENTS in source                   │
@@ -53,7 +53,7 @@
 1. read("openpencil-loop/phases/generation/design-system.md")
    → Learn what tokens to extract
 
-2. read("openpencil-loop/phases/generation/schema.md")
+2. openpencil_get_design_prompt({ section: "schema" })
    → Understand PenNode structure for component detection
 
 3. Read: src/**/*.js, src/**/*.tsx, src/**/*.css

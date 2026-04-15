@@ -6,23 +6,30 @@ This validation hook ensures required sub-skill files are loaded before workflow
 
 ## VALIDATION MATRIX
 
-| Role | Required Files | Full Path | Purpose |
-|------|----------------|-----------|---------|
-| **ORCHESTRATOR** | `workflow.md` | `openpencil-loop/phases/orchestrator/workflow.md` | Orchestrator workflow (dispatch, baton-passing) |
-| **SUBAGENT** | `schema.md` | `openpencil-loop/phases/generation/schema.md` | PenNode structure definition |
-| | `layout-rules.md` | `openpencil-loop/phases/generation/layout-rules.md` | Auto-layout flexbox rules |
-| | `role-definitions.md` | `openpencil-loop/knowledge/role-definitions.md` | Semantic roles (button, card, navbar, table) |
-| | `design-system.md` | `openpencil-loop/phases/generation/design-system.md` | DESIGN.md token format |
-| | `text-rules.md` | `openpencil-loop/phases/generation/text-rules.md` | Typography rules (CJK, line height) |
-| **REVIEWER** | `schema.md` | `openpencil-loop/phases/generation/schema.md` | Verify node structure compliance |
-| **ANALYZER** | `design-system.md` | `openpencil-loop/phases/generation/design-system.md` | Extract tokens from source |
-| | `schema.md` | `openpencil-loop/phases/generation/schema.md` | Detect component patterns |
+| Role | Required Sources | Type | Purpose |
+|------|-----------------|------|---------|
+| **ORCHESTRATOR** | `workflow.md` | File: `openpencil-loop/phases/orchestrator/workflow.md` | Orchestrator workflow (dispatch, baton-passing) |
+| **SUBAGENT** | MCP `openpencil_get_design_prompt({ section: "schema" })` | MCP call | PenNode structure definition |
+| | MCP `openpencil_get_design_prompt({ section: "layout" })` | MCP call | Auto-layout flexbox rules |
+| | `role-definitions.md` | File: `openpencil-loop/knowledge/role-definitions.md` | Semantic roles (button, card, navbar, table) |
+| | `design-system.md` | File: `openpencil-loop/phases/generation/design-system.md` | DESIGN.md token format |
+| | MCP `openpencil_get_design_prompt({ section: "text" })` | MCP call | Typography rules (CJK, line height) |
+| **REVIEWER** | MCP `openpencil_get_design_prompt({ section: "schema" })` | MCP call | Verify node structure compliance |
+| **ANALYZER** | `design-system.md` | File: `openpencil-loop/phases/generation/design-system.md` | Extract tokens from source |
+| | MCP `openpencil_get_design_prompt({ section: "schema" })` | MCP call | Detect component patterns |
 
 ## VALIDATION FUNCTION SIGNATURE
 
 ```typescript
+interface McpSource {
+  type: 'file' | 'mcp';
+  /** For type='file': file path. For type='mcp': section name for openpencil_get_design_prompt */
+  key: string;
+}
+
 interface ValidationConfig {
-  requiredFiles: string[];
+  /** Required sources — mix of file paths and MCP section names */
+  requiredSources: McpSource[];
   role: 'ORCHESTRATOR' | 'SUBAGENT' | 'REVIEWER' | 'ANALYZER';
 }
 
@@ -35,34 +42,45 @@ interface ValidationResult {
 }
 
 /**
- * Validates that all required sub-skill files are loaded before workflow execution.
+ * Validates that all required sub-skill sources are available before workflow execution.
+ * Sources may be local files or MCP calls (openpencil_get_design_prompt).
  * 
- * @param config - Validation configuration with required files and role
+ * @param config - Validation configuration with required sources and role
  * @returns ValidationResult with status and remediation instructions
  */
 async function validateSubSkills(config: ValidationConfig): Promise<ValidationResult> {
-  const { requiredFiles, role } = config;
+  const { requiredSources, role } = config;
   
-  // Check each file exists
-  const loaded = await Promise.all(
-    requiredFiles.map(f => filesystem.exists(f))
+  const results = await Promise.all(
+    requiredSources.map(async (src) => {
+      if (src.type === 'file') {
+        return filesystem.exists(src.key);
+      }
+      // MCP source — probe with a lightweight call
+      try {
+        await openpencil_get_design_prompt({ section: src.key });
+        return true;
+      } catch {
+        return false;
+      }
+    })
   );
   
-  const missing = requiredFiles.filter((_, i) => !loaded[i]);
+  const missing = requiredSources.filter((_, i) => !results[i]).map(s => s.key);
   
   if (missing.length > 0) {
     return {
       status: 'error',
       summary: `Required sub-skills not loaded for ${role}`,
       missing,
-      nextActions: `Load missing files before proceeding.\nMissing:\n${missing.map(f => `- ${f}`).join('\n')}`
+      nextActions: `Load missing sources before proceeding.\nMissing:\n${missing.map(k => `- ${k}`).join('\n')}`
     };
   }
   
   return {
     status: 'success',
     summary: 'All required sub-skills loaded',
-    loadOrder: requiredFiles
+    loadOrder: requiredSources.map(s => s.key)
   };
 }
 ```
@@ -71,18 +89,24 @@ async function validateSubSkills(config: ValidationConfig): Promise<ValidationRe
 
 When validation fails, follow these recovery steps:
 
-### 1. Verify File Existence
+### 1. Verify MCP Availability
 
 ```bash
-# Check if file exists in the repo
-ls -la openpencil-loop/phases/generation/schema.md
+# Check that the MCP server is reachable (section probe)
+# The openpencil_get_design_prompt tool should respond without error
 ```
 
-### 2. Load Missing Files
+### 2. Load Missing MCP Sections
 
 ```typescript
-// For each missing file, load it explicitly
-await filesystem.read_text_file({ path: 'openpencil-loop/phases/generation/schema.md' });
+// For MCP-based sources, call openpencil_get_design_prompt with the section name
+const schemaResult = await openpencil_get_design_prompt({ section: 'schema' });
+const layoutResult = await openpencil_get_design_prompt({ section: 'layout' });
+const textResult   = await openpencil_get_design_prompt({ section: 'text' });
+
+// For file-based sources (role-definitions, design-system), use filesystem
+await filesystem.read_text_file({ path: 'openpencil-loop/knowledge/role-definitions.md' });
+await filesystem.read_text_file({ path: 'openpencil-loop/phases/generation/design-system.md' });
 ```
 
 ### 3. Update Workflow Globals
@@ -91,9 +115,9 @@ If using a workflow framework, ensure globals are populated:
 
 ```typescript
 workflow.globals.subSkills = {
-  schema: await loadFile('openpencil-loop/phases/generation/schema.md'),
-  layoutRules: await loadFile('openpencil-loop/phases/generation/layout-rules.md'),
-  roleDefinitions: await loadFile('openpencil-loop/knowledge/role-definitions.md')
+  schema: await openpencil_get_design_prompt({ section: 'schema' }),
+  layoutRules: await openpencil_get_design_prompt({ section: 'layout' }),
+  roleDefinitions: await filesystem.read_text_file({ path: 'openpencil-loop/knowledge/role-definitions.md' })
 };
 ```
 
@@ -101,7 +125,11 @@ workflow.globals.subSkills = {
 
 ```typescript
 const result = await validateSubSkills({
-  requiredFiles: ['openpencil-loop/phases/generation/schema.md'],
+  requiredSources: [
+    { type: 'mcp', key: 'schema' },
+    { type: 'mcp', key: 'layout' },
+    { type: 'file', key: 'openpencil-loop/knowledge/role-definitions.md' }
+  ],
   role: 'SUBAGENT'
 });
 
@@ -116,12 +144,12 @@ if (result.status === 'error') {
 // At start of SUBAGENT workflow, in the P0 pre-flight checklist
 async function subagentWorkflow() {
   const subagentValidation = await validateSubSkills({
-    requiredFiles: [
-      'openpencil-loop/phases/generation/schema.md',
-      'openpencil-loop/phases/generation/layout-rules.md',
-      'openpencil-loop/knowledge/role-definitions.md',
-      'openpencil-loop/phases/generation/design-system.md',
-      'openpencil-loop/phases/generation/text-rules.md'
+    requiredSources: [
+      { type: 'mcp', key: 'schema' },
+      { type: 'mcp', key: 'layout' },
+      { type: 'file', key: 'openpencil-loop/knowledge/role-definitions.md' },
+      { type: 'file', key: 'openpencil-loop/phases/generation/design-system.md' },
+      { type: 'mcp', key: 'text' }
     ],
     role: 'SUBAGENT'
   });
@@ -176,23 +204,28 @@ See `.sisyphus/drafts/openpencil-loop-harness-review.md` lines 444-463 for draft
 
 ```javascript
 // At start of SUBAGENT workflow
-const requiredFiles = [
-  'openpencil-loop/phases/generation/schema.md',
-  'openpencil-loop/phases/generation/layout-rules.md',
-  'openpencil-loop/knowledge/role-definitions.md',
-  'openpencil-loop/phases/generation/design-system.md'
+const requiredSources = [
+  { type: 'mcp', key: 'schema' },
+  { type: 'mcp', key: 'layout' },
+  { type: 'file', key: 'openpencil-loop/knowledge/role-definitions.md' },
+  { type: 'file', key: 'openpencil-loop/phases/generation/design-system.md' },
+  { type: 'mcp', key: 'text' }
 ];
 
-const loaded = await Promise.all(
-  requiredFiles.map(f => filesystem.exists(f))
+const results = await Promise.all(
+  requiredSources.map(async (src) => {
+    if (src.type === 'file') return filesystem.exists(src.key);
+    try { await openpencil_get_design_prompt({ section: src.key }); return true; }
+    catch { return false; }
+  })
 );
 
-if (loaded.includes(false)) {
+if (results.includes(false)) {
   return {
     status: "error",
     summary: "Required sub-skills not loaded",
-    missing: requiredFiles.filter((_, i) => !loaded[i]),
-    next_actions: "Read missing files before proceeding"
+    missing: requiredSources.filter((_, i) => !results[i]).map(s => s.key),
+    next_actions: "Load missing MCP sections or files before proceeding"
   };
 }
 ```
@@ -204,12 +237,12 @@ if (loaded.includes(false)) {
 ```typescript
 {
   role: 'SUBAGENT',
-  requiredFiles: [
-    'openpencil-loop/phases/generation/schema.md',
-    'openpencil-loop/phases/generation/layout-rules.md',
-    'openpencil-loop/knowledge/role-definitions.md',
-    'openpencil-loop/phases/generation/design-system.md',
-    'openpencil-loop/phases/generation/text-rules.md'
+  requiredSources: [
+    { type: 'mcp', key: 'schema' },
+    { type: 'mcp', key: 'layout' },
+    { type: 'file', key: 'openpencil-loop/knowledge/role-definitions.md' },
+    { type: 'file', key: 'openpencil-loop/phases/generation/design-system.md' },
+    { type: 'mcp', key: 'text' }
   ]
 }
 ```
@@ -219,8 +252,8 @@ if (loaded.includes(false)) {
 ```typescript
 {
   role: 'REVIEWER',
-  requiredFiles: [
-    'openpencil-loop/phases/generation/schema.md'
+  requiredSources: [
+    { type: 'mcp', key: 'schema' }
   ]
 }
 ```
@@ -230,9 +263,9 @@ if (loaded.includes(false)) {
 ```typescript
 {
   role: 'ANALYZER',
-  requiredFiles: [
-    'openpencil-loop/phases/generation/design-system.md',
-    'openpencil-loop/phases/generation/schema.md'
+  requiredSources: [
+    { type: 'file', key: 'openpencil-loop/phases/generation/design-system.md' },
+    { type: 'mcp', key: 'schema' }
   ]
 }
 ```
@@ -242,8 +275,8 @@ if (loaded.includes(false)) {
 ```typescript
 {
   role: 'ORCHESTRATOR',
-  requiredFiles: [
-    'openpencil-loop/phases/orchestrator/workflow.md'
+  requiredSources: [
+    { type: 'file', key: 'openpencil-loop/phases/orchestrator/workflow.md' }
   ]
 }
 ```
@@ -256,13 +289,13 @@ if (loaded.includes(false)) {
 
 # Run validation for each role
 echo "=== SUBAGENT Validation ==="
-npx validate-subskills --role SUBAGENT --files schema.md layout-rules.md role-definitions.md design-system.md text-rules.md
+npx validate-subskills --role SUBAGENT --mcp-sections schema layout text --files role-definitions.md design-system.md
 
 echo "=== REVIEWER Validation ==="
-npx validate-subskills --role REVIEWER --files schema.md
+npx validate-subskills --role REVIEWER --mcp-sections schema
 
 echo "=== ANALYZER Validation ==="
-npx validate-subskills --role ANALYZER --files design-system.md schema.md
+npx validate-subskills --role ANALYZER --mcp-sections schema --files design-system.md
 
 echo "=== ORCHESTRATOR Validation ==="
 npx validate-subskills --role ORCHESTRATOR --files workflow.md

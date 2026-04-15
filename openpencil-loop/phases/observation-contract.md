@@ -195,5 +195,5 @@ When implementing or reviewing MCP tools for OpenPencil:
 
 ## Related Files
 
-- `openpencil-loop/phases/generation/schema.md` - PenNode schema reference
+- openpencil_get_design_prompt({ section: "schema" }) - PenNode schema reference
 - `.sisyphus/drafts/openpencil-loop-harness-review.md` - Draft review with observation format recommendations (lines 203-235)

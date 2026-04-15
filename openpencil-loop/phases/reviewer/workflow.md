@@ -9,7 +9,7 @@
 │  ⛔ STOP. READ THIS FILE FIRST OR YOUR VERIFICATION WILL FAIL.   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  1. read("openpencil-loop/phases/generation/schema.md")        │
+│  1. openpencil_get_design_prompt({ section: "schema" })        │
 │     → Learn what valid PenNode content looks like              │
 │     → Know what type, children, fill, stroke should contain    │
 │     → Required to DETECT EMPTY vs VALID nodes                  │

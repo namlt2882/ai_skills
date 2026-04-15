@@ -47,7 +47,7 @@ SUBAGENT returns: "✅ Page built with X nodes"
 ORCHESTRATOR dispatches REVIEWER: task(
     category="deep",
     prompt="You are REVIEWER. 
-            1. Load sub-skills: read('openpencil-loop/phases/generation/schema.md')
+            1. Load sub-skills: openpencil_get_design_prompt({ section: "schema" })
             2. Read: canvas/prompts/XX-prompt.md (get pageId)
             3. Check: openpencil_batch_get({ pageId, readDepth: 2 })
             4. Verify: node count > 1, children not empty
@@ -76,10 +76,10 @@ task(
             
             Execute these reads BEFORE any other work:
             
-            read('openpencil-loop/phases/generation/schema.md')
+            openpencil_get_design_prompt({ section: "schema" })
             → Learn PenNode structure (type, width, height, fill, stroke, children)
             
-            read('openpencil-loop/phases/generation/layout-rules.md')
+            openpencil_get_design_prompt({ section: "layout" })
             → Learn auto-layout rules (flex, gap, padding, justifyContent, alignItems)
             
             read('openpencil-loop/knowledge/role-definitions.md')
@@ -129,7 +129,7 @@ task(
             
             Execute this read BEFORE any other work:
             
-            read('openpencil-loop/phases/generation/schema.md')
+            openpencil_get_design_prompt({ section: "schema" })
             → Learn what valid PenNode content looks like
             
             ╔══════════════════════════════════════════════════════════════╗
@@ -178,7 +178,7 @@ task(
             read('openpencil-loop/phases/generation/design-system.md')
             → Learn what tokens to extract (colors, typography, spacing, shadows)
             
-            read('openpencil-loop/phases/generation/schema.md')
+            openpencil_get_design_prompt({ section: "schema" })
             → Understand component structure for detection
             
             ╔══════════════════════════════════════════════════════════════╗
