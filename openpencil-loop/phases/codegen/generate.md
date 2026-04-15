@@ -7,11 +7,11 @@ priority: 40
 budget: 3000
 category: base
 mcp_tools:
-  - export_nodes
+  - read_nodes
   - batch_get
 ---
 
-> **MCP Tool Syntax:** Tool calls below use generic names (`export_nodes`, `batch_get`, etc.).
+> **MCP Tool Syntax:** Tool calls below use generic names (`read_nodes`, `batch_get`, etc.).
 > Adapt to your agent framework: OpenCode → `openpencil_<tool>()`, Claude Code → `mcp__openpencil__<tool>()`, Codex → `openpencilMcp.<tool>()`.
 > See SKILL.md → "Multi-Agent Compatibility" for full mapping.
 
@@ -177,7 +177,7 @@ timestamp: "2025-04-08T10:30:10Z"
 ## INPUT
 1. `codegen-state.md` with deduplicated components manifest
 2. Framework guide (`codegen-react.md` or `codegen-html.md`)
-3. Original PenNode data (from `export_nodes`)
+3. Original PenNode data (from `openpencil_batch_get`)
 
 ## OUTPUT
 - Generated component files in appropriate directories

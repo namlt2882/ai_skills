@@ -5,7 +5,7 @@
 set -e
 
 WORKSPACE="/tmp/openpencil-test"
-SKILL_PATH="/Users/nam.lethanh/Documents/code/wave/ai_skills/openpencil-loop"
+SKILL_PATH="."
 
 echo "=========================================="
 echo "OpenPencil Loop - Comprehensive Test Suite"

@@ -65,7 +65,7 @@ grep -A1 "Screenshot Capture Methods" phases/validation/vision-feedback.md
 
 **Expected:**
 1. Playwright (navigate + take_screenshot)
-2. CLI export (`op export --format png`)
+2. Desktop app PNG export (Cmd+Shift+P) — NO MCP tool available
 3. Manual (user provides)
 
 **Actual:** ✅ PASS — Methods documented in priority order.
@@ -229,16 +229,16 @@ Screenshot capture methods attempted:
 
 | Method | Tool | Result | Error |
 |--------|------|--------|-------|
-| OpenPencil desktop | `open-pencil_export_image` | ❌ TIMEOUT | Desktop app not running |
+| OpenPencil desktop | `Cmd+Shift+P` (Export PNG) | ❌ TIMEOUT | Desktop app not running |
 | Playwright web | `playwright_browser_navigate` | ❌ NO APP | No localhost:3000 running |
-| CLI export | `op export --format png` | ❌ NOT TESTED | CLI package issues |
+| Desktop PNG export | `Cmd+Shift+P` | ❌ NO MCP TOOL | PNG export via desktop app only |
 
 **Conclusion:** Mode 2 (screenshot capture) is NOT currently functional. The vision-feedback.md documents it as if it works, but it does not.
 
 **Required for Mode 2:**
 1. OpenPencil desktop app running with file open, OR
 2. OpenPencil web app at localhost:3000, OR  
-3. Working CLI `op export` command
+3. Desktop PNG export `Cmd+Shift+P` (PNG is desktop-only, NO MCP tool)
 
 **Workaround:** Use only Mode 1 (node tree analysis) until screenshot capture is fixed.
 

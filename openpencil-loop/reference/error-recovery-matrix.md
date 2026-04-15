@@ -268,13 +268,13 @@
 67: |
 67: ---
 67: |
-67: ### 9. export_nodes
+67: ### 9. openpencil_batch_get (formerly export_nodes)
 67: |
 67: | Error Type | Root Cause | Recovery Steps | Retry Limit |
 67: |------------|------------|----------------|-------------|
-67: | **ENOENT** | `.op` file path invalid or doesn't exist | 1. Verify file path exists<br>2. Create directory if needed: `mkdir -p canvas`<br>3. Re-run `export_nodes` with correct path | 3 |
-67: | **InvalidNode** | Nodes have circular references or invalid structure | 1. Read nodes: `openpencil_batch_get()`<br>2. Check for circular references in node tree<br>3. Remove or fix circular references<br>4. Re-run `export_nodes` | 3 |
-67: | **SessionDisconnect** | No nodes to export (canvas empty) | 1. Check canvas state: `openpencil_batch_get()`<br>2. If empty, build nodes first or re-open document<br>3. Re-run `export_nodes` | 3 |
+67: | **ENOENT** | `.op` file path invalid or doesn't exist | 1. Verify file path exists<br>2. Create directory if needed: `mkdir -p canvas`<br>3. Re-run `openpencil_batch_get` with correct path | 3 |
+67: | **InvalidNode** | Nodes have circular references or invalid structure | 1. Read nodes: `openpencil_batch_get()`<br>2. Check for circular references in node tree<br>3. Remove or fix circular references<br>4. Re-run `openpencil_batch_get` | 3 |
+67: | **SessionDisconnect** | No nodes to export (canvas empty) | 1. Check canvas state: `openpencil_batch_get()`<br>2. If empty, build nodes first or re-open document<br>3. Re-run `openpencil_batch_get` | 3 |
 67: |
 67: **Escalation**: After 3 retries, verify node structure and session state.
 67: |

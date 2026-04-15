@@ -7,11 +7,11 @@ priority: 20
 budget: 2000
 category: domain
 mcp_tools:
-  - export_nodes
+  - read_nodes
   - batch_get
 ---
 
-> **MCP Tool Syntax:** Tool calls below use generic names (`export_nodes`, `batch_get`, etc.).
+> **MCP Tool Syntax:** Tool calls below use generic names (`read_nodes`, `batch_get`, etc.).
 > Adapt to your agent framework: OpenCode → `openpencil_<tool>()`, Claude Code → `mcp__openpencil__<tool>()`, Codex → `openpencilMcp.<tool>()`.
 > See SKILL.md → "Multi-Agent Compatibility" for full mapping.
 

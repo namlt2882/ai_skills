@@ -1,6 +1,6 @@
 # OpenPencil MCP Tool Index
 
-**MCP Prefix:** `openpencil_*` (34 tools, NO desktop app needed)
+**MCP Prefix:** `openpencil_*` (40 tools, NO desktop app needed)
 
 All tools are called directly: `openpencil_<tool_name>({ arguments })`
 
@@ -20,7 +20,7 @@ filesystem_write_file({ path: "canvas/design.op", content: JSON.stringify({ vers
 
 ---
 
-## Available Tools (34 total)
+## Available Tools (40 total)
 
 ### Document Operations
 
@@ -38,7 +38,7 @@ filesystem_write_file({ path: "canvas/design.op", content: JSON.stringify({ vers
 | `get_selection` | `readDepth?` | Get currently selected nodes |
 | `get_variables` | `type?: COLOR\|FLOAT\|STRING\|BOOLEAN` | List design variables |
 | `snapshot_layout` | `filePath?, maxDepth?, pageId?, parentId?` | Get hierarchical bounding box tree |
-| `export_nodes` | `filePath?, nodeIds?, pageId?` | Export raw PenNode JSON |
+| `read_nodes` | `nodeIds?, depth?, pageId?, filePath?, includeVariables?` | Read nodes with depth control (replaces deprecated export_nodes) |
 | `find_empty_space` | `width, height, direction, nodeId?, padding?` | Find empty canvas space |
 
 ### Create Operations
@@ -100,25 +100,35 @@ filesystem_write_file({ path: "canvas/design.op", content: JSON.stringify({ vers
 | `reorder_page` | `pageId, index, filePath?` | Move page position |
 | `duplicate_page` | `pageId, name?, filePath?` | Clone page |
 
-### Knowledge
+### Design Knowledge
 
 | Tool | Arguments | Description |
 |------|-----------|-------------|
-| ~~`get_design_prompt`~~ | — | **🚫 FORBIDDEN** — raw output corrupts agent flow. Use curated skill files instead. |
-
-**Curated alternatives** (use these instead):
-- Schema: `phases/generation/schema.md`
-- Layout: `phases/generation/layout-rules.md`
-- Roles: `knowledge/role-definitions.md`
-- Design system: `phases/generation/design-system.md`
-
-**Available sections:** `all`, `schema`, `layout`, `roles`, `text`, `style`, `icons`, `examples`, `guidelines`, `planning`, `codegen-*`
+| `get_design_prompt` | `section?: all\|schema\|layout\|roles\|text\|style\|icons\|examples\|guidelines\|planning` | Get design knowledge prompt. Use "section" to retrieve a focused subset. Default: all. **TIP: For production, prefer curated skill files** (`phases/generation/schema.md`, `phases/generation/layout-rules.md`, `knowledge/role-definitions.md`, `phases/generation/design-system.md`) which are pre-processed and validated.
 
 ### Import
 
 | Tool | Arguments | Description |
 |------|-----------|-------------|
 | `import_svg` | `svgPath, canvasWidth?, filePath?, maxDim?, pageId?, parent?, postProcess?` | Import SVG file |
+
+### Code Generation
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `codegen_plan` | `plan, filePath?, pageId?` | Submit code generation plan (validates, returns executionPlan) |
+| `codegen_submit_chunk` | `planId, result` | Submit generated code for one chunk |
+| `codegen_assemble` | `planId, framework` | Retrieve all chunk results for final assembly |
+| `codegen_clean` | `planId` | Clean up abandoned codegen plan |
+
+### Style & Bulk Property Operations
+
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `get_style_guide_tags` | — | List available style guide tags |
+| `get_style_guide` | `tags?, name?, platform?` | Get style guide for design inspiration |
+| `search_all_unique_properties` | `parents, properties, filePath?, pageId?` | Recursively search unique property values |
+| `replace_all_matching_properties` | `parents, properties, filePath?, pageId?` | Recursively replace matching property values |
 
 ---
 
@@ -167,6 +177,31 @@ openpencil_batch_design({
 | `pageId` may target wrong page for page 2+ | Operate on page 1 only, or recreate pages |
 | `copy_node` requires `sourceId` not `nodeId` | Use `sourceId` parameter |
 | `design_skeleton` creates equal-width sections | Use `update_node` to set explicit widths after |
+
+---
+
+## CLI Fallback for Missing MCP Capabilities
+
+**Critical**: MCP lacks several capabilities that CLI provides. Use CLI when MCP cannot perform the needed operation.
+
+| MCP Missing | CLI Alternative | When to Use |
+|-------------|-----------------|-------------|
+| NO save tool | `op save <file.op>` | **ALWAYS after MCP changes** |
+| NO code export | `op export --format react/html/vue/etc` | Code generation needs |
+| NO Figma import | `op import:figma <file.fig>` | Figma workflow |
+| NO app control | `op start/stop/status` | Lifecycle management |
+
+**Why MCP doesn't have these:**
+- Save: The MCP server operates in-memory only; file I/O requires CLI
+- Code export: Generates React/Vue/Flutter code - not PenNode JSON
+- Figma import: Parses .fig files - outside MCP's JSON focus
+
+**CLI save pattern (MANDATORY after design work):**
+```bash
+op save mydesign.op   # Persist MCP changes to disk
+```
+
+See: `reference/cli-commands.md` for full CLI ↔ MCP mapping
 
 ---
 

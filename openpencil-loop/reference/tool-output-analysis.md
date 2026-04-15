@@ -413,7 +413,7 @@
   "summary": "Retrieved 12 nodes matching pattern 'Card'",
   "next_actions": [
     "Process nodes for codegen or validation",
-    "Call export_nodes if saving to file"
+    "Call openpencil_batch_get if saving to file"
   ],
   "artifacts": {
     "nodes": [...],
@@ -480,7 +480,7 @@
 
 ---
 
-### 10. openpencil_export_nodes
+### 10. openpencil_batch_get
 
 **Current Return Format:**
 ```json
@@ -553,7 +553,7 @@
 | delete_node | status, summary, next_actions, artifacts | **P2** | Less frequently used |
 | batch_get | status, summary, next_actions, artifacts | **P2** | Read operation |
 | open_document | status, summary, next_actions, artifacts | **P1** | Initialization step |
-| export_nodes | status, summary, next_actions, artifacts | **P2** | Export operation |
+| ~~export_nodes~~ | Deprecated | **P2** | Replaced by openpencil_batch_get |
 
 ---
 
@@ -572,8 +572,8 @@
 
 ### Priority 2 (Medium - Nice to Have)
 8. **delete_node**: Add observation contract wrapper
-9. **batch_get**: Add observation contract wrapper
-10. **export_nodes**: Add observation contract wrapper
+9. **openpencil_batch_get**: Add observation contract wrapper
+10. ~~export_nodes~~: Deprecated — replaced by openpencil_batch_get
 
 ---
 

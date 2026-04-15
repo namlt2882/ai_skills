@@ -47,7 +47,7 @@
 
 ```
 openpencil_open_document({ filePath: "canvas/design.op" })
-openpenign_design_skeleton({ canvasWidth: 1200, rootFrame: {...}, sections: [...] })
+openpencil_design_skeleton({ canvasWidth: 1200, rootFrame: {...}, sections: [...] })
 openpencil_design_content({ sectionId: "...", children: [...], postProcess: true })
 openpencil_design_refine({ rootId: "..." })
 ```
@@ -56,7 +56,7 @@ openpencil_design_refine({ rootId: "..." })
 
 ```
 ❌ openpencil_add_page()         → Orchestrator only
-❌ openpencil_export_nodes()     → Orchestrator only
+❌ openpencil_read_nodes()     → Orchestrator only
 ❌ filesystem_write_file()       → Orchestrator only
 ```
 
@@ -102,7 +102,7 @@ openpencil_design_refine({ rootId: "..." })
 
 ## Subagent Must Not
 
-- Save files (`openpencil_export_nodes`, `filesystem_write_file`)
+- Save files (`openpencil_read_nodes`, `filesystem_write_file`)
 - Create pages (`openpencil_add_page`)
 - Modify DESIGN.md, PROJECT.md, or prompt files
 
@@ -126,3 +126,12 @@ Then work on your assigned page using the pageId from the prompt file.
 
 **AFTER COMPLETING:** Return results and remind orchestrator:
 "✅ [Page name] done. Please update prompt file and save canvas."
+
+---
+
+## CLI Fallback Reference
+
+If MCP tool fails, see CLI fallback: `reference/cli-commands.md` lines 173-194
+
+**MUST NOT use CLI for building** - CLI is orchestrator-only. Subagents MUST use MCP tools only.
+If MCP tools fail, report the specific error to orchestrator - DO NOT switch to CLI spontaneously.

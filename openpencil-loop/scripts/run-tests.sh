@@ -4,8 +4,8 @@
 
 set -e
 
-WORKSPACE="/Users/nam.lethanh/Documents/code/wave/ai_skills/openpencil-loop-workspace"
-SKILL_PATH="/Users/nam.lethanh/Documents/code/wave/ai_skills/openpencil-loop"
+WORKSPACE="./openpencil-loop-workspace"
+SKILL_PATH="."
 
 echo "=========================================="
 echo "OpenPencil Loop - Basic Integration Tests"

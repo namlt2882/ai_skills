@@ -7,11 +7,11 @@ priority: 30
 budget: 2500
 category: base
 mcp_tools:
-  - export_nodes
+  - read_nodes
   - batch_get
 ---
 
-> **MCP Tool Syntax:** Tool calls below use generic names (`export_nodes`, `batch_get`, etc.).
+> **MCP Tool Syntax:** Tool calls below use generic names (`read_nodes`, `batch_get`, etc.).
 > Adapt to your agent framework: OpenCode → `openpencil_<tool>()`, Claude Code → `mcp__openpencil__<tool>()`, Codex → `openpencilMcp.<tool>()`.
 > See SKILL.md → "Multi-Agent Compatibility" for full mapping.
 
@@ -23,9 +23,10 @@ You are a **Component Deduplication Engine**. Your job is to identify repeated c
 Get PenNode data from all pages:
 ```
 For each page:
-  export_nodes({
+  openpencil_batch_get({
     filePath: "canvas/design.op",
-    pageId: "page-uuid"
+    pageId: "page-uuid",
+    readDepth: 5
   })
 ```
 
@@ -198,7 +199,7 @@ componentsManifest:
 
 ## INPUT
 1. `codegen-state.md` from Phase 2 (discover)
-2. All pages' PenNode data via `export_nodes`
+2. All pages' PenNode data via `openpencil_batch_get`
 
 ## OUTPUT
 `codegen-state.md` baton with deduplication analysis and components manifest

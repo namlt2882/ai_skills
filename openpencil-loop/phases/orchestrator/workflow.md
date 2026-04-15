@@ -10,7 +10,7 @@
 | **CREATE PAGES** | Add pages to design.op | `openpencil_add_page()` |
 | **DISPATCH** | Send subagents to build each page | `task(category="quick", prompt="Read prompts/XX...")` |
 | **VERIFY** | Send reviewer to check work | `task(category="deep", prompt="Verify page [name] has content")` |
-| **SAVE** | Export and save after PASS verification | `openpencil_export_nodes()`, `filesystem_write_file()` |
+| **SAVE** | Export and save after PASS verification | `openpencil_read_nodes()`, `filesystem_write_file()` |
 
 ## What You NEVER Do
 
@@ -34,7 +34,7 @@
 7. [ ] Dispatched subagents to build?
 8. [ ] Dispatched reviewers to verify? ← MANDATORY
 9. [ ] Reviewer returned PASS? ← Only then...
-10. [ ] Saved with openpencil_export_nodes()?
+10. [ ] Saved with openpencil_read_nodes()?
 ```
 
 ## MANDATORY: Verify Before Marking Done
@@ -111,7 +111,7 @@ task(
             
             Return: '✅ [Page name] built with X nodes. Orchestrator: verify and save.'
             
-            ⚠️ NEVER: openpencil_export_nodes(), filesystem_write_file(), add_page()
+            ⚠️ NEVER: openpencil_read_nodes(), filesystem_write_file(), add_page()
             These are ORCHESTRATOR tools. You only BUILD."
 )
 ```
@@ -252,8 +252,12 @@ PHASE 3: BUILD PAGES (orchestrator creates pages, subagents build content)
   edit canvas/prompts/01-dashboard-prompt.md → status: completed
 
 PHASE 4: SAVE AND ITERATE
-  openpencil_export_nodes() → get JSON
-  filesystem_write_file() → save to design.op
+  # Primary: Use CLI for persistence
+  op save canvas/design.op
+
+  # Backup: MCP export (if CLI unavailable)
+  # openpencil_read_nodes() → get JSON
+  # filesystem_write_file() → save to design.op
 
   Repeat Phase 3 for each remaining page
   Can dispatch multiple subagents in parallel for independent pages
@@ -354,5 +358,5 @@ The orchestrator MUST create, maintain, and protect these files. Subagents read 
 | **Create PROJECT.md** | Copy from `templates/PROJECT.md`, fill with sitemap | Once at project start |
 | **Update DESIGN.md** | Add new tokens, component specs as discovered | After each page analyzed |
 | **Update PROJECT.md** | Mark pages complete, add next tasks | After each page done |
-| **Export canvas to .op** | `openpencil_export_nodes()` + `filesystem_write_file()` | After each session + before session end |
+| **Export canvas to .op** | `openpencil_read_nodes()` + `filesystem_write_file()` | After each session + before session end |
 | **Read .op before work** | `openpencil_batch_get()` + `read(".op")` to compare | Every session start |

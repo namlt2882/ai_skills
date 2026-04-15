@@ -52,9 +52,9 @@ Screenshot capture methods that do NOT work:
 
 | Method | Tool | Status | Error |
 |--------|------|--------|-------|
-| OpenPencil desktop | `open-pencil_export_image` | ❌ FAIL | Timeout — desktop app not running |
+| OpenPencil desktop | `Cmd+Shift+P` (Export PNG) | ❌ FAIL | Desktop app not running |
 | Playwright web | `playwright_browser_navigate` | ❌ FAIL | No localhost:3000 running |
-| CLI export | `op export --format png` | ❌ NOT TESTED | CLI package issues |
+| CLI export | `op export` | ❌ NOT TESTED | CLI package issues (PNG not supported) |
 
 **Until screenshot capture is fixed, use only Mode 1.**
 
@@ -89,7 +89,9 @@ playwright_browser_take_screenshot({
 
 ```bash
 # Requires: npm install -g @zseven-w/openpencil
-op export --format png --out screenshot.png
+# Note: CLI export does NOT support PNG format
+# PNG export is desktop-app only (Cmd+Shift+P) — NO MCP tool available
+op export --format react > output.tsx
 ```
 
 ### Option 3: Manual Capture

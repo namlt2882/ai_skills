@@ -10,10 +10,10 @@ mcp_tools:
   - batch_get
   - get_design_md
   - snapshot_layout
-  - export_nodes
+  - read_nodes
 ---
 
-> **MCP Tool Syntax:** Tool calls below use generic names (`export_nodes`, `batch_get`, etc.).
+> **MCP Tool Syntax:** Tool calls below use generic names (`read_nodes`, `batch_get`, etc.).
 > Adapt to your agent framework: OpenCode → `openpencil_<tool>()`, Claude Code → `mcp__openpencil__<tool>()`, Codex → `openpencilMcp.<tool>()`.
 > See SKILL.md → "Multi-Agent Compatibility" for full mapping.
 
@@ -24,7 +24,7 @@ You are a **Project Structure Analyzer**. Your job is to check if the design is 
 ### Step 1: Check Canvas File
 ```
 1. Verify .op file exists (from next-prompt.md or user config)
-2. Read design using: export_nodes({ filePath, pageId })
+2. Read design using: openpencil_batch_get({ filePath, pageId, readDepth: 5 })
 3. Get design metadata: get_design_md({ filePath })
 4. Check layout structure: snapshot_layout({ filePath })
 ```

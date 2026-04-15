@@ -9,7 +9,7 @@ priority: 20
 budget: 2000
 category: knowledge
 mcp_tools:
-  - export_nodes
+  - read_nodes
 ---
 
 # HTML + CSS Code Generation
@@ -18,7 +18,7 @@ mcp_tools:
 
 ```javascript
 // Use pageId for multi-page apps
-openpencil_export_nodes({ filePath: "path/to/design.op", pageId: "target-page-id" })
+openpencil_batch_get({ filePath: "path/to/design.op", pageId: "target-page-id", readDepth: 5 })
 ```
 
 ## Output Format

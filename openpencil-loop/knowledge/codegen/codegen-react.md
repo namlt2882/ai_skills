@@ -9,7 +9,7 @@ priority: 20
 budget: 2000
 category: knowledge
 mcp_tools:
-  - export_nodes
+  - read_nodes
   - batch_get
 ---
 
@@ -19,7 +19,7 @@ mcp_tools:
 
 ```javascript
 // Get full node tree (per page — use pageId for multi-page)
-openpencil_export_nodes({ filePath: "path/to/design.op", pageId: "target-page-id" })
+openpencil_batch_get({ filePath: "path/to/design.op", pageId: "target-page-id", readDepth: 5 })
 
 // Or get specific nodes
 openpencil_batch_get({ filePath: "path/to/design.op", nodeIds: ["id1", "id2"], pageId: "target-page-id" })

@@ -87,5 +87,12 @@ FAIL: Page [name] has only 1 node with empty children. Build failed.
 
 5. RETURN:
    PASS: "✅ PASS: Page [name] has X nodes with Y sections. Content verified."
-   FAIL: "❌ FAIL: Page [name] is empty (only root frame). Subagent did not build."
+   FAIL: "❌ FAIL: Page [name] is empty (only root frame). Subagent did not build.```
+
+## CLI Fallback Reference
+
+If MCP `batch_get` fails or returns no data:
+- See CLI fallback: `reference/mcp-tool-index.md` lines 173-194
+- Documents `op save`, `op export`, `op import:figma`, `op start/stop/status`
+- Use only for debugging, NOT for verification work
 ```

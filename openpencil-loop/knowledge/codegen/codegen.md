@@ -8,7 +8,7 @@ priority: 10
 budget: 3000
 category: base
 mcp_tools:
-  - export_nodes
+  - read_nodes
   - batch_get
   - get_design_md
   - snapshot_layout

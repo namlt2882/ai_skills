@@ -401,7 +401,7 @@ Workflow:
 
   ORCHESTRATOR:
     1. Collect all subagent results
-    2. If all PASS: export_nodes → filesystem_write_file(".op")
+    2. If all PASS: read_nodes() → filesystem_write_file(".op")
     3. Update PROJECT.md, DESIGN.md
 ```
 

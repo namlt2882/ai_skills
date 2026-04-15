@@ -7,7 +7,11 @@ description: Iterative design development loop using OpenPencil (https://github.
 
 > **⚠️ LAZY LOADING:** This file contains only role detection + dispatch. Each role's full workflow is in `phases/{role}/workflow.md`. Read that file when you know your role.
 
-> **⚠️ CRITICAL - FILE PERSISTENCE:** OpenPencil MCP tools operate **IN-MEMORY ONLY**. Changes are NOT written to disk. The `.op` file remains `{"version":"1.0.0","children":[]}` on disk even after `insert_node`/`batch_design`. Re-opening the file LOSES ALL WORK. After each session, manually persist using `filesystem_write_file()` with `openpencil_batch_get()` output. See `reference/mcp-tool-index.md` for the workaround.
+> **⚠️ CRITICAL - FILE PERSISTENCE:** OpenPencil MCP tools operate **IN-MEMORY ONLY**. Changes are NOT written to disk. The `.op` file remains `{"version":"1.0.0","children":[]}` on disk even after `insert_node`/`batch_design`. Re-opening the file LOSES ALL WORK.
+>
+> **CLI `op save` is the simplest persistence method.** After each session, run: `op save <file.op>`. See `reference/cli-commands.md` line 45.
+>
+> **Fallback:** If CLI is unavailable, use `filesystem_write_file()` with `openpencil_batch_get()` output. See `reference/mcp-tool-index.md` lines 173-194.
 
 ---
 ## ⚠️ ROLE DETECTION (READ THIS FIRST)
@@ -47,6 +51,42 @@ openpencil-loop/
 ```
 
 ---
+## CLI Quick Reference
+
+> Full documentation: `reference/cli-commands.md`
+
+**Most-used commands**:
+- `op start` - Launch OpenPencil
+- `op design:refine` - Post-process design
+- `op export --format react` - Code export (NOT PNG - use MCP)
+- `op get` - Get current selection
+- `op page list` - List pages
+
+---
+## Multi-Provider Support (v0.7.2+)
+
+AI agent loops work with multiple providers:
+- **Fixed**: GLM/DeepSeek/Qwen/dashscope/StepFun tool-call translation
+- **Preset**: StepFun `step_plan/v1`
+- **Fallback**: Minimal-skills for resilience
+
+---
+## Mac CLI Discovery Troubleshooting
+
+If `op` not found, try login-shell probe:
+```bash
+$SHELL -ilc 'command -v op'
+```
+
+Managed shells may need expanded PATH:
+- nvm/fnm: `~/.npm-packages/bin`, nvm dirs
+- pnpm: `~/Library/pnpm`
+- bun: `~/.bun/bin`
+- mise/asdf: `~/.asdf/shims`, `~/.local/share/mise`
+- volta: `~/.volta/bin`
+- cargo: `~/.cargo/bin`
+
+---
 ## FILE INDEX
 
 | File | Purpose |
@@ -60,5 +100,7 @@ openpencil-loop/
 | `phases/generation/design-system.md` | Token format |
 | `knowledge/role-definitions.md` | Component semantic roles |
 | `reference/tool-decision-tree.md` | Tool selection guide |
+| `reference/cli-commands.md` | CLI command reference v0.7.2 |
+| `reference/mcp-tool-index.md` | MCP tool mappings |
 | `TEST-SPEC.md` | Regression tests |
 | `phases/observation-contract.md` | Standardized output format |

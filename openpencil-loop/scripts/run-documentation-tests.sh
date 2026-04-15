@@ -4,7 +4,7 @@
 
 set -e
 
-SKILL_PATH="/Users/nam.lethanh/Documents/code/wave/ai_skills/openpencil-loop"
+SKILL_PATH="."
 
 echo "=========================================="
 echo "OpenPencil Loop - Documentation Validation"

@@ -45,7 +45,7 @@ Return `artifacts` with:
 - `sectionIds`: Array of created section node IDs
 - `filePath`: Path to the `.op` file being worked on
 
-### File I/O Tools (open_document, export_nodes)
+### File I/O Tools (open_document, read_nodes)
 
 Return `artifacts` with:
 
@@ -166,7 +166,7 @@ Return `artifacts` with:
 | `openpencil_insert_node` | ✅ | ✅ | ✅ | ✅ | Artifacts include nodeId |
 | `openpencil_update_node` | ✅ | ✅ | ✅ | ✅ | Artifacts include nodeId |
 | `openpencil_delete_node` | ✅ | ✅ | ✅ | ✅ | Artifacts include nodeId |
-| `openpencil_export_nodes` | ✅ | ✅ | ✅ | ✅ | Artifacts include nodeCount and filePath |
+| `openpencil_read_nodes` | ✅ | ✅ | ✅ | ✅ | Artifacts include nodeCount and filePath |
 | `openpencil_batch_get` | ✅ | ✅ | ✅ | ✅ | Artifacts include nodeCount and pageIds |
 
 ---
