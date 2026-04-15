@@ -12,7 +12,7 @@
 | **CREATE PAGES** | Add pages to design.op | `openpencil_add_page()` |
 | **DISPATCH** | Send subagents to build each page | `task(category="quick", prompt="Read prompts/XX...")` |
 | **VERIFY** | Send reviewer to check work | `task(category="deep", prompt="Verify page [name] has content")` |
-| **SAVE** | Export and save after PASS verification | `openpencil_read_nodes()`, `filesystem_write_file()` |
+| **SAVE** | **ALWAYS: op save canvas/design.op** after PASS verification | `openpencil_read_nodes()`, `filesystem_write_file()` |
 
 ## What You NEVER Do
 
@@ -310,7 +310,38 @@ PHASE 4: SAVE AND ITERATE
   Can dispatch multiple content-building subagents in parallel for independent pages
 ```
 
-### ⚠️ pageId Verification After Page Creation
+### ⚠️ FINAL MANDATORY STEP: FILE PERSISTENCE
+
+**Before ending session or marking task complete:**
+
+```
+1. Reviewer returns PASS → Work verified
+   ↓
+2._EXPORT canvas to .op file (MANDATORY):
+   # Primary method: Use CLI
+   op save canvas/design.op
+   
+   # Fallback if CLI unavailable:
+   openpencil_batch_get({ readDepth: 5 })  # Get current state
+   filesystem_write_file({                  # Write to disk
+     path: "canvas/design.op",
+     content: JSON.stringify({ 
+       version: "1.0.0", 
+       children: nodes.nodes 
+     })
+   })
+   ↓
+3. Verify .op file exists with content
+   ↓
+4. Mark task complete
+```
+
+**Failure to persist causes TOTAL DATA LOSS on file re-open.**
+
+See `reference/cli-commands.md` line 28: "MCP tools have **no file persistence** — always run `op save <file.op>` after MCP changes!"
+See `reference/mcp-tool-index.md` lines 7-19: IN-MEMORY ONLY warning and workaround patterns.
+
+---
 
 **CRITICAL:** After creating each page with `openpencil_add_page()`, immediately verify:
 

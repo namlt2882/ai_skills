@@ -457,6 +457,199 @@ Wrapped:
 
 ---
 
+### delete_node Wrapper
+
+**P1 — High Priority**
+
+Raw tool output confirms deletion. The wrapper validates the node was removed and captures the deleted ID for undo capability.
+
+```
+Wrap logic:
+  1. Check response confirms deletion (deleted nodeId returned)
+  2. Add node ID to artifacts.deleted
+  3. If response is null or ambiguous → status FAIL
+  4. Note: delete_node only works for top-level nodes
+```
+
+**Raw → Wrapped Example:**
+
+Raw:
+```json
+{
+  "deleted": "node-42",
+  "name": "Card"
+}
+```
+
+Wrapped:
+```json
+{
+  "status": "OK",
+  "summary": "Deleted node 'Card' (node-42) — top-level deletion confirmed",
+  "next_actions": [
+    "If nested deletion needed: move child to root first, then delete",
+    "Verify deletion in canvas or proceed with next operation"
+  ],
+  "artifacts": {
+    "created": [],
+    "modified": [],
+    "deleted": ["node-42"]
+  }
+}
+```
+
+**Failure case:**
+```json
+{
+  "status": "FAIL",
+  "summary": "delete_node returned null — node may not exist or is not top-level",
+  "next_actions": [
+    "Verify nodeId exists in the document",
+    "Check if node is nested — move to root level first",
+    "Retry delete_node with corrected nodeId"
+  ],
+  "artifacts": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  }
+}
+```
+
+---
+
+### read_nodes Wrapper
+
+**P1 — High Priority**
+
+Raw tool output returns node data with depth control. The wrapper validates nodes were retrieved and summarizes the read operation.
+
+```
+Wrap logic:
+  1. Check response contains valid node array or single node
+  2. Count nodes retrieved
+  3. If nodeIds specified but none returned → status FAIL
+  4. Add retrieved node IDs to artifacts.created (read operations create in-memory representations)
+  5. Note depth level used in summary
+```
+
+**Raw → Wrapped Example:**
+
+Raw:
+```json
+{
+  "nodes": [
+    { "id": "node-a", "type": "frame", "name": "Card" },
+    { "id": "node-b", "type": "text", "name": "Title" }
+  ],
+  "depth": 2
+}
+```
+
+Wrapped:
+```json
+{
+  "status": "OK",
+  "summary": "Read 2 nodes at depth 2 — retrieved Card (node-a) and Title (node-b)",
+  "next_actions": [
+    "Proceed with update_node or other operations on retrieved nodes",
+    "If deeper view needed, call read_nodes with increased depth"
+  ],
+  "artifacts": {
+    "created": ["node-a", "node-b"],
+    "modified": [],
+    "deleted": []
+  }
+}
+```
+
+**Failure case:**
+```json
+{
+  "status": "FAIL",
+  "summary": "read_nodes returned 0 nodes — nodeIds may not exist or document is empty",
+  "next_actions": [
+    "Verify nodeIds are correct and exist in the document",
+    "Try batch_get with patterns to discover valid node IDs",
+    "Retry with corrected nodeIds or omit to read all top-level nodes"
+  ],
+  "artifacts": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  }
+}
+```
+
+---
+
+### batch_get Wrapper
+
+**P1 — High Priority**
+
+Raw tool output returns matched nodes with search metadata. The wrapper validates the search succeeded and summarizes matches.
+
+```
+Wrap logic:
+  1. Check response contains valid matches array
+  2. Count matches found
+  3. Collect all matched node IDs into artifacts.created
+  4. If no matches found → status OK (valid empty result) but note in summary
+  5. Include search parameters in summary for traceability
+```
+
+**Raw → Wrapped Example:**
+
+Raw:
+```json
+{
+  "matches": [
+    { "id": "node-a", "type": "frame", "name": "Card" },
+    { "id": "node-b", "type": "rectangle", "name": "Background" },
+    { "id": "node-c", "type": "text", "name": "Title" }
+  ],
+  "searchDepth": 3,
+  "totalMatches": 3
+}
+```
+
+Wrapped:
+```json
+{
+  "status": "OK",
+  "summary": "batch_get found 3 matches at depth 3 — Card, Background, Title",
+  "next_actions": [
+    "Use matched node IDs for subsequent operations",
+    "Call read_nodes with specific nodeIds for full node data"
+  ],
+  "artifacts": {
+    "created": ["node-a", "node-b", "node-c"],
+    "modified": [],
+    "deleted": []
+  }
+}
+```
+
+**Empty result case (still OK):**
+```json
+{
+  "status": "OK",
+  "summary": "batch_get found 0 matches — search patterns did not match any nodes",
+  "next_actions": [
+    "Verify search patterns are correct",
+    "Try broader patterns or different node types",
+    "Check if document has content"
+  ],
+  "artifacts": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  }
+}
+```
+
+---
+
 ## Usage Instructions
 
 ### In Orchestrator Workflows

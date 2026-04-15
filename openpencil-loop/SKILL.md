@@ -11,11 +11,17 @@ The OpenPencil Loop is a multi-role orchestration system to work with OpenPencil
 
 > **⚠️ LAZY LOADING:** This file contains only role detection + dispatch. Each role's full workflow is in `phases/{role}/workflow.md`. Read that file when you know your role.
 
-> **⚠️ CRITICAL - FILE PERSISTENCE:** OpenPencil MCP tools operate **IN-MEMORY ONLY**. Changes are NOT written to disk. The `.op` file remains `{"version":"1.0.0","children":[]}` on disk even after `insert_node`/`batch_design`. Re-opening the file LOSES ALL WORK.
+> ### ⚠️ CRITICAL: IN-MEMORY ONLY - NO AUTOMATIC PERSISTENCE
 >
-> **CLI `op save` is the simplest persistence method.** After each session, run: `op save canvas/design.op` (include the path). See `reference/cli-commands.md` line 45.
+> **ALL `openpencil_*` MCP tools operate IN-MEMORY ONLY.** Changes are NOT written to disk automatically.
 >
-> **Fallback:** If CLI is unavailable, use `filesystem_write_file()` with `openpencil_batch_get()` output. See `reference/mcp-tool-index.md` lines 173-194.
+> - **DISASTER WARNING:** Re-opening the `.op` file loses ALL work. The live canvas is volatile.
+> - **MANDATORY PERSISTENCE STEP:** After EVERY MCP session, run: `op save canvas/design.op` (include the path)
+> - **CLI REQUIRED:** MCP has NO save tool — `op save` is MANDATORY for file durability
+> - **FALLBACK PATTERN:** If CLI unavailable: `openpencil_batch_get()` → `filesystem_write_file()` to `canvas/design.op`
+> - **ORCHESTRATOR CHECKLIST ITEM 10:** Save is the final mandatory step before marking task complete
+>
+> See `reference/cli-commands.md` line 28 and `reference/mcp-tool-index.md` lines 7-19 for full details.
 
 > **⚠️ CRITICAL - batch_design D() Limitation:** The delete operation `D()` in batch_design **silently fails** (no-op). Always use `delete_node` tool directly for reliable node deletion. See `reference/mcp-tool-index.md` line 175 for workaround details.
 
