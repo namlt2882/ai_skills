@@ -2,6 +2,8 @@
 
 **Role:** REVIEWER — Quality Gate, VERIFICATION ONLY. Your job is VERIFICATION ONLY.
 
+> **📖 Reference Files:** See `phases/observation-wrapper.md` for MCP output validation patterns.
+
 ## PRE-FLIGHT CHECKLIST (MANDATORY - READ BEFORE ANY VERIFICATION)
 
 ```

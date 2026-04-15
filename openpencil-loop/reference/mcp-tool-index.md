@@ -175,7 +175,6 @@ openpencil_batch_design({
 | `D()` in batch_design silently no-ops | Use `delete_node` directly |
 | `delete_node` only works for top-level nodes | Move nested nodes to root first, then delete |
 | `pageId` may target wrong page for page 2+ | Operate on page 1 only, or recreate pages |
-| `copy_node` requires `sourceId` not `nodeId` | Use `sourceId` parameter |
 | `design_skeleton` creates equal-width sections | Use `update_node` to set explicit widths after |
 
 ---

@@ -2,6 +2,8 @@
 
 **Role:** SUBAGENT — Builder, HEAVY DESIGN WORK. Your job is to BUILD ONE PAGE.
 
+> **📖 Reference Files:** See `phases/observation-wrapper.md` for MCP output transformation templates.
+
 ## PRE-FLIGHT CHECKLIST (MANDATORY - READ BEFORE ANY WORK)
 
 ```
@@ -43,6 +45,16 @@
 4. **BUILD** using OpenPencil MCP tools
 5. **RETURN** results - do NOT save
 
+### ⚠️ Verify pageId Before Building
+
+Before any MCP operation on a page, confirm your pageId is correct:
+
+1. Read: `canvas/prompts/XX-prompt.md` → Get pageId from frontmatter
+2. Check: `openpencil_batch_get({ pageId, readDepth: 0 })` → Verify page exists
+3. If page not found or shows wrong content → STOP and report to orchestrator
+
+**Why:** pageId may target wrong page after page 2+ creation. Verification prevents building on unintended page.
+
 ## MCP Tools to Use
 
 ```
@@ -51,6 +63,8 @@ openpencil_design_skeleton({ canvasWidth: 1200, rootFrame: {...}, sections: [...
 openpencil_design_content({ sectionId: "...", children: [...], postProcess: true })
 openpencil_design_refine({ rootId: "..." })
 ```
+
+> **⚠️ WARNING:** The `D()` delete operation in batch_design silently fails. Use `delete_node` tool directly for any deletions.
 
 ## What You NEVER Do
 

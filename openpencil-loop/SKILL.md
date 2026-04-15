@@ -17,6 +17,8 @@ The OpenPencil Loop is a multi-role orchestration system to work with OpenPencil
 >
 > **Fallback:** If CLI is unavailable, use `filesystem_write_file()` with `openpencil_batch_get()` output. See `reference/mcp-tool-index.md` lines 173-194.
 
+> **⚠️ CRITICAL - batch_design D() Limitation:** The delete operation `D()` in batch_design **silently fails** (no-op). Always use `delete_node` tool directly for reliable node deletion. See `reference/mcp-tool-index.md` line 175 for workaround details.
+
 ---
 ## ⚠️ ROLE DETECTION (READ THIS FIRST)
 
@@ -125,6 +127,7 @@ Managed shells may need expanded PATH:
 | `phases/subagent/workflow.md` | Subagent workflow |
 | `phases/reviewer/workflow.md` | Reviewer workflow |
 | `phases/analyzer/workflow.md` | Analyzer workflow |
+| `phases/observation-wrapper.md` | MCP output transformation contract |
 | `phases/generation/design-system.md` | Token format |
 | `knowledge/role-definitions.md` | Component semantic roles |
 | `reference/tool-decision-tree.md` | Tool selection guide |

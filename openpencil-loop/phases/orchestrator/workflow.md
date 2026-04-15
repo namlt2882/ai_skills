@@ -2,6 +2,8 @@
 
 **Role:** ORCHESTRATOR — Coordinator, NOT a builder.
 
+> **📖 Reference:** See `phases/observation-wrapper.md` for MCP output transformation templates. Apply wrappers after each tool call.
+
 ## What You DO
 
 | Phase | Actions | Tools |
@@ -21,6 +23,8 @@
 ❌ Reading 50 source files       → Delegate to analyzer subagent
 ❌ Marking task done before VERIFIED → Must wait for reviewer PASS
 ```
+
+> **⚠️ CRITICAL:** Never use `D()` operation in batch_design for deletions — it silently no-ops. Use `delete_node` tool directly. Subagents must use `delete_node`, not `D()`.
 
 ## Quick Orchestrator Checklist
 
@@ -299,7 +303,33 @@ PHASE 4: SAVE AND ITERATE
   # filesystem_write_file() → save to design.op
 
   Repeat Phase 3 for each remaining page
-  Can dispatch multiple subagents in parallel for independent pages
+  # ⚠️ SAFETY: Only dispatch parallel subagents AFTER all pages are created
+  # Concurrent page creation causes race conditions (see line 360-377)
+  # Subagents build content ONLY — orchestrator creates all pages first
+  # Content-building subagents CAN run in parallel (pages already exist)
+  Can dispatch multiple content-building subagents in parallel for independent pages
+```
+
+### ⚠️ pageId Verification After Page Creation
+
+**CRITICAL:** After creating each page with `openpencil_add_page()`, immediately verify:
+
+1. Get page list: `openpencil_batch_get({ readDepth: 0 })`
+2. Count pages and confirm new page at expected index
+3. If pageId seems wrong, check page name matches
+4. Store verified pageId in prompt file
+
+**Why:** MCP tools may return incorrect pageId for pages 2+. Verification prevents operations on wrong page.
+
+**Pattern:**
+```javascript
+// After add_page
+const pageId = openpencil_add_page({ name: "Dashboard" })
+
+// VERIFY immediately
+const pages = openpencil_batch_get({ readDepth: 0 })
+// Check: pages.length === expected, pages[N].name === "Dashboard"
+// If mismatch → investigate before dispatching subagent
 ```
 
 ## Prompt File Format
